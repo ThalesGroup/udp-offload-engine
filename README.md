@@ -1,46 +1,75 @@
-# Thales Open Source Template Project
+# udp-offload-engine
 
-Template for creating a new project in the [Thales GitHub organization](https://github.com/ThalesGroup). 
-
-Each Thales OSS project repository **MUST** contain the following files at the root:
-
-- a `LICENSE` which has been chosen in accordance with legal department depending on your needs 
-
-- a `README.md` outlining the project goals, sponsoring sig, and community contact information, [GitHub tips about README.md](https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/about-readmes)
-
-- a `CONTRIBUTING.md` outlining how to contribute to the project, how to submit a pull request and an issue
-
-- a `SECURITY.md` outlining how the security concerns are handled, [GitHub tips about SECURITY.md](https://docs.github.com/en/github/managing-security-vulnerabilities/adding-a-security-policy-to-your-repository)
-
-Below is an example of the common structure and information expected in a README.
-
-**Please keep this structure as is and only fill the content for each section according to your project.**
-
-If you need assistance or have question, please contact oss@thalesgroup.com 
-
-
+This repository is actually in construction
 
 ## Get started
 
-XXX project purpose it to ...
+The UDP Offload Engine is an IP VHDL used for FPGA hardware programming.
 
-**Please also add the description into the About section (Description field)**
+This IP is an UDP-IP stack accelerator and is able to send and receive data through Ethernet link.
+This stack is highly configurable to be used with Ethernet rates up to 40Gb/s thanks to its configurable bus size.
+Moreover it is modular. It implements different protocols and integrated testing tools that can be deactivated in order to save resources.
+
+This IP is based on Building Blocks following the Thales Strategy in engineering. They perform basic functions and allow to be independent from the platform/target.
+No manufacturer primitive are used on this design, all are inferred.
 
 ## Documentation
 
-Documentation is available at [xxx/docs](https://xxx/docs/).
+![uoe](https://github.com/ThalesGroup/udp-offload-engine/blob/master/docs/UOE_functinnal_scheme.png)
 
-You can use [GitHub pages](https://guides.github.com/features/pages/) to create your documentation.
+This figure describe the internal architecture of the IP which can be decomposed as follow :
 
-See an example here : https://github.com/ThalesGroup/ThalesGroup.github.io
+* Functionnal part
 
-**Please also add the documentation URL into the About section (Website field)**
+  * Link layer : Lower layer of the IP, it allows the connection with the MAC layer. It handle the Ethernet protocol, directs incoming packets and can filter them.
+  * Internet layer : It is the intermediate layer which handle the IPv4 Protocol and a part of ICMP Protocol (Ping)
+  * Transport layer : This layer is dedicated to the UDP protocol
+  
+* Built-In-Test part (Optional)
 
+  * On the main interfaces of the stack (MAC and UDP), two LoopBack fifos have been implemented
+  * On the UDP Side, a generator/checker has been integrated for debugging.
+
+Full documentation of the stack will be coming soon...
+
+## Key points
+
+* Configurable bus size
+
+* Handle the following protocols
+
+  * User Datagram Protocol (UDP)
+  * Internet Protocol version 4 (IPv4)
+    * Fragmentation support
+    
+* Address Resolution Protocol (ARP)
+
+  * Handle of ARP Table
+  * IP/MAC address conflict detection
+
+* Internet Control Message Procotol (ICMP)
+
+  * Echo Request/Reply (PING) (Coming soon...)
+  
+* Take into account buffers on the MAC interface and clock domain crossing
+
+* Filtering option for incoming traffic
+
+* Use of standard bus
+
+  * Data link in AXI4-Stream 
+  * Control link in AXI4-Lite 32 bits
+  
+## Design example
+
+This repo integrate the following design example :
+
+* AMD-Xilinx FPGA: on KCU105 EvalBoard
+  
 ## Contributing
 
-If you are interested in contributing to the XXX project, start by reading the [Contributing guide](/CONTRIBUTING.md).
+If you are interested in contributing to this project, start by reading the [Contributing guide](/CONTRIBUTING.md).
 
 ## License
 
-The chosen license in accordance with legal department must be defined into an explicit [LICENSE](https://github.com/ThalesGroup/template-project/blob/master/LICENSE) file at the root of the repository
-You can also link this file in this README section.
+* [Apache License, Version 2.0](https://github.com/ThalesGroup/udp-offload-engine/blob/master/LICENSE) 

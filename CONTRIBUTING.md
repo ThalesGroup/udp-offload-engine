@@ -1,29 +1,14 @@
-Describe in this file 
-- team organization, roles, communication 
-- the rules to be respected by your future contributors
-
 # Contributing guidelines
 
-## Team organization
+## Filing issues
 
-### Roles
+File issues using the standard Github issue tracker for the repo.
 
-## How to become a contributor
+## How to become a contributor and submit your own code
 
-### Contributor License Agreements
+### Contributing A Patch
 
-### Contributing code
-
-## Pull Request Checklist
-
-### License
-
-### Coding style
-
-### Testing
-
-#### Running sanity check
-
-#### Running unit tests
-
-### Issues management
+* Submit an issue describing your proposed change to the repo in question.
+* The repo owner will respond to your issue promptly.
+* If your proposed change is accepted, fork the desired repo, develop and test your code changes.
+* Submit a pull request.
