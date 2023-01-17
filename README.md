@@ -15,7 +15,7 @@ No manufacturer primitive are used on this design, all are inferred.
 
 ## Documentation
 
-![uoe](https://github.com/ThalesGroup/udp-offload-engine/blob/master/docs/UOE_functinnal_scheme.png)
+![uoe](https://github.com/ThalesGroup/udp-offload-engine/blob/master/docs/schematics/UOE_functinnal_scheme.png)
 
 This figure describe the internal architecture of the IP which can be decomposed as follow :
 
