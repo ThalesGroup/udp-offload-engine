@@ -1,6 +1,6 @@
 # udp-offload-engine
 
-This repository is actually in construction
+![logo](https://github.com/ThalesGroup/udp-offload-engine/blob/master/docs/logo/uoe_300x206.png)
 
 ## Get started
 
@@ -13,13 +13,27 @@ Moreover it is modular. It implements different protocols and integrated testing
 This IP is based on Building Blocks following the Thales Strategy in engineering. They perform basic functions and allow to be independent from the platform/target.
 No manufacturer primitive are used on this design, all are inferred.
 
+*******
+Tables of contents  
+ 1. [Documentation](#documentation)
+ 2. [Key points](#keypoints)
+ 3. [Performances](#performances)
+ 4. [Design example](#designexample)
+ 5. [Roadmap](#roadmap)
+ 6. [Contributing](#contributing)
+ 7. [License](#license)
+ 
+*******
+
+<div id='documentation'/> 
+
 ## Documentation
 
 ![uoe](https://github.com/ThalesGroup/udp-offload-engine/blob/master/docs/schematics/UOE_functinnal_scheme.png)
 
 This figure describe the internal architecture of the IP which can be decomposed as follow :
 
-* Functionnal part
+* Functional part
 
   * Link layer : Lower layer of the IP, it allows the connection with the MAC layer. It handle the Ethernet protocol, directs incoming packets and can filter them.
   * Internet layer : It is the intermediate layer which handle the IPv4 Protocol and a part of ICMP Protocol (Ping)
@@ -30,7 +44,9 @@ This figure describe the internal architecture of the IP which can be decomposed
   * On the main interfaces of the stack (MAC and UDP), two LoopBack fifos have been implemented
   * On the UDP Side, a generator/checker has been integrated for debugging.
 
-Full documentation of the stack will be coming soon...
+The Full documentation of the stack is available on the [architecture guide](/docs/architecture.md).
+
+<div id='keypoints'/> 
 
 ## Key points
 
@@ -60,15 +76,33 @@ Full documentation of the stack will be coming soon...
   * Data link in AXI4-Stream 
   * Control link in AXI4-Lite 32 bits
   
+<div id='performances'/> 
+  
+## Performances
+
+The design has been synthesized and implemented with different generics parameters and for several target in out of context. Result are available on the [Performance page](/docs/performances.md).
+  
+<div id='designexample'/>
+
 ## Design example
 
 This repo integrate the following design example :
 
 * AMD-Xilinx FPGA: on KCU105 EvalBoard
   
+<div id='roadmap'/>
+
+## Roadmap
+
+Coming soon ...
+
+<div id='contributing'/>
+
 ## Contributing
 
-If you are interested in contributing to this project, start by reading the [Contributing guide](/CONTRIBUTING.md).
+If you are interested in contributing to this project, start by reading the [Contributing guidelines](/CONTRIBUTING.md).
+
+<div id='license'/>
 
 ## License
 
