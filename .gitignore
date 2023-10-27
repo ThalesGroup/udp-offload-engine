@@ -1,0 +1,7 @@
+/tests/.venv
+/tests/.vscode
+/tests/*/modelsim.ini
+/tests/*/workspace/
+/tests/*/__pycache__/
+!/tests/lib/modelsim.ini
+/tests/projet_uoe_opensource.egg-info

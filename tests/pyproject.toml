@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[project]
+name = "projet_uoe_opensource"
+version = "0.0.0"
+description = "my description"
+requires-python = ">=3.9"
+dependencies = ["cocotb==1.7.2","cocotbext-axi==0.1.24"]
