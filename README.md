@@ -1,6 +1,6 @@
 # udp-offload-engine
 
-![logo](https://github.com/ThalesGroup/udp-offload-engine/blob/master/docs/logo/uoe_300x206.png)
+![logo](docs/logo/uoe_300x206.png)
 
 ## Get started
 
@@ -29,9 +29,11 @@ Tables of contents
 
 ## Documentation
 
-![uoe](https://github.com/ThalesGroup/udp-offload-engine/blob/master/docs/schematics/UOE_functinnal_scheme.png)
+![uoe](docs/schematics/UOE_functional_scheme.png)
 
-This figure describe the internal architecture of the IP which can be decomposed as follow :
+This figure describe the internal architecture of the IP. 
+The main entity is the module **_uoe_core_**. 
+It was encapsulated in a top wrapper **_top_uoe_** which additionally instantiate some integrated tests functions.
 
 * Functional part
 
@@ -43,8 +45,8 @@ This figure describe the internal architecture of the IP which can be decomposed
 
   * On the main interfaces of the stack (MAC and UDP), two LoopBack fifos have been implemented
   * On the UDP Side, a generator/checker has been integrated for debugging.
-
-The Full documentation of the stack is available on the [architecture guide](/docs/architecture.md).
+  
+The Full documentation of the stack is available on the [architecture guide](docs/architecture.md).
 
 <div id='keypoints'/> 
 
@@ -80,7 +82,7 @@ The Full documentation of the stack is available on the [architecture guide](/do
   
 ## Performances
 
-The design has been synthesized and implemented with different generics parameters and for several target in out of context. Result are available on the [Performance page](/docs/performances.md).
+The design has been synthesized and implemented with different generics parameters and for several target in out of context. Result are available on the [Performance page](docs/performances.md).
   
 <div id='designexample'/>
 
@@ -106,4 +108,4 @@ If you are interested in contributing to this project, start by reading the [Con
 
 ## License
 
-* [Apache License, Version 2.0](https://github.com/ThalesGroup/udp-offload-engine/blob/master/LICENSE) 
+* [Apache License, Version 2.0](LICENSE) 
