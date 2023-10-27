@@ -1,0 +1,14 @@
+VHDL_LIB_ORDER += common
+VHDL_SOURCES_common += $(PWD)/../../src/common/cdc_utils_pkg.vhd
+VHDL_SOURCES_common += $(PWD)/../../src/common/datatest_tools_pkg.vhd
+VHDL_SOURCES_common += $(PWD)/../../src/common/dev_utils_pkg.vhd
+VHDL_SOURCES_common += $(PWD)/../../src/common/memory_utils_pkg.vhd
+VHDL_SOURCES_common += $(PWD)/../../src/common/axis_utils_pkg.vhd
+VHDL_SOURCES_common += $(PWD)/../../src/common/datatest_tools_pkg.vhd
+VHDL_SOURCES_common += $(PWD)/../../src/common/dev_utils_2008_pkg.vhd
+VHDL_SOURCES_common += $(PWD)/../../src/common/memory_utils_pkg.vhd
+VHDL_SOURCES_common += $(PWD)/../../src/common/axi4lite_utils_pkg.vhd
+VHDL_SOURCES_common += $(PWD)/../../src/common/axis_utils_pkg.vhd
+VHDL_SOURCES_common += $(PWD)/../../src/common/axi4lite_utils_pkg.vhd
+VHDL_SOURCES_common += $(PWD)/../../src/common/prbs_pkg.vhd
+VHDL_SOURCES_common += $(PWD)/../../src/common/*.vhd

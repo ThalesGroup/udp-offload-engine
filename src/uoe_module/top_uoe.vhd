@@ -537,11 +537,11 @@ begin
       );
     end component uoe_integrated_tests_mac;
 
-    component uoe_integrated_tests_udp is
+    component uoe_integrated_tests_udp
       generic(
         G_ACTIVE_RST      : std_logic := '0';
         G_ASYNC_RST       : boolean   := false;
-        G_TDATA_WIDTH     : integer   := 64;
+        G_TDATA_WIDTH     : positive  := 64;
         G_FIFO_ADDR_WIDTH : positive  := 8
       );
       port(
@@ -572,33 +572,33 @@ begin
         M_CORE_TX_TUSER       : out std_logic_vector(79 downto 0);
         M_CORE_TX_TREADY      : in  std_logic;
         LOOPBACK_EN           : in  std_logic;
-        GEN_START_P           : in  std_logic;
-        GEN_STOP_P            : in  std_logic;
-        CHK_START_P           : in  std_logic;
-        CHK_STOP_P            : in  std_logic;
-        GEN_FRAME_SIZE_TYPE   : in  std_logic;
-        GEN_FRAME_SIZE_STATIC : in  std_logic_vector(15 downto 0);
-        GEN_RATE_LIMITATION   : in  std_logic_vector(7 downto 0);
-        GEN_NB_BYTES          : in  std_logic_vector(63 downto 0);
-        CHK_FRAME_SIZE_TYPE   : in  std_logic;
-        CHK_FRAME_SIZE_STATIC : in  std_logic_vector(15 downto 0);
-        CHK_RATE_LIMITATION   : in  std_logic_vector(7 downto 0);
-        CHK_NB_BYTES          : in  std_logic_vector(63 downto 0);
         LB_GEN_DEST_PORT      : in  std_logic_vector(15 downto 0);
         LB_GEN_SRC_PORT       : in  std_logic_vector(15 downto 0);
         LB_GEN_DEST_IP_ADDR   : in  std_logic_vector(31 downto 0);
         CHK_LISTENING_PORT    : in  std_logic_vector(15 downto 0);
-        GEN_TEST_DURATION     : out std_logic_vector(63 downto 0);
+        GEN_ENABLE            : in  std_logic;
+        GEN_NB_FRAME          : in  std_logic_vector(15 downto 0);
+        GEN_FRAME_SIZE_TYPE   : in  std_logic;
+        GEN_FRAME_SIZE_STATIC : in  std_logic_vector(15 downto 0);
         GEN_DONE              : out std_logic;
-        GEN_ERR_TIMEOUT       : out std_logic;
-        CHK_TEST_DURATION     : out std_logic_vector(63 downto 0);
+        GEN_MON_TIMEOUT_VALUE : in  std_logic_vector(15 downto 0);
+        GEN_MON_ERROR         : out std_logic_vector(6 downto 0);
+        GEN_RATE_NB_TRANSFERS : in  std_logic_vector(7 downto 0);
+        GEN_RATE_WINDOW_SIZE  : in  std_logic_vector(7 downto 0);
+        GEN_TEST_DURATION     : out std_logic_vector(63 downto 0);
+        CHK_ENABLE            : in  std_logic;
+        CHK_NB_FRAME          : in  std_logic_vector(15 downto 0);
+        CHK_FRAME_SIZE_TYPE   : in  std_logic;
+        CHK_FRAME_SIZE_STATIC : in  std_logic_vector(15 downto 0);
         CHK_DONE              : out std_logic;
-        CHK_ERR_DATA          : out std_logic;
-        CHK_ERR_TIMEOUT       : out std_logic
+        CHK_ERROR             : out std_logic_vector(2 downto 0);
+        CHK_MON_TIMEOUT_VALUE : in  std_logic_vector(15 downto 0);
+        CHK_MON_ERROR         : out std_logic_vector(6 downto 0);
+        CHK_TEST_DURATION     : out std_logic_vector(63 downto 0)
       );
     end component uoe_integrated_tests_udp;
 
-    component test_uoe_registers_itf is
+    component test_uoe_registers_itf
       port(
         S_AXI_ACLK                   : in  std_logic;
         S_AXI_ARESET                 : in  std_logic;
@@ -631,24 +631,22 @@ begin
         RX_RM_CNT_BYTES_MSB          : in  std_logic_vector(31 downto 0);
         RX_RM_CNT_CYCLES_LSB         : in  std_logic_vector(31 downto 0);
         RX_RM_CNT_CYCLES_MSB         : in  std_logic_vector(31 downto 0);
-        LOOPBACK_MAC_EN_IN           : in  std_logic;
-        LOOPBACK_UDP_EN_IN           : in  std_logic;
-        GEN_START_IN                 : in  std_logic;
-        GEN_STOP_IN                  : in  std_logic;
-        CHK_START_IN                 : in  std_logic;
-        CHK_STOP_IN                  : in  std_logic;
         TX_RM_INIT_COUNTER_IN        : in  std_logic;
         RX_RM_INIT_COUNTER_IN        : in  std_logic;
+        LOOPBACK_MAC_EN              : out std_logic;
+        LOOPBACK_UDP_EN              : out std_logic;
+        GEN_ENABLE                   : out std_logic;
         GEN_FRAME_SIZE_TYPE          : out std_logic;
-        GEN_FRAME_SIZE_STATIC        : out std_logic_vector(15 downto 0);
-        GEN_RATE_LIMITATION          : out std_logic_vector(7 downto 0);
-        GEN_NB_BYTES_LSB             : out std_logic_vector(31 downto 0);
-        GEN_NB_BYTES_MSB             : out std_logic_vector(31 downto 0);
+        CHK_ENABLE                   : out std_logic;
         CHK_FRAME_SIZE_TYPE          : out std_logic;
+        GEN_NB_FRAMES                : out std_logic_vector(15 downto 0);
+        GEN_FRAME_SIZE_STATIC        : out std_logic_vector(15 downto 0);
+        GEN_RATE_NB_TRANSFERS        : out std_logic_vector(7 downto 0);
+        GEN_RATE_WINDOW_SIZE         : out std_logic_vector(7 downto 0);
+        GEN_MON_TIMEOUT_VALUE        : out std_logic_vector(15 downto 0);
+        CHK_NB_FRAMES                : out std_logic_vector(15 downto 0);
         CHK_FRAME_SIZE_STATIC        : out std_logic_vector(15 downto 0);
-        CHK_RATE_LIMITATION          : out std_logic_vector(7 downto 0);
-        CHK_NB_BYTES_LSB             : out std_logic_vector(31 downto 0);
-        CHK_NB_BYTES_MSB             : out std_logic_vector(31 downto 0);
+        CHK_MON_TIMEOUT_VALUE        : out std_logic_vector(15 downto 0);
         LB_GEN_DEST_PORT             : out std_logic_vector(15 downto 0);
         LB_GEN_SRC_PORT              : out std_logic_vector(15 downto 0);
         LB_GEN_DEST_IP_ADDR          : out std_logic_vector(31 downto 0);
@@ -657,28 +655,33 @@ begin
         TX_RM_BYTES_EXPT_MSB         : out std_logic_vector(31 downto 0);
         RX_RM_BYTES_EXPT_LSB         : out std_logic_vector(31 downto 0);
         RX_RM_BYTES_EXPT_MSB         : out std_logic_vector(31 downto 0);
-        LOOPBACK_MAC_EN_OUT          : out std_logic;
-        LOOPBACK_UDP_EN_OUT          : out std_logic;
-        GEN_START_OUT                : out std_logic;
-        GEN_STOP_OUT                 : out std_logic;
-        CHK_START_OUT                : out std_logic;
-        CHK_STOP_OUT                 : out std_logic;
         TX_RM_INIT_COUNTER_OUT       : out std_logic;
         RX_RM_INIT_COUNTER_OUT       : out std_logic;
-        REG_GEN_CHK_CONTROL_WRITE    : out std_logic;
         REG_TX_RATE_METER_CTRL_WRITE : out std_logic;
         REG_RX_RATE_METER_CTRL_WRITE : out std_logic;
         IRQ_GEN_DONE                 : in  std_logic;
-        IRQ_GEN_ERR_TIMEOUT          : in  std_logic;
+        IRQ_GEN_MON_TIMEOUT_READY    : in  std_logic;
+        IRQ_GEN_MON_TIMEOUT_VALID    : in  std_logic;
+        IRQ_GEN_MON_VALID_ERROR      : in  std_logic;
+        IRQ_GEN_MON_DATA_ERROR       : in  std_logic;
+        IRQ_GEN_MON_LAST_ERROR       : in  std_logic;
+        IRQ_GEN_MON_USER_ERROR       : in  std_logic;
+        IRQ_GEN_MON_KEEP_ERROR       : in  std_logic;
         IRQ_CHK_DONE                 : in  std_logic;
-        IRQ_CHK_ERR_FRAME_SIZE       : in  std_logic;
         IRQ_CHK_ERR_DATA             : in  std_logic;
-        IRQ_CHK_ERR_TIMEOUT          : in  std_logic;
+        IRQ_CHK_ERR_SIZE             : in  std_logic;
+        IRQ_CHK_ERR_LAST             : in  std_logic;
+        IRQ_CHK_MON_TIMEOUT_READY    : in  std_logic;
+        IRQ_CHK_MON_TIMEOUT_VALID    : in  std_logic;
+        IRQ_CHK_MON_VALID_ERROR      : in  std_logic;
+        IRQ_CHK_MON_DATA_ERROR       : in  std_logic;
+        IRQ_CHK_MON_LAST_ERROR       : in  std_logic;
+        IRQ_CHK_MON_USER_ERROR       : in  std_logic;
+        IRQ_CHK_MON_KEEP_ERROR       : in  std_logic;
         IRQ_RATE_METER_TX_DONE       : in  std_logic;
         IRQ_RATE_METER_TX_OVERFLOW   : in  std_logic;
         IRQ_RATE_METER_RX_DONE       : in  std_logic;
         IRQ_RATE_METER_RX_OVERFLOW   : in  std_logic;
-        
         REG_INTERRUPT                : out std_logic
       );
     end component test_uoe_registers_itf;
@@ -697,46 +700,29 @@ begin
     signal reg_loopback_mac_en : std_logic;
     signal reg_loopback_udp_en : std_logic;
 
-    signal reg_gen_chk_control_p : std_logic;
-    signal reg_gen_start         : std_logic;
-    signal reg_gen_stop          : std_logic;
-    signal reg_chk_start         : std_logic;
-    signal reg_chk_stop          : std_logic;
-
-    signal reg_gen_start_p : std_logic;
-    signal reg_gen_stop_p  : std_logic;
-    signal reg_chk_start_p : std_logic;
-    signal reg_chk_stop_p  : std_logic;
-
-    --signal reg_gen_enable             : std_logic;
-    --signal reg_chk_enable             : std_logic;
-
-    --signal reg_gen_nb_frame           : std_logic_vector(31 downto 0);  -- Number of frame to generate. 0 => Infinite mode
-    signal reg_gen_frame_size_type   : std_logic; -- '0' => static size, '1' => dynamic size
-    signal reg_gen_frame_size_static : std_logic_vector(15 downto 0); -- Frame size in static mode
-    --signal reg_gen_timeout_value      : std_logic_vector(31 downto 0);    -- Timeout value
-    signal reg_gen_rate_limitation   : std_logic_vector(7 downto 0); -- Rate limitation => 0 to 2^8-1 --> 50% = 2^7-1
-    signal reg_gen_nb_bytes          : std_logic_vector(63 downto 0); -- Will be removed
-
-    signal st_gen_test_duration : std_logic_vector(63 downto 0);
-    --signal st_gen_test_nb_bytes       : std_logic_vector(63 downto 0);
-    signal st_gen_done          : std_logic;
-    signal st_gen_err_timeout   : std_logic;
-
-    --signal reg_chk_nb_frame           : std_logic_vector(31 downto 0);  -- Number of frame to generate. 0 => Infinite mode
-    signal reg_chk_frame_size_type   : std_logic; -- '0' => static size, '1' => dynamic size
-    signal reg_chk_frame_size_static : std_logic_vector(15 downto 0); -- Frame size in static mode
-    --signal reg_chk_timeout_value      : std_logic_vector(31 downto 0);    -- Timeout value
-    signal reg_chk_rate_limitation   : std_logic_vector(7 downto 0); -- Rate limitation => 0 to 2^8-1 --> 50% = 2^7-1
-    signal reg_chk_nb_bytes          : std_logic_vector(63 downto 0); -- Will be removed
-
-    signal st_chk_test_duration : std_logic_vector(63 downto 0);
-    --signal st_chk_test_nb_bytes       : std_logic_vector(63 downto 0);
-    signal st_chk_done          : std_logic;
-    --signal st_chk_err_frame_size      : std_logic;
-    signal st_chk_err_data      : std_logic;
-    signal st_chk_err_timeout   : std_logic;
-
+    signal reg_gen_enable             : std_logic;
+    signal reg_gen_nb_frame           : std_logic_vector(15 downto 0);
+    signal reg_gen_frame_size_type    : std_logic;
+    signal reg_gen_frame_size_static  : std_logic_vector(15 downto 0);
+    signal reg_gen_mon_timeout_value  : std_logic_vector(15 downto 0);
+    signal reg_gen_rate_nb_transfers  : std_logic_vector(7 downto 0);
+    signal reg_gen_rate_window_size   : std_logic_vector(7 downto 0);
+    
+    signal st_gen_done                : std_logic;
+    signal st_gen_mon_error           : std_logic_vector(6 downto 0);
+    signal st_gen_test_duration       : std_logic_vector(63 downto 0);
+    
+    signal reg_chk_enable             : std_logic;
+    signal reg_chk_nb_frame           : std_logic_vector(15 downto 0);
+    signal reg_chk_frame_size_type    : std_logic;
+    signal reg_chk_frame_size_static  : std_logic_vector(15 downto 0);
+    signal reg_chk_mon_timeout_value  : std_logic_vector(15 downto 0);
+    
+    signal st_chk_done                : std_logic;
+    signal st_chk_error               : std_logic_vector(2 downto 0);
+    signal st_chk_mon_error           : std_logic_vector(6 downto 0);
+    signal st_chk_test_duration       : std_logic_vector(63 downto 0);
+    
     signal reg_lb_gen_dest_port    : std_logic_vector(15 downto 0);
     signal reg_lb_gen_src_port     : std_logic_vector(15 downto 0);
     signal reg_lb_gen_dest_ip_addr : std_logic_vector(31 downto 0);
@@ -887,29 +873,29 @@ begin
         M_CORE_TX_TUSER       => axis_udp_tx_tuser,
         M_CORE_TX_TREADY      => axis_udp_tx_tready,
         LOOPBACK_EN           => reg_loopback_udp_en,
-        GEN_START_P           => reg_gen_start_p,
-        GEN_STOP_P            => reg_gen_stop_p,
-        CHK_START_P           => reg_chk_start_p,
-        CHK_STOP_P            => reg_chk_stop_p,
-        GEN_FRAME_SIZE_TYPE   => reg_gen_frame_size_type,
-        GEN_FRAME_SIZE_STATIC => reg_gen_frame_size_static,
-        GEN_RATE_LIMITATION   => reg_gen_rate_limitation,
-        GEN_NB_BYTES          => reg_gen_nb_bytes,
-        CHK_FRAME_SIZE_TYPE   => reg_chk_frame_size_type,
-        CHK_FRAME_SIZE_STATIC => reg_chk_frame_size_static,
-        CHK_RATE_LIMITATION   => reg_chk_rate_limitation,
-        CHK_NB_BYTES          => reg_chk_nb_bytes,
         LB_GEN_DEST_PORT      => reg_lb_gen_dest_port,
         LB_GEN_SRC_PORT       => reg_lb_gen_src_port,
         LB_GEN_DEST_IP_ADDR   => reg_lb_gen_dest_ip_addr,
         CHK_LISTENING_PORT    => reg_chk_listening_port,
-        GEN_TEST_DURATION     => st_gen_test_duration,
+        GEN_ENABLE            => reg_gen_enable,
+        GEN_NB_FRAME          => reg_gen_nb_frame,
+        GEN_FRAME_SIZE_TYPE   => reg_gen_frame_size_type,
+        GEN_FRAME_SIZE_STATIC => reg_gen_frame_size_static,
         GEN_DONE              => st_gen_done,
-        GEN_ERR_TIMEOUT       => st_gen_err_timeout,
-        CHK_TEST_DURATION     => st_chk_test_duration,
+        GEN_MON_TIMEOUT_VALUE => reg_gen_mon_timeout_value,
+        GEN_MON_ERROR         => st_gen_mon_error,
+        GEN_RATE_NB_TRANSFERS => reg_gen_rate_nb_transfers,
+        GEN_RATE_WINDOW_SIZE  => reg_gen_rate_window_size,
+        GEN_TEST_DURATION     => st_gen_test_duration,
+        CHK_ENABLE            => reg_chk_enable,
+        CHK_NB_FRAME          => reg_chk_nb_frame,
+        CHK_FRAME_SIZE_TYPE   => reg_chk_frame_size_type,
+        CHK_FRAME_SIZE_STATIC => reg_chk_frame_size_static,
         CHK_DONE              => st_chk_done,
-        CHK_ERR_DATA          => st_chk_err_data,
-        CHK_ERR_TIMEOUT       => st_chk_err_timeout
+        CHK_ERROR             => st_chk_error,
+        CHK_MON_TIMEOUT_VALUE => reg_chk_mon_timeout_value,
+        CHK_MON_ERROR         => st_chk_mon_error,
+        CHK_TEST_DURATION     => st_chk_test_duration
       );
 
     ------------------------------
@@ -948,24 +934,22 @@ begin
         RX_RM_CNT_BYTES_MSB          => st_rx_rate_meter_cnt_bytes(63 downto 32),
         RX_RM_CNT_CYCLES_LSB         => st_rx_rate_meter_cnt_cycles(31 downto 0),
         RX_RM_CNT_CYCLES_MSB         => st_rx_rate_meter_cnt_cycles(63 downto 32),
-        LOOPBACK_MAC_EN_IN           => reg_loopback_mac_en,
-        LOOPBACK_UDP_EN_IN           => reg_loopback_udp_en,
-        GEN_START_IN                 => '0',
-        GEN_STOP_IN                  => '0',
-        CHK_START_IN                 => '0',
-        CHK_STOP_IN                  => '0',
         TX_RM_INIT_COUNTER_IN        => reg_tx_rate_meter_init_counter,
         RX_RM_INIT_COUNTER_IN        => reg_rx_rate_meter_init_counter,
+        LOOPBACK_MAC_EN              => reg_loopback_mac_en,
+        LOOPBACK_UDP_EN              => reg_loopback_udp_en,
+        GEN_ENABLE                   => reg_gen_enable,
         GEN_FRAME_SIZE_TYPE          => reg_gen_frame_size_type,
-        GEN_FRAME_SIZE_STATIC        => reg_gen_frame_size_static,
-        GEN_RATE_LIMITATION          => reg_gen_rate_limitation,
-        GEN_NB_BYTES_LSB             => reg_gen_nb_bytes(31 downto 0),
-        GEN_NB_BYTES_MSB             => reg_gen_nb_bytes(63 downto 32),
+        CHK_ENABLE                   => reg_chk_enable,
         CHK_FRAME_SIZE_TYPE          => reg_chk_frame_size_type,
+        GEN_NB_FRAMES                => reg_gen_nb_frame,
+        GEN_FRAME_SIZE_STATIC        => reg_gen_frame_size_static,
+        GEN_RATE_NB_TRANSFERS        => reg_gen_rate_nb_transfers,
+        GEN_RATE_WINDOW_SIZE         => reg_gen_rate_window_size,
+        GEN_MON_TIMEOUT_VALUE        => reg_gen_mon_timeout_value,
+        CHK_NB_FRAMES                => reg_chk_nb_frame,
         CHK_FRAME_SIZE_STATIC        => reg_chk_frame_size_static,
-        CHK_RATE_LIMITATION          => reg_chk_rate_limitation,
-        CHK_NB_BYTES_LSB             => reg_chk_nb_bytes(31 downto 0),
-        CHK_NB_BYTES_MSB             => reg_chk_nb_bytes(63 downto 32),
+        CHK_MON_TIMEOUT_VALUE        => reg_chk_mon_timeout_value,
         LB_GEN_DEST_PORT             => reg_lb_gen_dest_port,
         LB_GEN_SRC_PORT              => reg_lb_gen_src_port,
         LB_GEN_DEST_IP_ADDR          => reg_lb_gen_dest_ip_addr,
@@ -974,35 +958,35 @@ begin
         TX_RM_BYTES_EXPT_MSB         => reg_tx_rate_meter_bytes_expected(63 downto 32),
         RX_RM_BYTES_EXPT_LSB         => reg_rx_rate_meter_bytes_expected(31 downto 0),
         RX_RM_BYTES_EXPT_MSB         => reg_rx_rate_meter_bytes_expected(63 downto 32),
-        LOOPBACK_MAC_EN_OUT          => reg_loopback_mac_en,
-        LOOPBACK_UDP_EN_OUT          => reg_loopback_udp_en,
-        GEN_START_OUT                => reg_gen_start,
-        GEN_STOP_OUT                 => reg_gen_stop,
-        CHK_START_OUT                => reg_chk_start,
-        CHK_STOP_OUT                 => reg_chk_stop,
         TX_RM_INIT_COUNTER_OUT       => reg_tx_rate_meter_init_counter,
         RX_RM_INIT_COUNTER_OUT       => reg_rx_rate_meter_init_counter,
-        REG_GEN_CHK_CONTROL_WRITE    => reg_gen_chk_control_p,
         REG_TX_RATE_METER_CTRL_WRITE => reg_tx_rate_meter_trigger_p,
         REG_RX_RATE_METER_CTRL_WRITE => reg_rx_rate_meter_trigger_p,
         IRQ_GEN_DONE                 => st_gen_done,
-        IRQ_GEN_ERR_TIMEOUT          => st_gen_err_timeout,
+        IRQ_GEN_MON_TIMEOUT_READY    => st_gen_mon_error(0),
+        IRQ_GEN_MON_TIMEOUT_VALID    => st_gen_mon_error(1),
+        IRQ_GEN_MON_VALID_ERROR      => st_gen_mon_error(2),
+        IRQ_GEN_MON_DATA_ERROR       => st_gen_mon_error(3),
+        IRQ_GEN_MON_LAST_ERROR       => st_gen_mon_error(4),
+        IRQ_GEN_MON_USER_ERROR       => st_gen_mon_error(5),
+        IRQ_GEN_MON_KEEP_ERROR       => st_gen_mon_error(6),
         IRQ_CHK_DONE                 => st_chk_done,
-        IRQ_CHK_ERR_FRAME_SIZE       => '0',
-        IRQ_CHK_ERR_DATA             => st_chk_err_data,
-        IRQ_CHK_ERR_TIMEOUT          => st_chk_err_timeout,
+        IRQ_CHK_ERR_DATA             => st_chk_error(0),
+        IRQ_CHK_ERR_SIZE             => st_chk_error(1),
+        IRQ_CHK_ERR_LAST             => st_chk_error(2),
+        IRQ_CHK_MON_TIMEOUT_READY    => st_chk_mon_error(0),
+        IRQ_CHK_MON_TIMEOUT_VALID    => st_chk_mon_error(1),
+        IRQ_CHK_MON_VALID_ERROR      => st_chk_mon_error(2),
+        IRQ_CHK_MON_DATA_ERROR       => st_chk_mon_error(3),
+        IRQ_CHK_MON_LAST_ERROR       => st_chk_mon_error(4),
+        IRQ_CHK_MON_USER_ERROR       => st_chk_mon_error(5),
+        IRQ_CHK_MON_KEEP_ERROR       => st_chk_mon_error(6),
         IRQ_RATE_METER_TX_DONE       => irq_tx_rate_meter_overflow,
         IRQ_RATE_METER_TX_OVERFLOW   => irq_tx_rate_meter_done,
         IRQ_RATE_METER_RX_DONE       => irq_rx_rate_meter_overflow,
         IRQ_RATE_METER_RX_OVERFLOW   => irq_rx_rate_meter_done,
         REG_INTERRUPT                => INTERRUPT(1)
       );
-
-    -- Generate pulse
-    reg_gen_start_p <= reg_gen_chk_control_p and reg_gen_start;
-    reg_gen_stop_p  <= reg_gen_chk_control_p and reg_gen_stop;
-    reg_chk_start_p <= reg_gen_chk_control_p and reg_chk_start;
-    reg_chk_stop_p  <= reg_gen_chk_control_p and reg_chk_stop;
 
   end generate GEN_TEST_ENV;
 

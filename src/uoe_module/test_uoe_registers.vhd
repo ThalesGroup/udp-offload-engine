@@ -55,7 +55,7 @@ entity test_uoe_registers is
     ----------------------
     -- Input data for registers
     ----------------------
-    -- RO Registers 
+    -- RO Registers
     GEN_TEST_DURATION_LSB                       : in  std_logic_vector(31 downto 0);                   -- Duration time to generate all data (LSB)
     GEN_TEST_DURATION_MSB                       : in  std_logic_vector(31 downto 0);                   -- Duration time to generate all data (MSB)
     CHK_TEST_DURATION_LSB                       : in  std_logic_vector(31 downto 0);                   -- Duration time to received all data (LSB)
@@ -68,43 +68,76 @@ entity test_uoe_registers is
     RX_RM_CNT_BYTES_MSB                         : in  std_logic_vector(31 downto 0);                   -- Value of the bytes counter registered when trigger is asserted (MSB)
     RX_RM_CNT_CYCLES_LSB                        : in  std_logic_vector(31 downto 0);                   -- Value of the clock counter registered when trigger is asserted (LSB)
     RX_RM_CNT_CYCLES_MSB                        : in  std_logic_vector(31 downto 0);                   -- Value of the clock counter registered when trigger is asserted (MSB)
-    -- WO Registers 
-    LOOPBACK_MAC_EN_IN                          : in  std_logic;                                       -- Enable Loopback on MAC interface
-    LOOPBACK_UDP_EN_IN                          : in  std_logic;                                       -- Enable Loopback on UDP interface
-    GEN_START_IN                                : in  std_logic;                                       -- Start the Axis Frame Checker
-    GEN_STOP_IN                                 : in  std_logic;                                       -- Start the Axis Frame Checker
-    CHK_START_IN                                : in  std_logic;                                       -- Start the Axis Frame Checker
-    CHK_STOP_IN                                 : in  std_logic;                                       -- Stop the Axis Frame Checker
+    -- WO Registers
     TX_RM_INIT_COUNTER_IN                       : in  std_logic;                                       -- Initialization of Rate meter counter (take into account when trigger is asserted)
     RX_RM_INIT_COUNTER_IN                       : in  std_logic;                                       -- Initialization of Rate meter counter (take into account when trigger is asserted)
-    -- Irq WO Registers 
+    -- Irq WO Registers
     IRQ_GEN_DONE_CLEAR_IN                       : in  std_logic;                                       -- End of frames generation
-    IRQ_GEN_ERR_TIMEOUT_CLEAR_IN                : in  std_logic;                                       -- Timeout reach during generation of frames
+    IRQ_GEN_MON_TIMEOUT_READY_CLEAR_IN          : in  std_logic;                                       -- Timeout reach waiting ready signal
+    IRQ_GEN_MON_TIMEOUT_VALID_CLEAR_IN          : in  std_logic;                                       -- Timeout reach waiting valid signal
+    IRQ_GEN_MON_VALID_ERROR_CLEAR_IN            : in  std_logic;                                       -- TVALID value changed during a transfer without handshake
+    IRQ_GEN_MON_DATA_ERROR_CLEAR_IN             : in  std_logic;                                       -- TDATA value changed during a transfer without handshake
+    IRQ_GEN_MON_LAST_ERROR_CLEAR_IN             : in  std_logic;                                       -- TLAST value changed during a transfer without handshake
+    IRQ_GEN_MON_USER_ERROR_CLEAR_IN             : in  std_logic;                                       -- TUSER value changed during a transfer without handshake
+    IRQ_GEN_MON_KEEP_ERROR_CLEAR_IN             : in  std_logic;                                       -- TKEEP value changed during a transfer without handshake
     IRQ_CHK_DONE_CLEAR_IN                       : in  std_logic;                                       -- End of frames verification
-    IRQ_CHK_ERR_FRAME_SIZE_CLEAR_IN             : in  std_logic;                                       -- Frame size error detection
     IRQ_CHK_ERR_DATA_CLEAR_IN                   : in  std_logic;                                       -- Data error detection
-    IRQ_CHK_ERR_TIMEOUT_CLEAR_IN                : in  std_logic;                                       -- Timeout reach during checking of frames
+    IRQ_CHK_ERR_SIZE_CLEAR_IN                   : in  std_logic;                                       -- Frame size error detection
+    IRQ_CHK_ERR_LAST_CLEAR_IN                   : in  std_logic;                                       -- last error detection
+    IRQ_CHK_MON_TIMEOUT_READY_CLEAR_IN          : in  std_logic;                                       -- Timeout reach waiting ready signal
+    IRQ_CHK_MON_TIMEOUT_VALID_CLEAR_IN          : in  std_logic;                                       -- Timeout reach waiting valid signal
+    IRQ_CHK_MON_VALID_ERROR_CLEAR_IN            : in  std_logic;                                       -- TVALID value changed during a transfer without handshake
+    IRQ_CHK_MON_DATA_ERROR_CLEAR_IN             : in  std_logic;                                       -- TDATA value changed during a transfer without handshake
+    IRQ_CHK_MON_LAST_ERROR_CLEAR_IN             : in  std_logic;                                       -- TLAST value changed during a transfer without handshake
+    IRQ_CHK_MON_USER_ERROR_CLEAR_IN             : in  std_logic;                                       -- TUSER value changed during a transfer without handshake
+    IRQ_CHK_MON_KEEP_ERROR_CLEAR_IN             : in  std_logic;                                       -- TKEEP value changed during a transfer without handshake
     IRQ_RATE_METER_TX_DONE_CLEAR_IN             : in  std_logic;                                       -- End of measurement
     IRQ_RATE_METER_TX_OVERFLOW_CLEAR_IN         : in  std_logic;                                       -- Counter reach the maximum size of the counter
     IRQ_RATE_METER_RX_DONE_CLEAR_IN             : in  std_logic;                                       -- End of measurement
     IRQ_RATE_METER_RX_OVERFLOW_CLEAR_IN         : in  std_logic;                                       -- Counter reach the maximum size of the counter
     IRQ_GEN_DONE_SET_IN                         : in  std_logic;                                       -- End of frames generation
-    IRQ_GEN_ERR_TIMEOUT_SET_IN                  : in  std_logic;                                       -- Timeout reach during generation of frames
+    IRQ_GEN_MON_TIMEOUT_READY_SET_IN            : in  std_logic;                                       -- Timeout reach waiting ready signal
+    IRQ_GEN_MON_TIMEOUT_VALID_SET_IN            : in  std_logic;                                       -- Timeout reach waiting valid signal
+    IRQ_GEN_MON_VALID_ERROR_SET_IN              : in  std_logic;                                       -- TVALID value changed during a transfer without handshake
+    IRQ_GEN_MON_DATA_ERROR_SET_IN               : in  std_logic;                                       -- TDATA value changed during a transfer without handshake
+    IRQ_GEN_MON_LAST_ERROR_SET_IN               : in  std_logic;                                       -- TLAST value changed during a transfer without handshake
+    IRQ_GEN_MON_USER_ERROR_SET_IN               : in  std_logic;                                       -- TUSER value changed during a transfer without handshake
+    IRQ_GEN_MON_KEEP_ERROR_SET_IN               : in  std_logic;                                       -- TKEEP value changed during a transfer without handshake
     IRQ_CHK_DONE_SET_IN                         : in  std_logic;                                       -- End of frames verification
-    IRQ_CHK_ERR_FRAME_SIZE_SET_IN               : in  std_logic;                                       -- Frame size error detection
     IRQ_CHK_ERR_DATA_SET_IN                     : in  std_logic;                                       -- Data error detection
-    IRQ_CHK_ERR_TIMEOUT_SET_IN                  : in  std_logic;                                       -- Timeout reach during checking of frames
+    IRQ_CHK_ERR_SIZE_SET_IN                     : in  std_logic;                                       -- Frame size error detection
+    IRQ_CHK_ERR_LAST_SET_IN                     : in  std_logic;                                       -- last error detection
+    IRQ_CHK_MON_TIMEOUT_READY_SET_IN            : in  std_logic;                                       -- Timeout reach waiting ready signal
+    IRQ_CHK_MON_TIMEOUT_VALID_SET_IN            : in  std_logic;                                       -- Timeout reach waiting valid signal
+    IRQ_CHK_MON_VALID_ERROR_SET_IN              : in  std_logic;                                       -- TVALID value changed during a transfer without handshake
+    IRQ_CHK_MON_DATA_ERROR_SET_IN               : in  std_logic;                                       -- TDATA value changed during a transfer without handshake
+    IRQ_CHK_MON_LAST_ERROR_SET_IN               : in  std_logic;                                       -- TLAST value changed during a transfer without handshake
+    IRQ_CHK_MON_USER_ERROR_SET_IN               : in  std_logic;                                       -- TUSER value changed during a transfer without handshake
+    IRQ_CHK_MON_KEEP_ERROR_SET_IN               : in  std_logic;                                       -- TKEEP value changed during a transfer without handshake
     IRQ_RATE_METER_TX_DONE_SET_IN               : in  std_logic;                                       -- End of measurement
     IRQ_RATE_METER_TX_OVERFLOW_SET_IN           : in  std_logic;                                       -- Counter reach the maximum size of the counter
     IRQ_RATE_METER_RX_DONE_SET_IN               : in  std_logic;                                       -- End of measurement
     IRQ_RATE_METER_RX_OVERFLOW_SET_IN           : in  std_logic;                                       -- Counter reach the maximum size of the counter
-    -- Irq RO Registers 
+    -- Irq RO Registers
     IRQ_GEN_DONE_STATUS                         : in  std_logic;                                       -- End of frames generation
-    IRQ_GEN_ERR_TIMEOUT_STATUS                  : in  std_logic;                                       -- Timeout reach during generation of frames
+    IRQ_GEN_MON_TIMEOUT_READY_STATUS            : in  std_logic;                                       -- Timeout reach waiting ready signal
+    IRQ_GEN_MON_TIMEOUT_VALID_STATUS            : in  std_logic;                                       -- Timeout reach waiting valid signal
+    IRQ_GEN_MON_VALID_ERROR_STATUS              : in  std_logic;                                       -- TVALID value changed during a transfer without handshake
+    IRQ_GEN_MON_DATA_ERROR_STATUS               : in  std_logic;                                       -- TDATA value changed during a transfer without handshake
+    IRQ_GEN_MON_LAST_ERROR_STATUS               : in  std_logic;                                       -- TLAST value changed during a transfer without handshake
+    IRQ_GEN_MON_USER_ERROR_STATUS               : in  std_logic;                                       -- TUSER value changed during a transfer without handshake
+    IRQ_GEN_MON_KEEP_ERROR_STATUS               : in  std_logic;                                       -- TKEEP value changed during a transfer without handshake
     IRQ_CHK_DONE_STATUS                         : in  std_logic;                                       -- End of frames verification
-    IRQ_CHK_ERR_FRAME_SIZE_STATUS               : in  std_logic;                                       -- Frame size error detection
     IRQ_CHK_ERR_DATA_STATUS                     : in  std_logic;                                       -- Data error detection
-    IRQ_CHK_ERR_TIMEOUT_STATUS                  : in  std_logic;                                       -- Timeout reach during checking of frames
+    IRQ_CHK_ERR_SIZE_STATUS                     : in  std_logic;                                       -- Frame size error detection
+    IRQ_CHK_ERR_LAST_STATUS                     : in  std_logic;                                       -- last error detection
+    IRQ_CHK_MON_TIMEOUT_READY_STATUS            : in  std_logic;                                       -- Timeout reach waiting ready signal
+    IRQ_CHK_MON_TIMEOUT_VALID_STATUS            : in  std_logic;                                       -- Timeout reach waiting valid signal
+    IRQ_CHK_MON_VALID_ERROR_STATUS              : in  std_logic;                                       -- TVALID value changed during a transfer without handshake
+    IRQ_CHK_MON_DATA_ERROR_STATUS               : in  std_logic;                                       -- TDATA value changed during a transfer without handshake
+    IRQ_CHK_MON_LAST_ERROR_STATUS               : in  std_logic;                                       -- TLAST value changed during a transfer without handshake
+    IRQ_CHK_MON_USER_ERROR_STATUS               : in  std_logic;                                       -- TUSER value changed during a transfer without handshake
+    IRQ_CHK_MON_KEEP_ERROR_STATUS               : in  std_logic;                                       -- TKEEP value changed during a transfer without handshake
     IRQ_RATE_METER_TX_DONE_STATUS               : in  std_logic;                                       -- End of measurement
     IRQ_RATE_METER_TX_OVERFLOW_STATUS           : in  std_logic;                                       -- Counter reach the maximum size of the counter
     IRQ_RATE_METER_RX_DONE_STATUS               : in  std_logic;                                       -- End of measurement
@@ -113,17 +146,21 @@ entity test_uoe_registers is
     ----------------------
     -- Registers output data
     ----------------------
-    -- RW Registers 
-    GEN_FRAME_SIZE_TYPE                         : out std_logic;                                       -- Frame size type : '0' => static, '1' => dynamic
+    -- RW Registers
+    LOOPBACK_MAC_EN                             : out std_logic;                                       -- Enable Loopback on MAC interface
+    LOOPBACK_UDP_EN                             : out std_logic;                                       -- Enable Loopback on UDP interface
+    GEN_ENABLE                                  : out std_logic;                                       -- Generator Enable
+    GEN_FRAME_SIZE_TYPE                         : out std_logic;                                       -- Generator Frame size type ('0' : Static, '1' : Dynamic Pseudo Random)
+    CHK_ENABLE                                  : out std_logic;                                       -- Checker Enable
+    CHK_FRAME_SIZE_TYPE                         : out std_logic;                                       -- Checker Frame size type ('0' : Static, '1' : Dynamic Pseudo Random)
+    GEN_NB_FRAMES                               : out std_logic_vector(15 downto 0);                   -- Number of frames to generate (if 0, frames are generated endlessly)
     GEN_FRAME_SIZE_STATIC                       : out std_logic_vector(15 downto 0);                   -- Frame size used in static mode
-    GEN_RATE_LIMITATION                         : out std_logic_vector(7 downto 0);                    -- Rate limitation / Example : 50% = (2^7)-1
-    GEN_NB_BYTES_LSB                            : out std_logic_vector(31 downto 0);                   -- Number of bytes to generate (LSB)
-    GEN_NB_BYTES_MSB                            : out std_logic_vector(31 downto 0);                   -- Number of bytes to generate (MSB)
-    CHK_FRAME_SIZE_TYPE                         : out std_logic;                                       -- Frame size type : '0' => static, '1' => dynamic
+    GEN_RATE_NB_TRANSFERS                       : out std_logic_vector(7 downto 0);                    -- Number of transfers allow during a time window
+    GEN_RATE_WINDOW_SIZE                        : out std_logic_vector(7 downto 0);                    -- Size of the time window (Period)
+    GEN_MON_TIMEOUT_VALUE                       : out std_logic_vector(15 downto 0);                   -- Timeout value used for the axis monitoring
+    CHK_NB_FRAMES                               : out std_logic_vector(15 downto 0);                   -- Number of frames to generate (if 0, frames are generated endlessly)
     CHK_FRAME_SIZE_STATIC                       : out std_logic_vector(15 downto 0);                   -- Frame size used in static mode
-    CHK_RATE_LIMITATION                         : out std_logic_vector(7 downto 0);                    -- Rate limitation / Example : 50% = (2^7)-1
-    CHK_NB_BYTES_LSB                            : out std_logic_vector(31 downto 0);                   -- Number of bytes to check (LSB)
-    CHK_NB_BYTES_MSB                            : out std_logic_vector(31 downto 0);                   -- Number of bytes to check (MSB)
+    CHK_MON_TIMEOUT_VALUE                       : out std_logic_vector(15 downto 0);                   -- Timeout value used for the axis monitoring
     LB_GEN_DEST_PORT                            : out std_logic_vector(15 downto 0);                   -- Destination port use for generated frames and loopback
     LB_GEN_SRC_PORT                             : out std_logic_vector(15 downto 0);                   -- Source port use for generated frames and loopback
     LB_GEN_DEST_IP_ADDR                         : out std_logic_vector(31 downto 0);                   -- Destination IP Address use for generated frames and loopback
@@ -132,54 +169,86 @@ entity test_uoe_registers is
     TX_RM_BYTES_EXPT_MSB                        : out std_logic_vector(31 downto 0);                   -- Number of bytes expected during the measurment (MSB)
     RX_RM_BYTES_EXPT_LSB                        : out std_logic_vector(31 downto 0);                   -- Number of bytes expected during the measurment (LSB)
     RX_RM_BYTES_EXPT_MSB                        : out std_logic_vector(31 downto 0);                   -- Number of bytes expected during the measurment (MSB)
-    -- WO Registers 
-    LOOPBACK_MAC_EN_OUT                         : out std_logic;                                       -- Enable Loopback on MAC interface
-    LOOPBACK_UDP_EN_OUT                         : out std_logic;                                       -- Enable Loopback on UDP interface
-    GEN_START_OUT                               : out std_logic;                                       -- Start the Axis Frame Checker
-    GEN_STOP_OUT                                : out std_logic;                                       -- Start the Axis Frame Checker
-    CHK_START_OUT                               : out std_logic;                                       -- Start the Axis Frame Checker
-    CHK_STOP_OUT                                : out std_logic;                                       -- Stop the Axis Frame Checker
+    -- WO Registers
     TX_RM_INIT_COUNTER_OUT                      : out std_logic;                                       -- Initialization of Rate meter counter (take into account when trigger is asserted)
     RX_RM_INIT_COUNTER_OUT                      : out std_logic;                                       -- Initialization of Rate meter counter (take into account when trigger is asserted)
-    -- WO Pulses Registers 
-    REG_GEN_CHK_CONTROL_WRITE                   : out std_logic;
+    -- WO Pulses Registers
     REG_TX_RATE_METER_CTRL_WRITE                : out std_logic;
     REG_RX_RATE_METER_CTRL_WRITE                : out std_logic;
-    -- Irq RW Registers 
+    -- Irq RW Registers
     IRQ_GEN_DONE_ENABLE                         : out std_logic;                                       -- End of frames generation
-    IRQ_GEN_ERR_TIMEOUT_ENABLE                  : out std_logic;                                       -- Timeout reach during generation of frames
+    IRQ_GEN_MON_TIMEOUT_READY_ENABLE            : out std_logic;                                       -- Timeout reach waiting ready signal
+    IRQ_GEN_MON_TIMEOUT_VALID_ENABLE            : out std_logic;                                       -- Timeout reach waiting valid signal
+    IRQ_GEN_MON_VALID_ERROR_ENABLE              : out std_logic;                                       -- TVALID value changed during a transfer without handshake
+    IRQ_GEN_MON_DATA_ERROR_ENABLE               : out std_logic;                                       -- TDATA value changed during a transfer without handshake
+    IRQ_GEN_MON_LAST_ERROR_ENABLE               : out std_logic;                                       -- TLAST value changed during a transfer without handshake
+    IRQ_GEN_MON_USER_ERROR_ENABLE               : out std_logic;                                       -- TUSER value changed during a transfer without handshake
+    IRQ_GEN_MON_KEEP_ERROR_ENABLE               : out std_logic;                                       -- TKEEP value changed during a transfer without handshake
     IRQ_CHK_DONE_ENABLE                         : out std_logic;                                       -- End of frames verification
-    IRQ_CHK_ERR_FRAME_SIZE_ENABLE               : out std_logic;                                       -- Frame size error detection
     IRQ_CHK_ERR_DATA_ENABLE                     : out std_logic;                                       -- Data error detection
-    IRQ_CHK_ERR_TIMEOUT_ENABLE                  : out std_logic;                                       -- Timeout reach during checking of frames
+    IRQ_CHK_ERR_SIZE_ENABLE                     : out std_logic;                                       -- Frame size error detection
+    IRQ_CHK_ERR_LAST_ENABLE                     : out std_logic;                                       -- last error detection
+    IRQ_CHK_MON_TIMEOUT_READY_ENABLE            : out std_logic;                                       -- Timeout reach waiting ready signal
+    IRQ_CHK_MON_TIMEOUT_VALID_ENABLE            : out std_logic;                                       -- Timeout reach waiting valid signal
+    IRQ_CHK_MON_VALID_ERROR_ENABLE              : out std_logic;                                       -- TVALID value changed during a transfer without handshake
+    IRQ_CHK_MON_DATA_ERROR_ENABLE               : out std_logic;                                       -- TDATA value changed during a transfer without handshake
+    IRQ_CHK_MON_LAST_ERROR_ENABLE               : out std_logic;                                       -- TLAST value changed during a transfer without handshake
+    IRQ_CHK_MON_USER_ERROR_ENABLE               : out std_logic;                                       -- TUSER value changed during a transfer without handshake
+    IRQ_CHK_MON_KEEP_ERROR_ENABLE               : out std_logic;                                       -- TKEEP value changed during a transfer without handshake
     IRQ_RATE_METER_TX_DONE_ENABLE               : out std_logic;                                       -- End of measurement
     IRQ_RATE_METER_TX_OVERFLOW_ENABLE           : out std_logic;                                       -- Counter reach the maximum size of the counter
     IRQ_RATE_METER_RX_DONE_ENABLE               : out std_logic;                                       -- End of measurement
     IRQ_RATE_METER_RX_OVERFLOW_ENABLE           : out std_logic;                                       -- Counter reach the maximum size of the counter
-    -- Irq WO Registers 
+    -- Irq WO Registers
     IRQ_GEN_DONE_CLEAR_OUT                      : out std_logic;                                       -- End of frames generation
-    IRQ_GEN_ERR_TIMEOUT_CLEAR_OUT               : out std_logic;                                       -- Timeout reach during generation of frames
+    IRQ_GEN_MON_TIMEOUT_READY_CLEAR_OUT         : out std_logic;                                       -- Timeout reach waiting ready signal
+    IRQ_GEN_MON_TIMEOUT_VALID_CLEAR_OUT         : out std_logic;                                       -- Timeout reach waiting valid signal
+    IRQ_GEN_MON_VALID_ERROR_CLEAR_OUT           : out std_logic;                                       -- TVALID value changed during a transfer without handshake
+    IRQ_GEN_MON_DATA_ERROR_CLEAR_OUT            : out std_logic;                                       -- TDATA value changed during a transfer without handshake
+    IRQ_GEN_MON_LAST_ERROR_CLEAR_OUT            : out std_logic;                                       -- TLAST value changed during a transfer without handshake
+    IRQ_GEN_MON_USER_ERROR_CLEAR_OUT            : out std_logic;                                       -- TUSER value changed during a transfer without handshake
+    IRQ_GEN_MON_KEEP_ERROR_CLEAR_OUT            : out std_logic;                                       -- TKEEP value changed during a transfer without handshake
     IRQ_CHK_DONE_CLEAR_OUT                      : out std_logic;                                       -- End of frames verification
-    IRQ_CHK_ERR_FRAME_SIZE_CLEAR_OUT            : out std_logic;                                       -- Frame size error detection
     IRQ_CHK_ERR_DATA_CLEAR_OUT                  : out std_logic;                                       -- Data error detection
-    IRQ_CHK_ERR_TIMEOUT_CLEAR_OUT               : out std_logic;                                       -- Timeout reach during checking of frames
+    IRQ_CHK_ERR_SIZE_CLEAR_OUT                  : out std_logic;                                       -- Frame size error detection
+    IRQ_CHK_ERR_LAST_CLEAR_OUT                  : out std_logic;                                       -- last error detection
+    IRQ_CHK_MON_TIMEOUT_READY_CLEAR_OUT         : out std_logic;                                       -- Timeout reach waiting ready signal
+    IRQ_CHK_MON_TIMEOUT_VALID_CLEAR_OUT         : out std_logic;                                       -- Timeout reach waiting valid signal
+    IRQ_CHK_MON_VALID_ERROR_CLEAR_OUT           : out std_logic;                                       -- TVALID value changed during a transfer without handshake
+    IRQ_CHK_MON_DATA_ERROR_CLEAR_OUT            : out std_logic;                                       -- TDATA value changed during a transfer without handshake
+    IRQ_CHK_MON_LAST_ERROR_CLEAR_OUT            : out std_logic;                                       -- TLAST value changed during a transfer without handshake
+    IRQ_CHK_MON_USER_ERROR_CLEAR_OUT            : out std_logic;                                       -- TUSER value changed during a transfer without handshake
+    IRQ_CHK_MON_KEEP_ERROR_CLEAR_OUT            : out std_logic;                                       -- TKEEP value changed during a transfer without handshake
     IRQ_RATE_METER_TX_DONE_CLEAR_OUT            : out std_logic;                                       -- End of measurement
     IRQ_RATE_METER_TX_OVERFLOW_CLEAR_OUT        : out std_logic;                                       -- Counter reach the maximum size of the counter
     IRQ_RATE_METER_RX_DONE_CLEAR_OUT            : out std_logic;                                       -- End of measurement
     IRQ_RATE_METER_RX_OVERFLOW_CLEAR_OUT        : out std_logic;                                       -- Counter reach the maximum size of the counter
     IRQ_GEN_DONE_SET_OUT                        : out std_logic;                                       -- End of frames generation
-    IRQ_GEN_ERR_TIMEOUT_SET_OUT                 : out std_logic;                                       -- Timeout reach during generation of frames
+    IRQ_GEN_MON_TIMEOUT_READY_SET_OUT           : out std_logic;                                       -- Timeout reach waiting ready signal
+    IRQ_GEN_MON_TIMEOUT_VALID_SET_OUT           : out std_logic;                                       -- Timeout reach waiting valid signal
+    IRQ_GEN_MON_VALID_ERROR_SET_OUT             : out std_logic;                                       -- TVALID value changed during a transfer without handshake
+    IRQ_GEN_MON_DATA_ERROR_SET_OUT              : out std_logic;                                       -- TDATA value changed during a transfer without handshake
+    IRQ_GEN_MON_LAST_ERROR_SET_OUT              : out std_logic;                                       -- TLAST value changed during a transfer without handshake
+    IRQ_GEN_MON_USER_ERROR_SET_OUT              : out std_logic;                                       -- TUSER value changed during a transfer without handshake
+    IRQ_GEN_MON_KEEP_ERROR_SET_OUT              : out std_logic;                                       -- TKEEP value changed during a transfer without handshake
     IRQ_CHK_DONE_SET_OUT                        : out std_logic;                                       -- End of frames verification
-    IRQ_CHK_ERR_FRAME_SIZE_SET_OUT              : out std_logic;                                       -- Frame size error detection
     IRQ_CHK_ERR_DATA_SET_OUT                    : out std_logic;                                       -- Data error detection
-    IRQ_CHK_ERR_TIMEOUT_SET_OUT                 : out std_logic;                                       -- Timeout reach during checking of frames
+    IRQ_CHK_ERR_SIZE_SET_OUT                    : out std_logic;                                       -- Frame size error detection
+    IRQ_CHK_ERR_LAST_SET_OUT                    : out std_logic;                                       -- last error detection
+    IRQ_CHK_MON_TIMEOUT_READY_SET_OUT           : out std_logic;                                       -- Timeout reach waiting ready signal
+    IRQ_CHK_MON_TIMEOUT_VALID_SET_OUT           : out std_logic;                                       -- Timeout reach waiting valid signal
+    IRQ_CHK_MON_VALID_ERROR_SET_OUT             : out std_logic;                                       -- TVALID value changed during a transfer without handshake
+    IRQ_CHK_MON_DATA_ERROR_SET_OUT              : out std_logic;                                       -- TDATA value changed during a transfer without handshake
+    IRQ_CHK_MON_LAST_ERROR_SET_OUT              : out std_logic;                                       -- TLAST value changed during a transfer without handshake
+    IRQ_CHK_MON_USER_ERROR_SET_OUT              : out std_logic;                                       -- TUSER value changed during a transfer without handshake
+    IRQ_CHK_MON_KEEP_ERROR_SET_OUT              : out std_logic;                                       -- TKEEP value changed during a transfer without handshake
     IRQ_RATE_METER_TX_DONE_SET_OUT              : out std_logic;                                       -- End of measurement
     IRQ_RATE_METER_TX_OVERFLOW_SET_OUT          : out std_logic;                                       -- Counter reach the maximum size of the counter
     IRQ_RATE_METER_RX_DONE_SET_OUT              : out std_logic;                                       -- End of measurement
     IRQ_RATE_METER_RX_OVERFLOW_SET_OUT          : out std_logic;                                       -- Counter reach the maximum size of the counter
-    -- Irq WO Pulses Registers 
+    -- Irq WO Pulses Registers
     REG_INTERRUPT_CLEAR_WRITE                   : out std_logic;
-    REG_INTERRUPT_SET_WRITE                     : out std_logic 
+    REG_INTERRUPT_SET_WRITE                     : out std_logic
 
   );
 end test_uoe_registers;
@@ -217,25 +286,24 @@ architecture rtl of test_uoe_registers is
   -- CONSTANTS
   --------------------------------------------
   -- Define the size of each register by masking all unused bits
-  constant C_REG_GEN_CONFIG                      : std_logic_vector(31 downto 0):="11111111111111111111111100000001"; 
-  constant C_REG_GEN_NB_BYTES_LSB                : std_logic_vector(31 downto 0):="11111111111111111111111111111111"; 
-  constant C_REG_GEN_NB_BYTES_MSB                : std_logic_vector(31 downto 0):="11111111111111111111111111111111"; 
-  constant C_REG_CHK_CONFIG                      : std_logic_vector(31 downto 0):="11111111111111111111111100000001"; 
-  constant C_REG_CHK_NB_BYTES_LSB                : std_logic_vector(31 downto 0):="11111111111111111111111111111111"; 
-  constant C_REG_CHK_NB_BYTES_MSB                : std_logic_vector(31 downto 0):="11111111111111111111111111111111"; 
-  constant C_REG_LB_GEN_UDP_PORT                 : std_logic_vector(31 downto 0):="11111111111111111111111111111111"; 
-  constant C_REG_LB_GEN_DEST_IP_ADDR             : std_logic_vector(31 downto 0):="11111111111111111111111111111111"; 
-  constant C_REG_CHK_UDP_PORT                    : std_logic_vector(31 downto 0):="00000000000000001111111111111111"; 
-  constant C_REG_TX_RM_BYTES_EXPT_LSB            : std_logic_vector(31 downto 0):="11111111111111111111111111111111"; 
-  constant C_REG_TX_RM_BYTES_EXPT_MSB            : std_logic_vector(31 downto 0):="11111111111111111111111111111111"; 
-  constant C_REG_RX_FM_BYTES_EXPT_LSB            : std_logic_vector(31 downto 0):="11111111111111111111111111111111"; 
-  constant C_REG_RX_RM_BYTES_EXPT_MSB            : std_logic_vector(31 downto 0):="11111111111111111111111111111111"; 
-  constant C_REG_INTERRUPT_ENABLE                : std_logic_vector(31 downto 0):="00000000000000000000001111111111"; 
-  constant C_REG_GEN_CHK_CONTROL                 : std_logic_vector(31 downto 0):="00000000000000000000000000111111"; 
-  constant C_REG_TX_RATE_METER_CTRL              : std_logic_vector(31 downto 0):="00000000000000000000000000000001"; 
-  constant C_REG_RX_RATE_METER_CTRL              : std_logic_vector(31 downto 0):="00000000000000000000000000000001"; 
-  constant C_REG_INTERRUPT_CLEAR                 : std_logic_vector(31 downto 0):="00000000000000000000001111111111"; 
-  constant C_REG_INTERRUPT_SET                   : std_logic_vector(31 downto 0):="00000000000000000000001111111111"; 
+  constant C_REG_GEN_CHK_CONTROL                 : std_logic_vector(31 downto 0):="00000000000000000000000000111111";
+  constant C_REG_GEN_FRAME                       : std_logic_vector(31 downto 0):="11111111111111111111111111111111";
+  constant C_REG_GEN_RATE                        : std_logic_vector(31 downto 0):="00000000000000001111111111111111";
+  constant C_REG_GEN_MONITOR                     : std_logic_vector(31 downto 0):="00000000000000001111111111111111";
+  constant C_REG_CHK_FRAME                       : std_logic_vector(31 downto 0):="11111111111111111111111111111111";
+  constant C_REG_CHK_MONITOR                     : std_logic_vector(31 downto 0):="00000000000000001111111111111111";
+  constant C_REG_LB_GEN_UDP_PORT                 : std_logic_vector(31 downto 0):="11111111111111111111111111111111";
+  constant C_REG_LB_GEN_DEST_IP_ADDR             : std_logic_vector(31 downto 0):="11111111111111111111111111111111";
+  constant C_REG_CHK_UDP_PORT                    : std_logic_vector(31 downto 0):="00000000000000001111111111111111";
+  constant C_REG_TX_RM_BYTES_EXPT_LSB            : std_logic_vector(31 downto 0):="11111111111111111111111111111111";
+  constant C_REG_TX_RM_BYTES_EXPT_MSB            : std_logic_vector(31 downto 0):="11111111111111111111111111111111";
+  constant C_REG_RX_FM_BYTES_EXPT_LSB            : std_logic_vector(31 downto 0):="11111111111111111111111111111111";
+  constant C_REG_RX_RM_BYTES_EXPT_MSB            : std_logic_vector(31 downto 0):="11111111111111111111111111111111";
+  constant C_REG_INTERRUPT_ENABLE                : std_logic_vector(31 downto 0):="00000000011111111111111111111111";
+  constant C_REG_TX_RATE_METER_CTRL              : std_logic_vector(31 downto 0):="00000000000000000000000000000001";
+  constant C_REG_RX_RATE_METER_CTRL              : std_logic_vector(31 downto 0):="00000000000000000000000000000001";
+  constant C_REG_INTERRUPT_CLEAR                 : std_logic_vector(31 downto 0):="00000000011111111111111111111111";
+  constant C_REG_INTERRUPT_SET                   : std_logic_vector(31 downto 0):="00000000011111111111111111111111";
 
 
 
@@ -271,25 +339,24 @@ architecture rtl of test_uoe_registers is
   signal bad_rd_addr                 : std_logic;
 
   -- Write registers
-  signal reg_gen_config_int                     : std_logic_vector(31 downto 0); 
-  signal reg_gen_nb_bytes_lsb_int               : std_logic_vector(31 downto 0); 
-  signal reg_gen_nb_bytes_msb_int               : std_logic_vector(31 downto 0); 
-  signal reg_chk_config_int                     : std_logic_vector(31 downto 0); 
-  signal reg_chk_nb_bytes_lsb_int               : std_logic_vector(31 downto 0); 
-  signal reg_chk_nb_bytes_msb_int               : std_logic_vector(31 downto 0); 
-  signal reg_lb_gen_udp_port_int                : std_logic_vector(31 downto 0); 
-  signal reg_lb_gen_dest_ip_addr_int            : std_logic_vector(31 downto 0); 
-  signal reg_chk_udp_port_int                   : std_logic_vector(31 downto 0); 
-  signal reg_tx_rm_bytes_expt_lsb_int           : std_logic_vector(31 downto 0); 
-  signal reg_tx_rm_bytes_expt_msb_int           : std_logic_vector(31 downto 0); 
-  signal reg_rx_fm_bytes_expt_lsb_int           : std_logic_vector(31 downto 0); 
-  signal reg_rx_rm_bytes_expt_msb_int           : std_logic_vector(31 downto 0); 
-  signal reg_interrupt_enable_int               : std_logic_vector(31 downto 0); 
-  signal reg_gen_chk_control_int                : std_logic_vector(31 downto 0); 
-  signal reg_tx_rate_meter_ctrl_int             : std_logic_vector(31 downto 0); 
-  signal reg_rx_rate_meter_ctrl_int             : std_logic_vector(31 downto 0); 
-  signal reg_interrupt_clear_int                : std_logic_vector(31 downto 0); 
-  signal reg_interrupt_set_int                  : std_logic_vector(31 downto 0); 
+  signal reg_gen_chk_control_int                : std_logic_vector(31 downto 0);
+  signal reg_gen_frame_int                      : std_logic_vector(31 downto 0);
+  signal reg_gen_rate_int                       : std_logic_vector(31 downto 0);
+  signal reg_gen_monitor_int                    : std_logic_vector(31 downto 0);
+  signal reg_chk_frame_int                      : std_logic_vector(31 downto 0);
+  signal reg_chk_monitor_int                    : std_logic_vector(31 downto 0);
+  signal reg_lb_gen_udp_port_int                : std_logic_vector(31 downto 0);
+  signal reg_lb_gen_dest_ip_addr_int            : std_logic_vector(31 downto 0);
+  signal reg_chk_udp_port_int                   : std_logic_vector(31 downto 0);
+  signal reg_tx_rm_bytes_expt_lsb_int           : std_logic_vector(31 downto 0);
+  signal reg_tx_rm_bytes_expt_msb_int           : std_logic_vector(31 downto 0);
+  signal reg_rx_fm_bytes_expt_lsb_int           : std_logic_vector(31 downto 0);
+  signal reg_rx_rm_bytes_expt_msb_int           : std_logic_vector(31 downto 0);
+  signal reg_interrupt_enable_int               : std_logic_vector(31 downto 0);
+  signal reg_tx_rate_meter_ctrl_int             : std_logic_vector(31 downto 0);
+  signal reg_rx_rate_meter_ctrl_int             : std_logic_vector(31 downto 0);
+  signal reg_interrupt_clear_int                : std_logic_vector(31 downto 0);
+  signal reg_interrupt_set_int                  : std_logic_vector(31 downto 0);
 
 
 
@@ -440,44 +507,59 @@ begin
       if (S_AXI_ARESET = '1') then
         bad_wr_addr               <= '0';
 
-        reg_gen_config_int(0)                           <= '0'; 
-        reg_gen_config_int(23 downto 8)                 <= "0000010000000000"; 
-        reg_gen_config_int(31 downto 24)                <= "11111111"; 
-        reg_gen_nb_bytes_lsb_int(31 downto 0)           <= "00000000000000010000000000000000"; 
-        reg_gen_nb_bytes_msb_int(31 downto 0)           <= "00000000000000000000000000000000"; 
-        reg_chk_config_int(0)                           <= '0'; 
-        reg_chk_config_int(23 downto 8)                 <= "0000010000000000"; 
-        reg_chk_config_int(31 downto 24)                <= "11111111"; 
-        reg_chk_nb_bytes_lsb_int(31 downto 0)           <= "00000000000000010000000000000000"; 
-        reg_chk_nb_bytes_msb_int(31 downto 0)           <= "00000000000000000000000000000000"; 
-        reg_lb_gen_udp_port_int(15 downto 0)            <= "1101011011011000"; 
-        reg_lb_gen_udp_port_int(31 downto 16)           <= "1101011011011010"; 
-        reg_lb_gen_dest_ip_addr_int(31 downto 0)        <= "00000000000000000000000000000000"; 
-        reg_chk_udp_port_int(15 downto 0)               <= "1101011011011010"; 
-        reg_tx_rm_bytes_expt_lsb_int(31 downto 0)       <= "00000000000000000000000000000000"; 
-        reg_tx_rm_bytes_expt_msb_int(31 downto 0)       <= "00000000000000000000000000000000"; 
-        reg_rx_fm_bytes_expt_lsb_int(31 downto 0)       <= "00000000000000000000000000000000"; 
-        reg_rx_rm_bytes_expt_msb_int(31 downto 0)       <= "00000000000000000000000000000000"; 
-        reg_interrupt_enable_int(0)                     <= '0'; 
-        reg_interrupt_enable_int(1)                     <= '0'; 
-        reg_interrupt_enable_int(2)                     <= '0'; 
-        reg_interrupt_enable_int(3)                     <= '0'; 
-        reg_interrupt_enable_int(4)                     <= '0'; 
-        reg_interrupt_enable_int(5)                     <= '0'; 
-        reg_interrupt_enable_int(6)                     <= '0'; 
-        reg_interrupt_enable_int(7)                     <= '0'; 
-        reg_interrupt_enable_int(8)                     <= '0'; 
-        reg_interrupt_enable_int(9)                     <= '0'; 
-        reg_gen_chk_control_int                         <= (others => '0'); 
-        reg_tx_rate_meter_ctrl_int                      <= (others => '0'); 
-        reg_rx_rate_meter_ctrl_int                      <= (others => '0'); 
-        reg_interrupt_clear_int                         <= (others => '0'); 
-        reg_interrupt_set_int                           <= (others => '0'); 
-        REG_GEN_CHK_CONTROL_WRITE                       <= '0'; 
-        REG_TX_RATE_METER_CTRL_WRITE                    <= '0'; 
-        REG_RX_RATE_METER_CTRL_WRITE                    <= '0'; 
-        REG_INTERRUPT_CLEAR_WRITE                       <= '0'; 
-        REG_INTERRUPT_SET_WRITE                         <= '0'; 
+        reg_gen_chk_control_int(0)                      <= '0';
+        reg_gen_chk_control_int(1)                      <= '0';
+        reg_gen_chk_control_int(2)                      <= '0';
+        reg_gen_chk_control_int(3)                      <= '0';
+        reg_gen_chk_control_int(4)                      <= '0';
+        reg_gen_chk_control_int(5)                      <= '0';
+        reg_gen_frame_int(15 downto 0)                  <= "0000000000000000";
+        reg_gen_frame_int(31 downto 16)                 <= "0000010000000000";
+        reg_gen_rate_int(7 downto 0)                    <= "00000001";
+        reg_gen_rate_int(15 downto 8)                   <= "00000001";
+        reg_gen_monitor_int(15 downto 0)                <= "0000000000000000";
+        reg_chk_frame_int(15 downto 0)                  <= "0000000000000000";
+        reg_chk_frame_int(31 downto 16)                 <= "0000010000000000";
+        reg_chk_monitor_int(15 downto 0)                <= "0000000000000000";
+        reg_lb_gen_udp_port_int(15 downto 0)            <= "1101011011011000";
+        reg_lb_gen_udp_port_int(31 downto 16)           <= "1101011011011010";
+        reg_lb_gen_dest_ip_addr_int(31 downto 0)        <= "00000000000000000000000000000000";
+        reg_chk_udp_port_int(15 downto 0)               <= "1101011011011010";
+        reg_tx_rm_bytes_expt_lsb_int(31 downto 0)       <= "00000000000000000000000000000000";
+        reg_tx_rm_bytes_expt_msb_int(31 downto 0)       <= "00000000000000000000000000000000";
+        reg_rx_fm_bytes_expt_lsb_int(31 downto 0)       <= "00000000000000000000000000000000";
+        reg_rx_rm_bytes_expt_msb_int(31 downto 0)       <= "00000000000000000000000000000000";
+        reg_interrupt_enable_int(0)                     <= '0';
+        reg_interrupt_enable_int(1)                     <= '0';
+        reg_interrupt_enable_int(2)                     <= '0';
+        reg_interrupt_enable_int(3)                     <= '0';
+        reg_interrupt_enable_int(4)                     <= '0';
+        reg_interrupt_enable_int(5)                     <= '0';
+        reg_interrupt_enable_int(6)                     <= '0';
+        reg_interrupt_enable_int(7)                     <= '0';
+        reg_interrupt_enable_int(8)                     <= '0';
+        reg_interrupt_enable_int(9)                     <= '0';
+        reg_interrupt_enable_int(10)                    <= '0';
+        reg_interrupt_enable_int(11)                    <= '0';
+        reg_interrupt_enable_int(12)                    <= '0';
+        reg_interrupt_enable_int(13)                    <= '0';
+        reg_interrupt_enable_int(14)                    <= '0';
+        reg_interrupt_enable_int(15)                    <= '0';
+        reg_interrupt_enable_int(16)                    <= '0';
+        reg_interrupt_enable_int(17)                    <= '0';
+        reg_interrupt_enable_int(18)                    <= '0';
+        reg_interrupt_enable_int(19)                    <= '0';
+        reg_interrupt_enable_int(20)                    <= '0';
+        reg_interrupt_enable_int(21)                    <= '0';
+        reg_interrupt_enable_int(22)                    <= '0';
+        reg_tx_rate_meter_ctrl_int                      <= (others => '0');
+        reg_rx_rate_meter_ctrl_int                      <= (others => '0');
+        reg_interrupt_clear_int                         <= (others => '0');
+        reg_interrupt_set_int                           <= (others => '0');
+        REG_TX_RATE_METER_CTRL_WRITE                    <= '0';
+        REG_RX_RATE_METER_CTRL_WRITE                    <= '0';
+        REG_INTERRUPT_CLEAR_WRITE                       <= '0';
+        REG_INTERRUPT_SET_WRITE                         <= '0';
 
 
       else
@@ -485,29 +567,28 @@ begin
         -- Default
         bad_wr_addr <= '0';
 
-        REG_GEN_CHK_CONTROL_WRITE               <= '0'; 
-        REG_TX_RATE_METER_CTRL_WRITE            <= '0'; 
-        REG_RX_RATE_METER_CTRL_WRITE            <= '0'; 
-        REG_INTERRUPT_CLEAR_WRITE               <= '0'; 
-        REG_INTERRUPT_SET_WRITE                 <= '0'; 
+        REG_TX_RATE_METER_CTRL_WRITE            <= '0';
+        REG_RX_RATE_METER_CTRL_WRITE            <= '0';
+        REG_INTERRUPT_CLEAR_WRITE               <= '0';
+        REG_INTERRUPT_SET_WRITE                 <= '0';
 
 
         if (wr_req = '1') then
           -- Decode register address to write
           case wr_addr is
 
-            when C_TEST_REG_GEN_CONFIG => 
-              reg_gen_config_int                      <= set_reg_val(reg_gen_config_int, wr_strobe, wr_data, C_REG_GEN_CONFIG);
-            when C_TEST_REG_GEN_NB_BYTES_LSB => 
-              reg_gen_nb_bytes_lsb_int                <= set_reg_val(reg_gen_nb_bytes_lsb_int, wr_strobe, wr_data, C_REG_GEN_NB_BYTES_LSB);
-            when C_TEST_REG_GEN_NB_BYTES_MSB => 
-              reg_gen_nb_bytes_msb_int                <= set_reg_val(reg_gen_nb_bytes_msb_int, wr_strobe, wr_data, C_REG_GEN_NB_BYTES_MSB);
-            when C_TEST_REG_CHK_CONFIG => 
-              reg_chk_config_int                      <= set_reg_val(reg_chk_config_int, wr_strobe, wr_data, C_REG_CHK_CONFIG);
-            when C_TEST_REG_CHK_NB_BYTES_LSB => 
-              reg_chk_nb_bytes_lsb_int                <= set_reg_val(reg_chk_nb_bytes_lsb_int, wr_strobe, wr_data, C_REG_CHK_NB_BYTES_LSB);
-            when C_TEST_REG_CHK_NB_BYTES_MSB => 
-              reg_chk_nb_bytes_msb_int                <= set_reg_val(reg_chk_nb_bytes_msb_int, wr_strobe, wr_data, C_REG_CHK_NB_BYTES_MSB);
+            when C_TEST_REG_GEN_CHK_CONTROL => 
+              reg_gen_chk_control_int                 <= set_reg_val(reg_gen_chk_control_int, wr_strobe, wr_data, C_REG_GEN_CHK_CONTROL);
+            when C_TEST_REG_GEN_FRAME => 
+              reg_gen_frame_int                       <= set_reg_val(reg_gen_frame_int, wr_strobe, wr_data, C_REG_GEN_FRAME);
+            when C_TEST_REG_GEN_RATE => 
+              reg_gen_rate_int                        <= set_reg_val(reg_gen_rate_int, wr_strobe, wr_data, C_REG_GEN_RATE);
+            when C_TEST_REG_GEN_MONITOR => 
+              reg_gen_monitor_int                     <= set_reg_val(reg_gen_monitor_int, wr_strobe, wr_data, C_REG_GEN_MONITOR);
+            when C_TEST_REG_CHK_FRAME => 
+              reg_chk_frame_int                       <= set_reg_val(reg_chk_frame_int, wr_strobe, wr_data, C_REG_CHK_FRAME);
+            when C_TEST_REG_CHK_MONITOR => 
+              reg_chk_monitor_int                     <= set_reg_val(reg_chk_monitor_int, wr_strobe, wr_data, C_REG_CHK_MONITOR);
             when C_TEST_REG_LB_GEN_UDP_PORT => 
               reg_lb_gen_udp_port_int                 <= set_reg_val(reg_lb_gen_udp_port_int, wr_strobe, wr_data, C_REG_LB_GEN_UDP_PORT);
             when C_TEST_REG_LB_GEN_DEST_IP_ADDR => 
@@ -524,9 +605,6 @@ begin
               reg_rx_rm_bytes_expt_msb_int            <= set_reg_val(reg_rx_rm_bytes_expt_msb_int, wr_strobe, wr_data, C_REG_RX_RM_BYTES_EXPT_MSB);
             when C_TEST_REG_INTERRUPT_ENABLE => 
               reg_interrupt_enable_int                <= set_reg_val(reg_interrupt_enable_int, wr_strobe, wr_data, C_REG_INTERRUPT_ENABLE);
-            when C_TEST_REG_GEN_CHK_CONTROL => 
-              reg_gen_chk_control_int                 <= set_reg_val(reg_gen_chk_control_int, wr_strobe, wr_data, C_REG_GEN_CHK_CONTROL);
-              REG_GEN_CHK_CONTROL_WRITE               <= '1';
             when C_TEST_REG_TX_RATE_METER_CTRL => 
               reg_tx_rate_meter_ctrl_int              <= set_reg_val(reg_tx_rate_meter_ctrl_int, wr_strobe, wr_data, C_REG_TX_RATE_METER_CTRL);
               REG_TX_RATE_METER_CTRL_WRITE            <= '1';
@@ -551,16 +629,20 @@ begin
   end process P_REG_WRITE;
 
   -- Output assignments
-  GEN_FRAME_SIZE_TYPE                     <= reg_gen_config_int(0);
-  GEN_FRAME_SIZE_STATIC                   <= reg_gen_config_int(23 downto 8);
-  GEN_RATE_LIMITATION                     <= reg_gen_config_int(31 downto 24);
-  GEN_NB_BYTES_LSB                        <= reg_gen_nb_bytes_lsb_int(31 downto 0);
-  GEN_NB_BYTES_MSB                        <= reg_gen_nb_bytes_msb_int(31 downto 0);
-  CHK_FRAME_SIZE_TYPE                     <= reg_chk_config_int(0);
-  CHK_FRAME_SIZE_STATIC                   <= reg_chk_config_int(23 downto 8);
-  CHK_RATE_LIMITATION                     <= reg_chk_config_int(31 downto 24);
-  CHK_NB_BYTES_LSB                        <= reg_chk_nb_bytes_lsb_int(31 downto 0);
-  CHK_NB_BYTES_MSB                        <= reg_chk_nb_bytes_msb_int(31 downto 0);
+  LOOPBACK_MAC_EN                         <= reg_gen_chk_control_int(0);
+  LOOPBACK_UDP_EN                         <= reg_gen_chk_control_int(1);
+  GEN_ENABLE                              <= reg_gen_chk_control_int(2);
+  GEN_FRAME_SIZE_TYPE                     <= reg_gen_chk_control_int(3);
+  CHK_ENABLE                              <= reg_gen_chk_control_int(4);
+  CHK_FRAME_SIZE_TYPE                     <= reg_gen_chk_control_int(5);
+  GEN_NB_FRAMES                           <= reg_gen_frame_int(15 downto 0);
+  GEN_FRAME_SIZE_STATIC                   <= reg_gen_frame_int(31 downto 16);
+  GEN_RATE_NB_TRANSFERS                   <= reg_gen_rate_int(7 downto 0);
+  GEN_RATE_WINDOW_SIZE                    <= reg_gen_rate_int(15 downto 8);
+  GEN_MON_TIMEOUT_VALUE                   <= reg_gen_monitor_int(15 downto 0);
+  CHK_NB_FRAMES                           <= reg_chk_frame_int(15 downto 0);
+  CHK_FRAME_SIZE_STATIC                   <= reg_chk_frame_int(31 downto 16);
+  CHK_MON_TIMEOUT_VALUE                   <= reg_chk_monitor_int(15 downto 0);
   LB_GEN_DEST_PORT                        <= reg_lb_gen_udp_port_int(15 downto 0);
   LB_GEN_SRC_PORT                         <= reg_lb_gen_udp_port_int(31 downto 16);
   LB_GEN_DEST_IP_ADDR                     <= reg_lb_gen_dest_ip_addr_int(31 downto 0);
@@ -570,43 +652,76 @@ begin
   RX_RM_BYTES_EXPT_LSB                    <= reg_rx_fm_bytes_expt_lsb_int(31 downto 0);
   RX_RM_BYTES_EXPT_MSB                    <= reg_rx_rm_bytes_expt_msb_int(31 downto 0);
   IRQ_GEN_DONE_ENABLE                     <= reg_interrupt_enable_int(0);
-  IRQ_GEN_ERR_TIMEOUT_ENABLE              <= reg_interrupt_enable_int(1);
-  IRQ_CHK_DONE_ENABLE                     <= reg_interrupt_enable_int(2);
-  IRQ_CHK_ERR_FRAME_SIZE_ENABLE           <= reg_interrupt_enable_int(3);
-  IRQ_CHK_ERR_DATA_ENABLE                 <= reg_interrupt_enable_int(4);
-  IRQ_CHK_ERR_TIMEOUT_ENABLE              <= reg_interrupt_enable_int(5);
-  IRQ_RATE_METER_TX_DONE_ENABLE           <= reg_interrupt_enable_int(6);
-  IRQ_RATE_METER_TX_OVERFLOW_ENABLE       <= reg_interrupt_enable_int(7);
-  IRQ_RATE_METER_RX_DONE_ENABLE           <= reg_interrupt_enable_int(8);
-  IRQ_RATE_METER_RX_OVERFLOW_ENABLE       <= reg_interrupt_enable_int(9);
-  LOOPBACK_MAC_EN_OUT                     <= reg_gen_chk_control_int(0);
-  LOOPBACK_UDP_EN_OUT                     <= reg_gen_chk_control_int(1);
-  GEN_START_OUT                           <= reg_gen_chk_control_int(2);
-  GEN_STOP_OUT                            <= reg_gen_chk_control_int(3);
-  CHK_START_OUT                           <= reg_gen_chk_control_int(4);
-  CHK_STOP_OUT                            <= reg_gen_chk_control_int(5);
+  IRQ_GEN_MON_TIMEOUT_READY_ENABLE        <= reg_interrupt_enable_int(1);
+  IRQ_GEN_MON_TIMEOUT_VALID_ENABLE        <= reg_interrupt_enable_int(2);
+  IRQ_GEN_MON_VALID_ERROR_ENABLE          <= reg_interrupt_enable_int(3);
+  IRQ_GEN_MON_DATA_ERROR_ENABLE           <= reg_interrupt_enable_int(4);
+  IRQ_GEN_MON_LAST_ERROR_ENABLE           <= reg_interrupt_enable_int(5);
+  IRQ_GEN_MON_USER_ERROR_ENABLE           <= reg_interrupt_enable_int(6);
+  IRQ_GEN_MON_KEEP_ERROR_ENABLE           <= reg_interrupt_enable_int(7);
+  IRQ_CHK_DONE_ENABLE                     <= reg_interrupt_enable_int(8);
+  IRQ_CHK_ERR_DATA_ENABLE                 <= reg_interrupt_enable_int(9);
+  IRQ_CHK_ERR_SIZE_ENABLE                 <= reg_interrupt_enable_int(10);
+  IRQ_CHK_ERR_LAST_ENABLE                 <= reg_interrupt_enable_int(11);
+  IRQ_CHK_MON_TIMEOUT_READY_ENABLE        <= reg_interrupt_enable_int(12);
+  IRQ_CHK_MON_TIMEOUT_VALID_ENABLE        <= reg_interrupt_enable_int(13);
+  IRQ_CHK_MON_VALID_ERROR_ENABLE          <= reg_interrupt_enable_int(14);
+  IRQ_CHK_MON_DATA_ERROR_ENABLE           <= reg_interrupt_enable_int(15);
+  IRQ_CHK_MON_LAST_ERROR_ENABLE           <= reg_interrupt_enable_int(16);
+  IRQ_CHK_MON_USER_ERROR_ENABLE           <= reg_interrupt_enable_int(17);
+  IRQ_CHK_MON_KEEP_ERROR_ENABLE           <= reg_interrupt_enable_int(18);
+  IRQ_RATE_METER_TX_DONE_ENABLE           <= reg_interrupt_enable_int(19);
+  IRQ_RATE_METER_TX_OVERFLOW_ENABLE       <= reg_interrupt_enable_int(20);
+  IRQ_RATE_METER_RX_DONE_ENABLE           <= reg_interrupt_enable_int(21);
+  IRQ_RATE_METER_RX_OVERFLOW_ENABLE       <= reg_interrupt_enable_int(22);
   TX_RM_INIT_COUNTER_OUT                  <= reg_tx_rate_meter_ctrl_int(0);
   RX_RM_INIT_COUNTER_OUT                  <= reg_rx_rate_meter_ctrl_int(0);
   IRQ_GEN_DONE_CLEAR_OUT                  <= reg_interrupt_clear_int(0);
-  IRQ_GEN_ERR_TIMEOUT_CLEAR_OUT           <= reg_interrupt_clear_int(1);
-  IRQ_CHK_DONE_CLEAR_OUT                  <= reg_interrupt_clear_int(2);
-  IRQ_CHK_ERR_FRAME_SIZE_CLEAR_OUT        <= reg_interrupt_clear_int(3);
-  IRQ_CHK_ERR_DATA_CLEAR_OUT              <= reg_interrupt_clear_int(4);
-  IRQ_CHK_ERR_TIMEOUT_CLEAR_OUT           <= reg_interrupt_clear_int(5);
-  IRQ_RATE_METER_TX_DONE_CLEAR_OUT        <= reg_interrupt_clear_int(6);
-  IRQ_RATE_METER_TX_OVERFLOW_CLEAR_OUT    <= reg_interrupt_clear_int(7);
-  IRQ_RATE_METER_RX_DONE_CLEAR_OUT        <= reg_interrupt_clear_int(8);
-  IRQ_RATE_METER_RX_OVERFLOW_CLEAR_OUT    <= reg_interrupt_clear_int(9);
+  IRQ_GEN_MON_TIMEOUT_READY_CLEAR_OUT     <= reg_interrupt_clear_int(1);
+  IRQ_GEN_MON_TIMEOUT_VALID_CLEAR_OUT     <= reg_interrupt_clear_int(2);
+  IRQ_GEN_MON_VALID_ERROR_CLEAR_OUT       <= reg_interrupt_clear_int(3);
+  IRQ_GEN_MON_DATA_ERROR_CLEAR_OUT        <= reg_interrupt_clear_int(4);
+  IRQ_GEN_MON_LAST_ERROR_CLEAR_OUT        <= reg_interrupt_clear_int(5);
+  IRQ_GEN_MON_USER_ERROR_CLEAR_OUT        <= reg_interrupt_clear_int(6);
+  IRQ_GEN_MON_KEEP_ERROR_CLEAR_OUT        <= reg_interrupt_clear_int(7);
+  IRQ_CHK_DONE_CLEAR_OUT                  <= reg_interrupt_clear_int(8);
+  IRQ_CHK_ERR_DATA_CLEAR_OUT              <= reg_interrupt_clear_int(9);
+  IRQ_CHK_ERR_SIZE_CLEAR_OUT              <= reg_interrupt_clear_int(10);
+  IRQ_CHK_ERR_LAST_CLEAR_OUT              <= reg_interrupt_clear_int(11);
+  IRQ_CHK_MON_TIMEOUT_READY_CLEAR_OUT     <= reg_interrupt_clear_int(12);
+  IRQ_CHK_MON_TIMEOUT_VALID_CLEAR_OUT     <= reg_interrupt_clear_int(13);
+  IRQ_CHK_MON_VALID_ERROR_CLEAR_OUT       <= reg_interrupt_clear_int(14);
+  IRQ_CHK_MON_DATA_ERROR_CLEAR_OUT        <= reg_interrupt_clear_int(15);
+  IRQ_CHK_MON_LAST_ERROR_CLEAR_OUT        <= reg_interrupt_clear_int(16);
+  IRQ_CHK_MON_USER_ERROR_CLEAR_OUT        <= reg_interrupt_clear_int(17);
+  IRQ_CHK_MON_KEEP_ERROR_CLEAR_OUT        <= reg_interrupt_clear_int(18);
+  IRQ_RATE_METER_TX_DONE_CLEAR_OUT        <= reg_interrupt_clear_int(19);
+  IRQ_RATE_METER_TX_OVERFLOW_CLEAR_OUT    <= reg_interrupt_clear_int(20);
+  IRQ_RATE_METER_RX_DONE_CLEAR_OUT        <= reg_interrupt_clear_int(21);
+  IRQ_RATE_METER_RX_OVERFLOW_CLEAR_OUT    <= reg_interrupt_clear_int(22);
   IRQ_GEN_DONE_SET_OUT                    <= reg_interrupt_set_int(0);
-  IRQ_GEN_ERR_TIMEOUT_SET_OUT             <= reg_interrupt_set_int(1);
-  IRQ_CHK_DONE_SET_OUT                    <= reg_interrupt_set_int(2);
-  IRQ_CHK_ERR_FRAME_SIZE_SET_OUT          <= reg_interrupt_set_int(3);
-  IRQ_CHK_ERR_DATA_SET_OUT                <= reg_interrupt_set_int(4);
-  IRQ_CHK_ERR_TIMEOUT_SET_OUT             <= reg_interrupt_set_int(5);
-  IRQ_RATE_METER_TX_DONE_SET_OUT          <= reg_interrupt_set_int(6);
-  IRQ_RATE_METER_TX_OVERFLOW_SET_OUT      <= reg_interrupt_set_int(7);
-  IRQ_RATE_METER_RX_DONE_SET_OUT          <= reg_interrupt_set_int(8);
-  IRQ_RATE_METER_RX_OVERFLOW_SET_OUT      <= reg_interrupt_set_int(9);
+  IRQ_GEN_MON_TIMEOUT_READY_SET_OUT       <= reg_interrupt_set_int(1);
+  IRQ_GEN_MON_TIMEOUT_VALID_SET_OUT       <= reg_interrupt_set_int(2);
+  IRQ_GEN_MON_VALID_ERROR_SET_OUT         <= reg_interrupt_set_int(3);
+  IRQ_GEN_MON_DATA_ERROR_SET_OUT          <= reg_interrupt_set_int(4);
+  IRQ_GEN_MON_LAST_ERROR_SET_OUT          <= reg_interrupt_set_int(5);
+  IRQ_GEN_MON_USER_ERROR_SET_OUT          <= reg_interrupt_set_int(6);
+  IRQ_GEN_MON_KEEP_ERROR_SET_OUT          <= reg_interrupt_set_int(7);
+  IRQ_CHK_DONE_SET_OUT                    <= reg_interrupt_set_int(8);
+  IRQ_CHK_ERR_DATA_SET_OUT                <= reg_interrupt_set_int(9);
+  IRQ_CHK_ERR_SIZE_SET_OUT                <= reg_interrupt_set_int(10);
+  IRQ_CHK_ERR_LAST_SET_OUT                <= reg_interrupt_set_int(11);
+  IRQ_CHK_MON_TIMEOUT_READY_SET_OUT       <= reg_interrupt_set_int(12);
+  IRQ_CHK_MON_TIMEOUT_VALID_SET_OUT       <= reg_interrupt_set_int(13);
+  IRQ_CHK_MON_VALID_ERROR_SET_OUT         <= reg_interrupt_set_int(14);
+  IRQ_CHK_MON_DATA_ERROR_SET_OUT          <= reg_interrupt_set_int(15);
+  IRQ_CHK_MON_LAST_ERROR_SET_OUT          <= reg_interrupt_set_int(16);
+  IRQ_CHK_MON_USER_ERROR_SET_OUT          <= reg_interrupt_set_int(17);
+  IRQ_CHK_MON_KEEP_ERROR_SET_OUT          <= reg_interrupt_set_int(18);
+  IRQ_RATE_METER_TX_DONE_SET_OUT          <= reg_interrupt_set_int(19);
+  IRQ_RATE_METER_TX_OVERFLOW_SET_OUT      <= reg_interrupt_set_int(20);
+  IRQ_RATE_METER_RX_DONE_SET_OUT          <= reg_interrupt_set_int(21);
+  IRQ_RATE_METER_RX_OVERFLOW_SET_OUT      <= reg_interrupt_set_int(22);
 
 
 
@@ -764,31 +879,48 @@ begin
               rd_data(31 downto 0)                    <= RX_RM_CNT_CYCLES_MSB;
             when C_TEST_REG_INTERRUPT_STATUS => 
               rd_data(0)                              <= IRQ_GEN_DONE_STATUS;
-              rd_data(1)                              <= IRQ_GEN_ERR_TIMEOUT_STATUS;
-              rd_data(2)                              <= IRQ_CHK_DONE_STATUS;
-              rd_data(3)                              <= IRQ_CHK_ERR_FRAME_SIZE_STATUS;
-              rd_data(4)                              <= IRQ_CHK_ERR_DATA_STATUS;
-              rd_data(5)                              <= IRQ_CHK_ERR_TIMEOUT_STATUS;
-              rd_data(6)                              <= IRQ_RATE_METER_TX_DONE_STATUS;
-              rd_data(7)                              <= IRQ_RATE_METER_TX_OVERFLOW_STATUS;
-              rd_data(8)                              <= IRQ_RATE_METER_RX_DONE_STATUS;
-              rd_data(9)                              <= IRQ_RATE_METER_RX_OVERFLOW_STATUS;
-            when C_TEST_REG_GEN_CONFIG => 
-              rd_data(0)                              <= reg_gen_config_int(0);
-              rd_data(23 downto 8)                    <= reg_gen_config_int(23 downto 8);
-              rd_data(31 downto 24)                   <= reg_gen_config_int(31 downto 24);
-            when C_TEST_REG_GEN_NB_BYTES_LSB => 
-              rd_data(31 downto 0)                    <= reg_gen_nb_bytes_lsb_int(31 downto 0);
-            when C_TEST_REG_GEN_NB_BYTES_MSB => 
-              rd_data(31 downto 0)                    <= reg_gen_nb_bytes_msb_int(31 downto 0);
-            when C_TEST_REG_CHK_CONFIG => 
-              rd_data(0)                              <= reg_chk_config_int(0);
-              rd_data(23 downto 8)                    <= reg_chk_config_int(23 downto 8);
-              rd_data(31 downto 24)                   <= reg_chk_config_int(31 downto 24);
-            when C_TEST_REG_CHK_NB_BYTES_LSB => 
-              rd_data(31 downto 0)                    <= reg_chk_nb_bytes_lsb_int(31 downto 0);
-            when C_TEST_REG_CHK_NB_BYTES_MSB => 
-              rd_data(31 downto 0)                    <= reg_chk_nb_bytes_msb_int(31 downto 0);
+              rd_data(1)                              <= IRQ_GEN_MON_TIMEOUT_READY_STATUS;
+              rd_data(2)                              <= IRQ_GEN_MON_TIMEOUT_VALID_STATUS;
+              rd_data(3)                              <= IRQ_GEN_MON_VALID_ERROR_STATUS;
+              rd_data(4)                              <= IRQ_GEN_MON_DATA_ERROR_STATUS;
+              rd_data(5)                              <= IRQ_GEN_MON_LAST_ERROR_STATUS;
+              rd_data(6)                              <= IRQ_GEN_MON_USER_ERROR_STATUS;
+              rd_data(7)                              <= IRQ_GEN_MON_KEEP_ERROR_STATUS;
+              rd_data(8)                              <= IRQ_CHK_DONE_STATUS;
+              rd_data(9)                              <= IRQ_CHK_ERR_DATA_STATUS;
+              rd_data(10)                             <= IRQ_CHK_ERR_SIZE_STATUS;
+              rd_data(11)                             <= IRQ_CHK_ERR_LAST_STATUS;
+              rd_data(12)                             <= IRQ_CHK_MON_TIMEOUT_READY_STATUS;
+              rd_data(13)                             <= IRQ_CHK_MON_TIMEOUT_VALID_STATUS;
+              rd_data(14)                             <= IRQ_CHK_MON_VALID_ERROR_STATUS;
+              rd_data(15)                             <= IRQ_CHK_MON_DATA_ERROR_STATUS;
+              rd_data(16)                             <= IRQ_CHK_MON_LAST_ERROR_STATUS;
+              rd_data(17)                             <= IRQ_CHK_MON_USER_ERROR_STATUS;
+              rd_data(18)                             <= IRQ_CHK_MON_KEEP_ERROR_STATUS;
+              rd_data(19)                             <= IRQ_RATE_METER_TX_DONE_STATUS;
+              rd_data(20)                             <= IRQ_RATE_METER_TX_OVERFLOW_STATUS;
+              rd_data(21)                             <= IRQ_RATE_METER_RX_DONE_STATUS;
+              rd_data(22)                             <= IRQ_RATE_METER_RX_OVERFLOW_STATUS;
+            when C_TEST_REG_GEN_CHK_CONTROL => 
+              rd_data(0)                              <= reg_gen_chk_control_int(0);
+              rd_data(1)                              <= reg_gen_chk_control_int(1);
+              rd_data(2)                              <= reg_gen_chk_control_int(2);
+              rd_data(3)                              <= reg_gen_chk_control_int(3);
+              rd_data(4)                              <= reg_gen_chk_control_int(4);
+              rd_data(5)                              <= reg_gen_chk_control_int(5);
+            when C_TEST_REG_GEN_FRAME => 
+              rd_data(15 downto 0)                    <= reg_gen_frame_int(15 downto 0);
+              rd_data(31 downto 16)                   <= reg_gen_frame_int(31 downto 16);
+            when C_TEST_REG_GEN_RATE => 
+              rd_data(7 downto 0)                     <= reg_gen_rate_int(7 downto 0);
+              rd_data(15 downto 8)                    <= reg_gen_rate_int(15 downto 8);
+            when C_TEST_REG_GEN_MONITOR => 
+              rd_data(15 downto 0)                    <= reg_gen_monitor_int(15 downto 0);
+            when C_TEST_REG_CHK_FRAME => 
+              rd_data(15 downto 0)                    <= reg_chk_frame_int(15 downto 0);
+              rd_data(31 downto 16)                   <= reg_chk_frame_int(31 downto 16);
+            when C_TEST_REG_CHK_MONITOR => 
+              rd_data(15 downto 0)                    <= reg_chk_monitor_int(15 downto 0);
             when C_TEST_REG_LB_GEN_UDP_PORT => 
               rd_data(15 downto 0)                    <= reg_lb_gen_udp_port_int(15 downto 0);
               rd_data(31 downto 16)                   <= reg_lb_gen_udp_port_int(31 downto 16);
@@ -815,39 +947,71 @@ begin
               rd_data(7)                              <= reg_interrupt_enable_int(7);
               rd_data(8)                              <= reg_interrupt_enable_int(8);
               rd_data(9)                              <= reg_interrupt_enable_int(9);
-            when C_TEST_REG_GEN_CHK_CONTROL => 
-              rd_data(0)                              <= LOOPBACK_MAC_EN_IN;
-              rd_data(1)                              <= LOOPBACK_UDP_EN_IN;
-              rd_data(2)                              <= GEN_START_IN;
-              rd_data(3)                              <= GEN_STOP_IN;
-              rd_data(4)                              <= CHK_START_IN;
-              rd_data(5)                              <= CHK_STOP_IN;
+              rd_data(10)                             <= reg_interrupt_enable_int(10);
+              rd_data(11)                             <= reg_interrupt_enable_int(11);
+              rd_data(12)                             <= reg_interrupt_enable_int(12);
+              rd_data(13)                             <= reg_interrupt_enable_int(13);
+              rd_data(14)                             <= reg_interrupt_enable_int(14);
+              rd_data(15)                             <= reg_interrupt_enable_int(15);
+              rd_data(16)                             <= reg_interrupt_enable_int(16);
+              rd_data(17)                             <= reg_interrupt_enable_int(17);
+              rd_data(18)                             <= reg_interrupt_enable_int(18);
+              rd_data(19)                             <= reg_interrupt_enable_int(19);
+              rd_data(20)                             <= reg_interrupt_enable_int(20);
+              rd_data(21)                             <= reg_interrupt_enable_int(21);
+              rd_data(22)                             <= reg_interrupt_enable_int(22);
             when C_TEST_REG_TX_RATE_METER_CTRL => 
               rd_data(0)                              <= TX_RM_INIT_COUNTER_IN;
             when C_TEST_REG_RX_RATE_METER_CTRL => 
               rd_data(0)                              <= RX_RM_INIT_COUNTER_IN;
             when C_TEST_REG_INTERRUPT_CLEAR => 
               rd_data(0)                              <= IRQ_GEN_DONE_CLEAR_IN;
-              rd_data(1)                              <= IRQ_GEN_ERR_TIMEOUT_CLEAR_IN;
-              rd_data(2)                              <= IRQ_CHK_DONE_CLEAR_IN;
-              rd_data(3)                              <= IRQ_CHK_ERR_FRAME_SIZE_CLEAR_IN;
-              rd_data(4)                              <= IRQ_CHK_ERR_DATA_CLEAR_IN;
-              rd_data(5)                              <= IRQ_CHK_ERR_TIMEOUT_CLEAR_IN;
-              rd_data(6)                              <= IRQ_RATE_METER_TX_DONE_CLEAR_IN;
-              rd_data(7)                              <= IRQ_RATE_METER_TX_OVERFLOW_CLEAR_IN;
-              rd_data(8)                              <= IRQ_RATE_METER_RX_DONE_CLEAR_IN;
-              rd_data(9)                              <= IRQ_RATE_METER_RX_OVERFLOW_CLEAR_IN;
+              rd_data(1)                              <= IRQ_GEN_MON_TIMEOUT_READY_CLEAR_IN;
+              rd_data(2)                              <= IRQ_GEN_MON_TIMEOUT_VALID_CLEAR_IN;
+              rd_data(3)                              <= IRQ_GEN_MON_VALID_ERROR_CLEAR_IN;
+              rd_data(4)                              <= IRQ_GEN_MON_DATA_ERROR_CLEAR_IN;
+              rd_data(5)                              <= IRQ_GEN_MON_LAST_ERROR_CLEAR_IN;
+              rd_data(6)                              <= IRQ_GEN_MON_USER_ERROR_CLEAR_IN;
+              rd_data(7)                              <= IRQ_GEN_MON_KEEP_ERROR_CLEAR_IN;
+              rd_data(8)                              <= IRQ_CHK_DONE_CLEAR_IN;
+              rd_data(9)                              <= IRQ_CHK_ERR_DATA_CLEAR_IN;
+              rd_data(10)                             <= IRQ_CHK_ERR_SIZE_CLEAR_IN;
+              rd_data(11)                             <= IRQ_CHK_ERR_LAST_CLEAR_IN;
+              rd_data(12)                             <= IRQ_CHK_MON_TIMEOUT_READY_CLEAR_IN;
+              rd_data(13)                             <= IRQ_CHK_MON_TIMEOUT_VALID_CLEAR_IN;
+              rd_data(14)                             <= IRQ_CHK_MON_VALID_ERROR_CLEAR_IN;
+              rd_data(15)                             <= IRQ_CHK_MON_DATA_ERROR_CLEAR_IN;
+              rd_data(16)                             <= IRQ_CHK_MON_LAST_ERROR_CLEAR_IN;
+              rd_data(17)                             <= IRQ_CHK_MON_USER_ERROR_CLEAR_IN;
+              rd_data(18)                             <= IRQ_CHK_MON_KEEP_ERROR_CLEAR_IN;
+              rd_data(19)                             <= IRQ_RATE_METER_TX_DONE_CLEAR_IN;
+              rd_data(20)                             <= IRQ_RATE_METER_TX_OVERFLOW_CLEAR_IN;
+              rd_data(21)                             <= IRQ_RATE_METER_RX_DONE_CLEAR_IN;
+              rd_data(22)                             <= IRQ_RATE_METER_RX_OVERFLOW_CLEAR_IN;
             when C_TEST_REG_INTERRUPT_SET => 
               rd_data(0)                              <= IRQ_GEN_DONE_SET_IN;
-              rd_data(1)                              <= IRQ_GEN_ERR_TIMEOUT_SET_IN;
-              rd_data(2)                              <= IRQ_CHK_DONE_SET_IN;
-              rd_data(3)                              <= IRQ_CHK_ERR_FRAME_SIZE_SET_IN;
-              rd_data(4)                              <= IRQ_CHK_ERR_DATA_SET_IN;
-              rd_data(5)                              <= IRQ_CHK_ERR_TIMEOUT_SET_IN;
-              rd_data(6)                              <= IRQ_RATE_METER_TX_DONE_SET_IN;
-              rd_data(7)                              <= IRQ_RATE_METER_TX_OVERFLOW_SET_IN;
-              rd_data(8)                              <= IRQ_RATE_METER_RX_DONE_SET_IN;
-              rd_data(9)                              <= IRQ_RATE_METER_RX_OVERFLOW_SET_IN;
+              rd_data(1)                              <= IRQ_GEN_MON_TIMEOUT_READY_SET_IN;
+              rd_data(2)                              <= IRQ_GEN_MON_TIMEOUT_VALID_SET_IN;
+              rd_data(3)                              <= IRQ_GEN_MON_VALID_ERROR_SET_IN;
+              rd_data(4)                              <= IRQ_GEN_MON_DATA_ERROR_SET_IN;
+              rd_data(5)                              <= IRQ_GEN_MON_LAST_ERROR_SET_IN;
+              rd_data(6)                              <= IRQ_GEN_MON_USER_ERROR_SET_IN;
+              rd_data(7)                              <= IRQ_GEN_MON_KEEP_ERROR_SET_IN;
+              rd_data(8)                              <= IRQ_CHK_DONE_SET_IN;
+              rd_data(9)                              <= IRQ_CHK_ERR_DATA_SET_IN;
+              rd_data(10)                             <= IRQ_CHK_ERR_SIZE_SET_IN;
+              rd_data(11)                             <= IRQ_CHK_ERR_LAST_SET_IN;
+              rd_data(12)                             <= IRQ_CHK_MON_TIMEOUT_READY_SET_IN;
+              rd_data(13)                             <= IRQ_CHK_MON_TIMEOUT_VALID_SET_IN;
+              rd_data(14)                             <= IRQ_CHK_MON_VALID_ERROR_SET_IN;
+              rd_data(15)                             <= IRQ_CHK_MON_DATA_ERROR_SET_IN;
+              rd_data(16)                             <= IRQ_CHK_MON_LAST_ERROR_SET_IN;
+              rd_data(17)                             <= IRQ_CHK_MON_USER_ERROR_SET_IN;
+              rd_data(18)                             <= IRQ_CHK_MON_KEEP_ERROR_SET_IN;
+              rd_data(19)                             <= IRQ_RATE_METER_TX_DONE_SET_IN;
+              rd_data(20)                             <= IRQ_RATE_METER_TX_OVERFLOW_SET_IN;
+              rd_data(21)                             <= IRQ_RATE_METER_RX_DONE_SET_IN;
+              rd_data(22)                             <= IRQ_RATE_METER_RX_OVERFLOW_SET_IN;
 
             when others =>
               bad_rd_addr <= '1';

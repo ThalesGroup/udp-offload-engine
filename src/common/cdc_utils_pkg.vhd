@@ -46,7 +46,7 @@ package cdc_utils_pkg is
   --------------------------------------------
   -- COMPONENTS
   --------------------------------------------
-
+  
   ----------------------------------------------------------------------
   --
   -- Reset resynchronization components
@@ -156,6 +156,55 @@ package cdc_utils_pkg is
     );
   end component cdc_gray_sync;
 
+  -- Resynchronize any data vector with a valid signal accompagnying it
+  -- Full data rate is not achievable with this component, consider using a FIFO if higher data rate is necessary
+  component cdc_handshake_sync is
+    generic(
+      G_NB_STAGE    : integer range 2 to integer'high := 2; -- Number of synchronization stages (to reduce MTBF)
+      G_ACTIVE_RST  : std_logic                       := '1'; -- State at which the reset signal is asserted (active low or active high)
+      G_ASYNC_RST   : boolean                         := false; -- Type of reset used (synchronous or asynchronous resets)
+      G_TDATA_WIDTH : positive                        := 32 -- Width of the tdata vector of the stream
+    );
+    port(
+      -- axi4-stream slave (slave clock domain)
+      S_CLK    : in  std_logic;         -- clock for slave bus
+      S_RST    : in  std_logic;         -- reset for slave bus
+      S_TDATA  : in  std_logic_vector(G_TDATA_WIDTH - 1 downto 0) := (G_TDATA_WIDTH - 1 downto 0 => '-'); -- tdata for slave bus
+      S_TVALID : in  std_logic;         -- tvalid for slave bus
+      S_TREADY : out std_logic;         -- tready for slave bus
+
+      -- axi4-stream master (master clock domain)
+      M_CLK    : in  std_logic;         -- clock for master bus
+      M_RST    : in  std_logic;         -- reset for master bus
+      M_TDATA  : out std_logic_vector(G_TDATA_WIDTH - 1 downto 0); -- tdata for master bus
+      M_TVALID : out std_logic;         -- tvalid for master bus
+      M_TREADY : in  std_logic                                    := '1' -- tready for master bus
+    );
+  end component cdc_handshake_sync;
+
+  -- Resynchronize any data vector with no valid signal assiociated with it
+  -- The resynchronization is triggered by a changing state
+  -- Should be used only if no valid signal is available, otherwise you should use a handshake mechanism
+  component cdc_vect_sync is
+    generic(
+      G_NB_STAGE   : integer range 2 to integer'high := 2; -- Number of synchronization stages (to reduce MTBF)
+      G_ACTIVE_RST : std_logic                       := '1'; -- State at which the reset signal is asserted (active low or active high)
+      G_ASYNC_RST  : boolean                         := false; -- Type of reset used (synchronous or asynchronous resets)
+      G_DATA_WIDTH : positive                        := 8 -- Width of the multi-bit vector
+    );
+    port(
+      -- input clock domain
+      CLK_IN   : in  std_logic;         -- Clock for input
+      RST_IN   : in  std_logic;         -- Reset for input clock domain
+      DATA_IN  : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0); -- Data vector to transmit (from input clock domain)
+
+      -- output clock domain
+      CLK_OUT  : in  std_logic;         -- Clock for output
+      RST_OUT  : in  std_logic;         -- Reset for output clock domain
+      DATA_OUT : out std_logic_vector(G_DATA_WIDTH - 1 downto 0) -- Data vector received (in output clock domain)
+    );
+  end component cdc_vect_sync;
+
 end cdc_utils_pkg;
 
 
@@ -207,6 +256,6 @@ package body cdc_utils_pkg is
     return b;
 
   end gray2bin;
-
-
+  
+  
 end cdc_utils_pkg;

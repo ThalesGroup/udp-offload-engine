@@ -1,4 +1,4 @@
--- Copyright (c) 2022-2022 THALES. All Rights Reserved
+-- Copyright (c) 2022-2023 THALES. All Rights Reserved
 --
 -- Licensed under the Apache License, Version 2.0 (the "License");
 -- you may not use this file except in compliance with the License.
@@ -11,8 +11,6 @@
 -- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
---
--- File subject to timestamp TSP22X5365 Thales, in the name of Thales SIX GTS France, made on 10/06/2022.
 --
 
 ----------------------------------------------------------------------------------
@@ -74,7 +72,7 @@ entity axis_pkt_align is
   );
 begin
   -- synthesis translate_off
-  assert (G_TDATA_WIDTH mod 8 = 0) report "TDATA is not a multiple of byte" severity failure;
+  assert (G_TDATA_WIDTH mod 8) = 0 report "TDATA is not a multiple of byte" severity failure;
   -- synthesis translate_on
 end axis_pkt_align;
 

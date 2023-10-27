@@ -55,19 +55,19 @@ entity main_uoe_registers is
     ----------------------
     -- Input data for registers
     ----------------------
-    -- RO Registers 
+    -- RO Registers
     VERSION                                           : in  std_logic_vector(7 downto 0);                          -- Version number
     REVISION                                          : in  std_logic_vector(7 downto 0);                          -- Revision number
     DEBUG                                             : in  std_logic_vector(15 downto 0);                         -- Debug number
-    -- RZ Registers 
+    -- RZ Registers
     CRC_FILTER_COUNTER                                : in  std_logic_vector(31 downto 0);                         -- Number of frames filtered because of bad CRC
     MAC_FILTER_COUNTER                                : in  std_logic_vector(31 downto 0);                         -- Number of frames filtered following MAC configuration
     EXT_DROP_COUNTER                                  : in  std_logic_vector(31 downto 0);                         -- Number of frames dropped on externe interface
     RAW_DROP_COUNTER                                  : in  std_logic_vector(31 downto 0);                         -- Number of frames dropped on raw interface
     UDP_DROP_COUNTER                                  : in  std_logic_vector(31 downto 0);                         -- Number of frames dropped on udp interface
-    -- WO Registers 
+    -- WO Registers
     ARP_SW_REQ_DEST_IP_ADDR_IN                        : in  std_logic_vector(31 downto 0);                         -- Destination IP Address use to generate software request ARP
-    -- Irq WO Registers 
+    -- Irq WO Registers
     IRQ_INIT_DONE_CLEAR_IN                            : in  std_logic;                                             -- Field description
     IRQ_ARP_TABLE_CLEAR_DONE_CLEAR_IN                 : in  std_logic;                                             -- Field description
     IRQ_ARP_IP_CONFLICT_CLEAR_IN                      : in  std_logic;                                             -- Field description
@@ -86,7 +86,7 @@ entity main_uoe_registers is
     IRQ_ROUTER_DATA_RX_FIFO_OVERFLOW_SET_IN           : in  std_logic;                                             -- Field description
     IRQ_ROUTER_CRC_RX_FIFO_OVERFLOW_SET_IN            : in  std_logic;                                             -- Field description
     IRQ_IPV4_RX_FRAG_OFFSET_ERROR_SET_IN              : in  std_logic;                                             -- Field description
-    -- Irq RO Registers 
+    -- Irq RO Registers
     IRQ_INIT_DONE_STATUS                              : in  std_logic;                                             -- Field description
     IRQ_ARP_TABLE_CLEAR_DONE_STATUS                   : in  std_logic;                                             -- Field description
     IRQ_ARP_IP_CONFLICT_STATUS                        : in  std_logic;                                             -- Field description
@@ -100,7 +100,7 @@ entity main_uoe_registers is
     ----------------------
     -- Registers output data
     ----------------------
-    -- RW Registers 
+    -- RW Registers
     LOCAL_MAC_ADDR_LSB                                : out std_logic_vector(31 downto 0);                         -- Local MAC Address LSB
     LOCAL_MAC_ADDR_MSB                                : out std_logic_vector(15 downto 0);                         -- Local MAC Address MSB
     LOCAL_IP_ADDR                                     : out std_logic_vector(31 downto 0);                         -- Local IP Address
@@ -125,17 +125,17 @@ entity main_uoe_registers is
     ARP_RX_TEST_LOCAL_IP_CONFLICT                     : out std_logic;                                             -- Enable test "Local IP ADDR conflict"
     ARP_TABLE_CLEAR                                   : out std_logic;                                             -- Clear ARP Table (Should be drive like a pulse : '0' => '1' => '0')
     CONFIG_DONE                                       : out std_logic;                                             -- Flag Configuration Done
-    -- WO Registers 
+    -- WO Registers
     ARP_SW_REQ_DEST_IP_ADDR_OUT                       : out std_logic_vector(31 downto 0);                         -- Destination IP Address use to generate software request ARP
-    -- WO Pulses Registers 
+    -- WO Pulses Registers
     REG_ARP_SW_REQ_WRITE                              : out std_logic;
-    -- RZ Pulses Registers 
+    -- RZ Pulses Registers
     REG_MONITORING_CRC_FILTER_READ                    : out std_logic;
     REG_MONITORING_MAC_FILTER_READ                    : out std_logic;
     REG_MONITORING_EXT_DROP_READ                      : out std_logic;
     REG_MONITORING_RAW_DROP_READ                      : out std_logic;
     REG_MONITORING_UDP_DROP_READ                      : out std_logic;
-    -- Irq RW Registers 
+    -- Irq RW Registers
     IRQ_INIT_DONE_ENABLE                              : out std_logic;                                             -- Field description
     IRQ_ARP_TABLE_CLEAR_DONE_ENABLE                   : out std_logic;                                             -- Field description
     IRQ_ARP_IP_CONFLICT_ENABLE                        : out std_logic;                                             -- Field description
@@ -145,7 +145,7 @@ entity main_uoe_registers is
     IRQ_ROUTER_DATA_RX_FIFO_OVERFLOW_ENABLE           : out std_logic;                                             -- Field description
     IRQ_ROUTER_CRC_RX_FIFO_OVERFLOW_ENABLE            : out std_logic;                                             -- Field description
     IRQ_IPV4_RX_FRAG_OFFSET_ERROR_ENABLE              : out std_logic;                                             -- Field description
-    -- Irq WO Registers 
+    -- Irq WO Registers
     IRQ_INIT_DONE_CLEAR_OUT                           : out std_logic;                                             -- Field description
     IRQ_ARP_TABLE_CLEAR_DONE_CLEAR_OUT                : out std_logic;                                             -- Field description
     IRQ_ARP_IP_CONFLICT_CLEAR_OUT                     : out std_logic;                                             -- Field description
@@ -164,9 +164,9 @@ entity main_uoe_registers is
     IRQ_ROUTER_DATA_RX_FIFO_OVERFLOW_SET_OUT          : out std_logic;                                             -- Field description
     IRQ_ROUTER_CRC_RX_FIFO_OVERFLOW_SET_OUT           : out std_logic;                                             -- Field description
     IRQ_IPV4_RX_FRAG_OFFSET_ERROR_SET_OUT             : out std_logic;                                             -- Field description
-    -- Irq WO Pulses Registers 
+    -- Irq WO Pulses Registers
     REG_INTERRUPT_CLEAR_WRITE                         : out std_logic;
-    REG_INTERRUPT_SET_WRITE                           : out std_logic 
+    REG_INTERRUPT_SET_WRITE                           : out std_logic
 
   );
 end main_uoe_registers;
@@ -204,23 +204,23 @@ architecture rtl of main_uoe_registers is
   -- CONSTANTS
   --------------------------------------------
   -- Define the size of each register by masking all unused bits
-  constant C_REG_LOCAL_MAC_ADDR_LSB                    : std_logic_vector(31 downto 0):="11111111111111111111111111111111"; 
-  constant C_REG_LOCAL_MAC_ADDR_MSB                    : std_logic_vector(31 downto 0):="00000000000000001111111111111111"; 
-  constant C_REG_LOCAL_IP_ADDR                         : std_logic_vector(31 downto 0):="11111111111111111111111111111111"; 
-  constant C_REG_RAW_DEST_MAC_ADDR_LSB                 : std_logic_vector(31 downto 0):="11111111111111111111111111111111"; 
-  constant C_REG_RAW_DEST_MAC_ADDR_MSB                 : std_logic_vector(31 downto 0):="00000000000000001111111111111111"; 
-  constant C_REG_IPV4_TIME_TO_LEAVE                    : std_logic_vector(31 downto 0):="00000000000000000000000011111111"; 
-  constant C_REG_FILTERING_CONTROL                     : std_logic_vector(31 downto 0):="00000000000000000000000000000111"; 
-  constant C_REG_IPV4_MULTICAST_IP_ADDR_1              : std_logic_vector(31 downto 0):="00011111111111111111111111111111"; 
-  constant C_REG_IPV4_MULTICAST_IP_ADDR_2              : std_logic_vector(31 downto 0):="00011111111111111111111111111111"; 
-  constant C_REG_IPV4_MULTICAST_IP_ADDR_3              : std_logic_vector(31 downto 0):="00011111111111111111111111111111"; 
-  constant C_REG_IPV4_MULTICAST_IP_ADDR_4              : std_logic_vector(31 downto 0):="00011111111111111111111111111111"; 
-  constant C_REG_ARP_CONFIGURATION                     : std_logic_vector(31 downto 0):="00000000000111111111111111111111"; 
-  constant C_REG_CONFIG_DONE                           : std_logic_vector(31 downto 0):="00000000000000000000000000000001"; 
-  constant C_REG_INTERRUPT_ENABLE                      : std_logic_vector(31 downto 0):="00000000000000000000000111111111"; 
-  constant C_REG_ARP_SW_REQ                            : std_logic_vector(31 downto 0):="11111111111111111111111111111111"; 
-  constant C_REG_INTERRUPT_CLEAR                       : std_logic_vector(31 downto 0):="00000000000000000000000111111111"; 
-  constant C_REG_INTERRUPT_SET                         : std_logic_vector(31 downto 0):="00000000000000000000000111111111"; 
+  constant C_REG_LOCAL_MAC_ADDR_LSB                    : std_logic_vector(31 downto 0):="11111111111111111111111111111111";
+  constant C_REG_LOCAL_MAC_ADDR_MSB                    : std_logic_vector(31 downto 0):="00000000000000001111111111111111";
+  constant C_REG_LOCAL_IP_ADDR                         : std_logic_vector(31 downto 0):="11111111111111111111111111111111";
+  constant C_REG_RAW_DEST_MAC_ADDR_LSB                 : std_logic_vector(31 downto 0):="11111111111111111111111111111111";
+  constant C_REG_RAW_DEST_MAC_ADDR_MSB                 : std_logic_vector(31 downto 0):="00000000000000001111111111111111";
+  constant C_REG_IPV4_TIME_TO_LEAVE                    : std_logic_vector(31 downto 0):="00000000000000000000000011111111";
+  constant C_REG_FILTERING_CONTROL                     : std_logic_vector(31 downto 0):="00000000000000000000000000000111";
+  constant C_REG_IPV4_MULTICAST_IP_ADDR_1              : std_logic_vector(31 downto 0):="00011111111111111111111111111111";
+  constant C_REG_IPV4_MULTICAST_IP_ADDR_2              : std_logic_vector(31 downto 0):="00011111111111111111111111111111";
+  constant C_REG_IPV4_MULTICAST_IP_ADDR_3              : std_logic_vector(31 downto 0):="00011111111111111111111111111111";
+  constant C_REG_IPV4_MULTICAST_IP_ADDR_4              : std_logic_vector(31 downto 0):="00011111111111111111111111111111";
+  constant C_REG_ARP_CONFIGURATION                     : std_logic_vector(31 downto 0):="00000000000111111111111111111111";
+  constant C_REG_CONFIG_DONE                           : std_logic_vector(31 downto 0):="00000000000000000000000000000001";
+  constant C_REG_INTERRUPT_ENABLE                      : std_logic_vector(31 downto 0):="00000000000000000000000111111111";
+  constant C_REG_ARP_SW_REQ                            : std_logic_vector(31 downto 0):="11111111111111111111111111111111";
+  constant C_REG_INTERRUPT_CLEAR                       : std_logic_vector(31 downto 0):="00000000000000000000000111111111";
+  constant C_REG_INTERRUPT_SET                         : std_logic_vector(31 downto 0):="00000000000000000000000111111111";
 
 
 
@@ -256,23 +256,23 @@ architecture rtl of main_uoe_registers is
   signal bad_rd_addr                 : std_logic;
 
   -- Write registers
-  signal reg_local_mac_addr_lsb_int                   : std_logic_vector(31 downto 0); 
-  signal reg_local_mac_addr_msb_int                   : std_logic_vector(31 downto 0); 
-  signal reg_local_ip_addr_int                        : std_logic_vector(31 downto 0); 
-  signal reg_raw_dest_mac_addr_lsb_int                : std_logic_vector(31 downto 0); 
-  signal reg_raw_dest_mac_addr_msb_int                : std_logic_vector(31 downto 0); 
-  signal reg_ipv4_time_to_leave_int                   : std_logic_vector(31 downto 0); 
-  signal reg_filtering_control_int                    : std_logic_vector(31 downto 0); 
-  signal reg_ipv4_multicast_ip_addr_1_int             : std_logic_vector(31 downto 0); 
-  signal reg_ipv4_multicast_ip_addr_2_int             : std_logic_vector(31 downto 0); 
-  signal reg_ipv4_multicast_ip_addr_3_int             : std_logic_vector(31 downto 0); 
-  signal reg_ipv4_multicast_ip_addr_4_int             : std_logic_vector(31 downto 0); 
-  signal reg_arp_configuration_int                    : std_logic_vector(31 downto 0); 
-  signal reg_config_done_int                          : std_logic_vector(31 downto 0); 
-  signal reg_interrupt_enable_int                     : std_logic_vector(31 downto 0); 
-  signal reg_arp_sw_req_int                           : std_logic_vector(31 downto 0); 
-  signal reg_interrupt_clear_int                      : std_logic_vector(31 downto 0); 
-  signal reg_interrupt_set_int                        : std_logic_vector(31 downto 0); 
+  signal reg_local_mac_addr_lsb_int                   : std_logic_vector(31 downto 0);
+  signal reg_local_mac_addr_msb_int                   : std_logic_vector(31 downto 0);
+  signal reg_local_ip_addr_int                        : std_logic_vector(31 downto 0);
+  signal reg_raw_dest_mac_addr_lsb_int                : std_logic_vector(31 downto 0);
+  signal reg_raw_dest_mac_addr_msb_int                : std_logic_vector(31 downto 0);
+  signal reg_ipv4_time_to_leave_int                   : std_logic_vector(31 downto 0);
+  signal reg_filtering_control_int                    : std_logic_vector(31 downto 0);
+  signal reg_ipv4_multicast_ip_addr_1_int             : std_logic_vector(31 downto 0);
+  signal reg_ipv4_multicast_ip_addr_2_int             : std_logic_vector(31 downto 0);
+  signal reg_ipv4_multicast_ip_addr_3_int             : std_logic_vector(31 downto 0);
+  signal reg_ipv4_multicast_ip_addr_4_int             : std_logic_vector(31 downto 0);
+  signal reg_arp_configuration_int                    : std_logic_vector(31 downto 0);
+  signal reg_config_done_int                          : std_logic_vector(31 downto 0);
+  signal reg_interrupt_enable_int                     : std_logic_vector(31 downto 0);
+  signal reg_arp_sw_req_int                           : std_logic_vector(31 downto 0);
+  signal reg_interrupt_clear_int                      : std_logic_vector(31 downto 0);
+  signal reg_interrupt_set_int                        : std_logic_vector(31 downto 0);
 
 
 
@@ -423,45 +423,45 @@ begin
       if (S_AXI_ARESET = '1') then
         bad_wr_addr               <= '0';
 
-        reg_local_mac_addr_lsb_int(31 downto 0)               <= "00000000000000000000000000000000"; 
-        reg_local_mac_addr_msb_int(15 downto 0)               <= "0000000000000000"; 
-        reg_local_ip_addr_int(31 downto 0)                    <= "00000000000000000000000000000000"; 
-        reg_raw_dest_mac_addr_lsb_int(31 downto 0)            <= "11111111111111111111111111111111"; 
-        reg_raw_dest_mac_addr_msb_int(15 downto 0)            <= "1111111111111111"; 
-        reg_ipv4_time_to_leave_int(7 downto 0)                <= "01100100"; 
-        reg_filtering_control_int(0)                          <= '0'; 
-        reg_filtering_control_int(1)                          <= '0'; 
-        reg_filtering_control_int(2)                          <= '0'; 
-        reg_ipv4_multicast_ip_addr_1_int(27 downto 0)         <= "0000000000000000000000000000"; 
-        reg_ipv4_multicast_ip_addr_1_int(28)                  <= '0'; 
-        reg_ipv4_multicast_ip_addr_2_int(27 downto 0)         <= "0000000000000000000000000000"; 
-        reg_ipv4_multicast_ip_addr_2_int(28)                  <= '0'; 
-        reg_ipv4_multicast_ip_addr_3_int(27 downto 0)         <= "0000000000000000000000000000"; 
-        reg_ipv4_multicast_ip_addr_3_int(28)                  <= '0'; 
-        reg_ipv4_multicast_ip_addr_4_int(27 downto 0)         <= "0000000000000000000000000000"; 
-        reg_ipv4_multicast_ip_addr_4_int(28)                  <= '0'; 
-        reg_arp_configuration_int(11 downto 0)                <= "001111101000"; 
-        reg_arp_configuration_int(15 downto 12)               <= "0011"; 
-        reg_arp_configuration_int(16)                         <= '0'; 
-        reg_arp_configuration_int(18 downto 17)               <= "00"; 
-        reg_arp_configuration_int(19)                         <= '0'; 
-        reg_arp_configuration_int(20)                         <= '0'; 
-        reg_config_done_int(0)                                <= '0'; 
-        reg_interrupt_enable_int(0)                           <= '0'; 
-        reg_interrupt_enable_int(1)                           <= '0'; 
-        reg_interrupt_enable_int(2)                           <= '0'; 
-        reg_interrupt_enable_int(3)                           <= '0'; 
-        reg_interrupt_enable_int(4)                           <= '0'; 
-        reg_interrupt_enable_int(5)                           <= '0'; 
-        reg_interrupt_enable_int(6)                           <= '0'; 
-        reg_interrupt_enable_int(7)                           <= '0'; 
-        reg_interrupt_enable_int(8)                           <= '0'; 
-        reg_arp_sw_req_int                                    <= (others => '0'); 
-        reg_interrupt_clear_int                               <= (others => '0'); 
-        reg_interrupt_set_int                                 <= (others => '0'); 
-        REG_ARP_SW_REQ_WRITE                                  <= '0'; 
-        REG_INTERRUPT_CLEAR_WRITE                             <= '0'; 
-        REG_INTERRUPT_SET_WRITE                               <= '0'; 
+        reg_local_mac_addr_lsb_int(31 downto 0)               <= "00000000000000000000000000000000";
+        reg_local_mac_addr_msb_int(15 downto 0)               <= "0000000000000000";
+        reg_local_ip_addr_int(31 downto 0)                    <= "00000000000000000000000000000000";
+        reg_raw_dest_mac_addr_lsb_int(31 downto 0)            <= "11111111111111111111111111111111";
+        reg_raw_dest_mac_addr_msb_int(15 downto 0)            <= "1111111111111111";
+        reg_ipv4_time_to_leave_int(7 downto 0)                <= "01100100";
+        reg_filtering_control_int(0)                          <= '0';
+        reg_filtering_control_int(1)                          <= '0';
+        reg_filtering_control_int(2)                          <= '0';
+        reg_ipv4_multicast_ip_addr_1_int(27 downto 0)         <= "0000000000000000000000000000";
+        reg_ipv4_multicast_ip_addr_1_int(28)                  <= '0';
+        reg_ipv4_multicast_ip_addr_2_int(27 downto 0)         <= "0000000000000000000000000000";
+        reg_ipv4_multicast_ip_addr_2_int(28)                  <= '0';
+        reg_ipv4_multicast_ip_addr_3_int(27 downto 0)         <= "0000000000000000000000000000";
+        reg_ipv4_multicast_ip_addr_3_int(28)                  <= '0';
+        reg_ipv4_multicast_ip_addr_4_int(27 downto 0)         <= "0000000000000000000000000000";
+        reg_ipv4_multicast_ip_addr_4_int(28)                  <= '0';
+        reg_arp_configuration_int(11 downto 0)                <= "001111101000";
+        reg_arp_configuration_int(15 downto 12)               <= "0011";
+        reg_arp_configuration_int(16)                         <= '0';
+        reg_arp_configuration_int(18 downto 17)               <= "00";
+        reg_arp_configuration_int(19)                         <= '0';
+        reg_arp_configuration_int(20)                         <= '0';
+        reg_config_done_int(0)                                <= '0';
+        reg_interrupt_enable_int(0)                           <= '0';
+        reg_interrupt_enable_int(1)                           <= '0';
+        reg_interrupt_enable_int(2)                           <= '0';
+        reg_interrupt_enable_int(3)                           <= '0';
+        reg_interrupt_enable_int(4)                           <= '0';
+        reg_interrupt_enable_int(5)                           <= '0';
+        reg_interrupt_enable_int(6)                           <= '0';
+        reg_interrupt_enable_int(7)                           <= '0';
+        reg_interrupt_enable_int(8)                           <= '0';
+        reg_arp_sw_req_int                                    <= (others => '0');
+        reg_interrupt_clear_int                               <= (others => '0');
+        reg_interrupt_set_int                                 <= (others => '0');
+        REG_ARP_SW_REQ_WRITE                                  <= '0';
+        REG_INTERRUPT_CLEAR_WRITE                             <= '0';
+        REG_INTERRUPT_SET_WRITE                               <= '0';
 
 
       else
@@ -469,9 +469,9 @@ begin
         -- Default
         bad_wr_addr <= '0';
 
-        REG_ARP_SW_REQ_WRITE                          <= '0'; 
-        REG_INTERRUPT_CLEAR_WRITE                     <= '0'; 
-        REG_INTERRUPT_SET_WRITE                       <= '0'; 
+        REG_ARP_SW_REQ_WRITE                          <= '0';
+        REG_INTERRUPT_CLEAR_WRITE                     <= '0';
+        REG_INTERRUPT_SET_WRITE                       <= '0';
 
 
         if (wr_req = '1') then
@@ -697,11 +697,11 @@ begin
         bad_rd_addr <= '0';
         rd_data     <= (others => '0');
 
-        REG_MONITORING_CRC_FILTER_READ                        <= '0'; 
-        REG_MONITORING_MAC_FILTER_READ                        <= '0'; 
-        REG_MONITORING_EXT_DROP_READ                          <= '0'; 
-        REG_MONITORING_RAW_DROP_READ                          <= '0'; 
-        REG_MONITORING_UDP_DROP_READ                          <= '0'; 
+        REG_MONITORING_CRC_FILTER_READ                        <= '0';
+        REG_MONITORING_MAC_FILTER_READ                        <= '0';
+        REG_MONITORING_EXT_DROP_READ                          <= '0';
+        REG_MONITORING_RAW_DROP_READ                          <= '0';
+        REG_MONITORING_UDP_DROP_READ                          <= '0';
 
 
       else
@@ -709,11 +709,11 @@ begin
         bad_rd_addr <= '0';
         rd_data     <= (others => '0');
 
-        REG_MONITORING_CRC_FILTER_READ                <= '0'; 
-        REG_MONITORING_MAC_FILTER_READ                <= '0'; 
-        REG_MONITORING_EXT_DROP_READ                  <= '0'; 
-        REG_MONITORING_RAW_DROP_READ                  <= '0'; 
-        REG_MONITORING_UDP_DROP_READ                  <= '0'; 
+        REG_MONITORING_CRC_FILTER_READ                <= '0';
+        REG_MONITORING_MAC_FILTER_READ                <= '0';
+        REG_MONITORING_EXT_DROP_READ                  <= '0';
+        REG_MONITORING_RAW_DROP_READ                  <= '0';
+        REG_MONITORING_UDP_DROP_READ                  <= '0';
 
 
         if (rd_req = '1') then

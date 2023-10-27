@@ -18,6 +18,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use ieee.math_real.all;
 
 --------------------------------------
 -- INTEGRATED TESTS UDP
@@ -34,6 +35,12 @@ library common;
 use common.axis_utils_pkg.axis_mux_custom;
 use common.axis_utils_pkg.axis_demux_custom;
 use common.axis_utils_pkg.axis_fifo;
+use common.axis_utils_pkg.axis_rate_limit;
+
+use common.datatest_tools_pkg.axis_pkt_gen;
+use common.datatest_tools_pkg.axis_frame_chk;
+use common.datatest_tools_pkg.axis_monitor;
+use common.datatest_tools_pkg.C_GEN_PRBS;
 
 entity uoe_integrated_tests_udp is
   generic(
@@ -72,92 +79,45 @@ entity uoe_integrated_tests_udp is
     M_CORE_TX_TKEEP       : out std_logic_vector(((G_TDATA_WIDTH / 8) - 1) downto 0);
     M_CORE_TX_TUSER       : out std_logic_vector(79 downto 0);
     M_CORE_TX_TREADY      : in  std_logic;
-    -- Ctrl
+    -- Global Control
     LOOPBACK_EN           : in  std_logic;
-    GEN_START_P           : in  std_logic;
-    GEN_STOP_P            : in  std_logic;
-    CHK_START_P           : in  std_logic;
-    CHK_STOP_P            : in  std_logic;
+    LB_GEN_DEST_PORT      : in  std_logic_vector(15 downto 0); -- Use for loopback and generator
+    LB_GEN_SRC_PORT       : in  std_logic_vector(15 downto 0); -- Use for loopback and generator
+    LB_GEN_DEST_IP_ADDR   : in  std_logic_vector(31 downto 0); -- Use for loopback and generator
+    CHK_LISTENING_PORT    : in  std_logic_vector(15 downto 0);
+    -- Control/Status Generator
+    GEN_ENABLE            : in  std_logic;
+    GEN_NB_FRAME          : in  std_logic_vector(15 downto 0);
     GEN_FRAME_SIZE_TYPE   : in  std_logic;
     GEN_FRAME_SIZE_STATIC : in  std_logic_vector(15 downto 0);
-    --GEN_TIMEOUT_VALUE      : in std_logic_vector(31 downto 0);
-    GEN_RATE_LIMITATION   : in  std_logic_vector(7 downto 0);
-    GEN_NB_BYTES          : in  std_logic_vector(63 downto 0);
+    GEN_DONE              : out std_logic;
+    GEN_MON_TIMEOUT_VALUE : in  std_logic_vector(15 downto 0);
+    GEN_MON_ERROR         : out std_logic_vector(6 downto 0);
+    GEN_RATE_NB_TRANSFERS : in  std_logic_vector(7 downto 0);
+    GEN_RATE_WINDOW_SIZE  : in  std_logic_vector(7 downto 0);
+    GEN_TEST_DURATION     : out std_logic_vector(63 downto 0);
+    -- Control/Status Checker
+    CHK_ENABLE            : in  std_logic;
+    CHK_NB_FRAME          : in  std_logic_vector(15 downto 0);
     CHK_FRAME_SIZE_TYPE   : in  std_logic;
     CHK_FRAME_SIZE_STATIC : in  std_logic_vector(15 downto 0);
-    --CHK_TIMEOUT_VALUE      : in std_logic_vector(31 downto 0);
-    CHK_RATE_LIMITATION   : in  std_logic_vector(7 downto 0);
-    CHK_NB_BYTES          : in  std_logic_vector(63 downto 0);
-    LB_GEN_DEST_PORT      : in  std_logic_vector(15 downto 0);
-    LB_GEN_SRC_PORT       : in  std_logic_vector(15 downto 0);
-    LB_GEN_DEST_IP_ADDR   : in  std_logic_vector(31 downto 0);
-    CHK_LISTENING_PORT    : in  std_logic_vector(15 downto 0);
-    -- STATUS
-    GEN_TEST_DURATION     : out std_logic_vector(63 downto 0);
-    --GEN_TEST_NB_BYTES       : std_logic_vector(63 downto 0);
-    GEN_DONE              : out std_logic;
-    GEN_ERR_TIMEOUT       : out std_logic;
-    CHK_TEST_DURATION     : out std_logic_vector(63 downto 0);
-    --CHK_TEST_NB_BYTES       : out std_logic_vector(63 downto 0);
     CHK_DONE              : out std_logic;
-    --CHK_ERR_FRAME_SIZE      : out std_logic;
-    CHK_ERR_DATA          : out std_logic;
-    CHK_ERR_TIMEOUT       : out std_logic
+    CHK_ERROR             : out std_logic_vector(2 downto 0);
+    CHK_MON_TIMEOUT_VALUE : in  std_logic_vector(15 downto 0);
+    CHK_MON_ERROR         : out std_logic_vector(6 downto 0);
+    CHK_TEST_DURATION     : out std_logic_vector(63 downto 0)
   );
 end uoe_integrated_tests_udp;
 
 architecture rtl of uoe_integrated_tests_udp is
 
   ----------------------------------
-  -- Components declaration
-  ----------------------------------
-
-  component uoe_axis_frame is
-    generic(
-      C_TYPE             : string                     := "WO";
-      C_AXIS_TDATA_WIDTH : integer range 1 to 64      := 64;
-      C_TIMEOUT          : integer range 1 to 2 ** 30 := 2 ** 30;
-      C_FRAME_SIZE_MIN   : integer range 1 to 65535   := 1;
-      C_FRAME_SIZE_MAX   : integer range 1 to 65535   := 65535;
-      C_INIT_VALUE       : integer range 1 to 2048    := 4;
-      C_DATA_TYPE        : string                     := "PRBS"
-    );
-    port(
-      clk               : in  std_logic;
-      rst               : in  std_logic;
-      m_axis_tdata      : out std_logic_vector(C_AXIS_TDATA_WIDTH - 1 downto 0);
-      m_axis_tvalid     : out std_logic;
-      m_axis_tlast      : out std_logic;
-      m_axis_tkeep      : out std_logic_vector((C_AXIS_TDATA_WIDTH / 8) - 1 downto 0);
-      m_axis_tuser      : out std_logic_vector(31 downto 0);
-      m_axis_tready     : in  std_logic;
-      s_axis_tdata      : in  std_logic_vector(C_AXIS_TDATA_WIDTH - 1 downto 0);
-      s_axis_tvalid     : in  std_logic;
-      s_axis_tlast      : in  std_logic;
-      s_axis_tready     : out std_logic;
-      s_axis_tuser      : in  std_logic_vector(31 downto 0);
-      s_axis_tkeep      : in  std_logic_vector((C_AXIS_TDATA_WIDTH / 8) - 1 downto 0);
-      start             : in  std_logic;
-      stop              : in  std_logic;
-      frame_size_type   : in  std_logic;
-      random_threshold  : in  std_logic_vector(7 downto 0);
-      nb_data           : in  std_logic_vector(63 downto 0);
-      frame_size        : in  std_logic_vector(15 downto 0);
-      transfert_time    : out std_logic_vector(63 downto 0);
-      end_of_axis_frame : out std_logic;
-      tdata_error       : out std_logic;
-      link_error        : out std_logic
-    );
-  end component uoe_axis_frame;
-
-  ----------------------------------
   -- Constants declaration
   ----------------------------------
 
-  constant C_TIMEOUT_TEST_ENVT        : integer range 1 to 2 ** 30 := 2 ** 30; -- Timeout used for gen/checker test envt
-  constant C_FRAME_SIZE_MIN_TEST_ENVT : integer                    := 1; -- Minimal size in bytes of the frame for the test envt
-  constant C_FRAME_SIZE_MAX_TEST_ENVT : integer                    := 1460; -- Maximal size in bytes of the frame for the test envt
-  constant C_INIT_VALUE_TEST_ENVT     : integer                    := 4; -- Seed used for the test envt
+  constant C_FRAME_SIZE_MIN_TEST_ENVT : integer := 1; -- Minimal size in bytes of the frame for the test envt
+  constant C_FRAME_SIZE_MAX_TEST_ENVT : integer := 1460; -- Maximal size in bytes of the frame for the test envt
+  constant C_FRAME_SIZE               : integer := integer(ceil(log2(real(C_FRAME_SIZE_MAX_TEST_ENVT))));
 
   constant C_TUSER_WIDTH : integer := 80;
 
@@ -214,19 +174,34 @@ architecture rtl of uoe_integrated_tests_udp is
   signal axis_gen_tdata      : std_logic_vector(G_TDATA_WIDTH - 1 downto 0);
   signal axis_gen_tvalid     : std_logic;
   signal axis_gen_tlast      : std_logic;
-  signal axis_gen_tuser      : std_logic_vector(31 downto 0); -- <= OLD, NEW => (15 downto 0);
-  signal axis_gen_tuser_full : std_logic_vector(C_TUSER_WIDTH - 1 downto 0);
+  signal axis_gen_tuser      : std_logic_vector(C_FRAME_SIZE-1 downto 0);
   signal axis_gen_tkeep      : std_logic_vector(((G_TDATA_WIDTH / 8) - 1) downto 0);
   signal axis_gen_tready     : std_logic;
+
+  signal axis_gen_rate_tdata      : std_logic_vector(G_TDATA_WIDTH - 1 downto 0);
+  signal axis_gen_rate_tvalid     : std_logic;
+  signal axis_gen_rate_tlast      : std_logic;
+  signal axis_gen_rate_tuser      : std_logic_vector(C_FRAME_SIZE-1 downto 0);
+  signal axis_gen_rate_tkeep      : std_logic_vector(((G_TDATA_WIDTH / 8) - 1) downto 0);
+  signal axis_gen_rate_tready     : std_logic;
 
   -- Axis Frame Checker
   signal axis_chk_tdata      : std_logic_vector(G_TDATA_WIDTH - 1 downto 0);
   signal axis_chk_tvalid     : std_logic;
   signal axis_chk_tlast      : std_logic;
-  signal axis_chk_tuser      : std_logic_vector(31 downto 0); -- <= OLD, NEW => (15 downto 0);
-  signal axis_chk_tuser_full : std_logic_vector(C_TUSER_WIDTH - 1 downto 0); -- <= OLD, NEW => (15 downto 0);
+  signal axis_chk_tuser      : std_logic_vector(C_FRAME_SIZE-1 downto 0);
   signal axis_chk_tkeep      : std_logic_vector(((G_TDATA_WIDTH / 8) - 1) downto 0);
   signal axis_chk_tready     : std_logic;
+
+  -- others signals used to compute test duration
+  signal gen_enable_r  : std_logic;
+  signal gen_done_i    : std_logic;
+  signal gen_done_r    : std_logic;
+  
+  signal chk_enable_r  : std_logic;
+  signal chk_done_i    : std_logic;
+  signal chk_done_r    : std_logic;
+  signal chk_active    : std_logic;
 
 begin
 
@@ -255,26 +230,41 @@ begin
       G_ADDR_WIDTH  => G_FIFO_ADDR_WIDTH,
       G_TDATA_WIDTH => G_TDATA_WIDTH,
       G_TUSER_WIDTH => 16,
+      G_TID_WIDTH   => 1,
+      G_TDEST_WIDTH => 1,
+      G_PKT_WIDTH   => 0,
+      G_RAM_STYLE   => "AUTO",
       G_ACTIVE_RST  => G_ACTIVE_RST,
-      G_ASYNC_RST   => G_ASYNC_RST
+      G_ASYNC_RST   => G_ASYNC_RST,
+      G_SYNC_STAGE  => 2
     )
     port map(
-      S_CLK    => CLK,
-      S_RST    => RST,
-      S_TDATA  => axis_udp_fifo_rx_tdata,
-      S_TVALID => axis_udp_fifo_rx_tvalid,
-      S_TLAST  => axis_udp_fifo_rx_tlast,
-      S_TUSER  => axis_udp_fifo_rx_tuser,
-      S_TKEEP  => axis_udp_fifo_rx_tkeep,
-      S_TREADY => axis_udp_fifo_rx_tready,
-      M_CLK    => CLK,
-      M_RST    => RST,
-      M_TDATA  => axis_udp_fifo_tx_tdata,
-      M_TVALID => axis_udp_fifo_tx_tvalid,
-      M_TLAST  => axis_udp_fifo_tx_tlast,
-      M_TUSER  => axis_udp_fifo_tx_tuser,
-      M_TKEEP  => axis_udp_fifo_tx_tkeep,
-      M_TREADY => axis_udp_fifo_tx_tready
+      S_CLK         => CLK,
+      S_RST         => RST,
+      S_TDATA       => axis_udp_fifo_rx_tdata,
+      S_TVALID      => axis_udp_fifo_rx_tvalid,
+      S_TLAST       => axis_udp_fifo_rx_tlast,
+      S_TUSER       => axis_udp_fifo_rx_tuser,
+      S_TSTRB       => (others => '-'),
+      S_TKEEP       => axis_udp_fifo_rx_tkeep,
+      S_TID         => (others => '-'),
+      S_TDEST       => (others => '-'),
+      S_TREADY      => axis_udp_fifo_rx_tready,
+      M_CLK         => CLK,
+      M_RST         => RST,
+      M_TDATA       => axis_udp_fifo_tx_tdata,
+      M_TVALID      => axis_udp_fifo_tx_tvalid,
+      M_TLAST       => axis_udp_fifo_tx_tlast,
+      M_TUSER       => axis_udp_fifo_tx_tuser,
+      M_TSTRB       => open,
+      M_TKEEP       => axis_udp_fifo_tx_tkeep,
+      M_TID         => open,
+      M_TDEST       => open,
+      M_TREADY      => axis_udp_fifo_tx_tready,
+      WR_DATA_COUNT => open,
+      WR_PKT_COUNT  => open,
+      RD_DATA_COUNT => open,
+      RD_PKT_COUNT  => open
     );
 
   M_CORE_TX_TDATA  <= axis_tx_tdata when not (LOOPBACK_EN = '1') else axis_udp_fifo_tx_tdata;
@@ -286,100 +276,275 @@ begin
   axis_udp_fifo_tx_tready <= M_CORE_TX_TREADY when LOOPBACK_EN = '1' else '1'; -- Empty fifo
   axis_tx_tready          <= M_CORE_TX_TREADY when not (LOOPBACK_EN = '1') else '1';
 
-  ------------------------------
-  -- AXIS FRAME
-  ------------------------------
+  --======================================
+  --   AXIS FRAME Generator
+  --======================================
 
-  -- Generator
-  inst_uoe_axis_frame_gen : uoe_axis_frame
+  -- Packet Generator
+  inst_axis_pkt_gen : axis_pkt_gen
     generic map(
-      C_TYPE             => "WO",
-      C_AXIS_TDATA_WIDTH => G_TDATA_WIDTH,
-      C_TIMEOUT          => C_TIMEOUT_TEST_ENVT,
-      C_FRAME_SIZE_MIN   => C_FRAME_SIZE_MIN_TEST_ENVT,
-      C_FRAME_SIZE_MAX   => C_FRAME_SIZE_MAX_TEST_ENVT,
-      C_INIT_VALUE       => C_INIT_VALUE_TEST_ENVT,
-      C_DATA_TYPE        => "PRBS"      -- "PRBS" "RAMP"
+      G_ASYNC_RST      => G_ASYNC_RST,
+      G_ACTIVE_RST     => G_ACTIVE_RST,
+      G_TDATA_WIDTH    => G_TDATA_WIDTH,
+      G_TUSER_WIDTH    => C_FRAME_SIZE,
+      G_LSB_TKEEP      => true,
+      G_FRAME_SIZE_MIN => C_FRAME_SIZE_MIN_TEST_ENVT,
+      G_FRAME_SIZE_MAX => C_FRAME_SIZE_MAX_TEST_ENVT,
+      G_DATA_TYPE      => C_GEN_PRBS
     )
     port map(
-      clk               => CLK,
-      rst               => RST,
-      -- Master interface
-      m_axis_tdata      => axis_gen_tdata,
-      m_axis_tvalid     => axis_gen_tvalid,
-      m_axis_tlast      => axis_gen_tlast,
-      m_axis_tkeep      => axis_gen_tkeep,
-      m_axis_tuser      => axis_gen_tuser,
-      m_axis_tready     => axis_gen_tready,
-      -- Slave interface
-      s_axis_tdata      => (others => '0'),
-      s_axis_tvalid     => '0',
-      s_axis_tlast      => '0',
-      s_axis_tready     => open,
-      s_axis_tuser      => (others => '0'),
-      s_axis_tkeep      => (others => '0'),
-      -- Control      
-      start             => GEN_START_P,
-      stop              => GEN_STOP_P,
-      frame_size_type   => GEN_FRAME_SIZE_TYPE,
-      random_threshold  => GEN_RATE_LIMITATION,
-      nb_data           => GEN_NB_BYTES,
-      frame_size        => GEN_FRAME_SIZE_STATIC,
-      -- Status
-      transfert_time    => GEN_TEST_DURATION,
-      end_of_axis_frame => GEN_DONE,
-      tdata_error       => open,
-      link_error        => GEN_ERR_TIMEOUT
+      -- Global
+      CLK               => CLK,
+      RST               => RST,
+      -- Output ports
+      M_TDATA           => axis_gen_tdata,
+      M_TVALID          => axis_gen_tvalid,
+      M_TLAST           => axis_gen_tlast,
+      M_TKEEP           => axis_gen_tkeep,
+      M_TUSER           => axis_gen_tuser,
+      M_TREADY          => axis_gen_tready,
+      ENABLE            => GEN_ENABLE,
+      NB_FRAME          => GEN_NB_FRAME,
+      FRAME_TYPE        => GEN_FRAME_SIZE_TYPE,
+      FRAME_STATIC_SIZE => GEN_FRAME_SIZE_STATIC(C_FRAME_SIZE - 1 downto 0),
+      DONE              => gen_done_i
+    );
+  
+  -- Rate limiter
+  inst_axis_rate_limit : axis_rate_limit
+    generic map(
+      G_ACTIVE_RST   => G_ACTIVE_RST,
+      G_ASYNC_RST    => G_ASYNC_RST,
+      G_TDATA_WIDTH  => G_TDATA_WIDTH,
+      G_TUSER_WIDTH  => C_FRAME_SIZE,
+      G_TID_WIDTH    => 1,
+      G_TDEST_WIDTH  => 1,
+      G_WINDOW_WIDTH => 8
+    )
+    port map(
+      
+      CLK          => CLK,
+      RST          => RST,
+      NB_TRANSFERS => GEN_RATE_NB_TRANSFERS,
+      WINDOW_SIZE  => GEN_RATE_WINDOW_SIZE,
+      S_TDATA      => axis_gen_tdata,
+      S_TVALID     => axis_gen_tvalid,
+      S_TLAST      => axis_gen_tlast,
+      S_TUSER      => axis_gen_tuser,
+      S_TSTRB      => (others => '-'),
+      S_TKEEP      => axis_gen_tkeep,
+      S_TID        => (others => '-'),
+      S_TDEST      => (others => '-'),
+      S_TREADY     => axis_gen_tready,
+      M_TDATA      => axis_gen_rate_tdata,
+      M_TVALID     => axis_gen_rate_tvalid,
+      M_TLAST      => axis_gen_rate_tlast,
+      M_TUSER      => axis_gen_rate_tuser,
+      M_TSTRB      => open,
+      M_TKEEP      => axis_gen_rate_tkeep,
+      M_TID        => open,
+      M_TDEST      => open,
+      M_TREADY     => axis_gen_rate_tready
+    );
+  
+  -- Monitor 
+  inst_axis_monitor_tx : axis_monitor
+    generic map(
+      G_ASYNC_RST     => G_ASYNC_RST,
+      G_ACTIVE_RST    => G_ACTIVE_RST,
+      G_TDATA_WIDTH   => G_TDATA_WIDTH,
+      G_TUSER_WIDTH   => C_FRAME_SIZE,
+      G_TID_WIDTH     => 1,
+      G_TDEST_WIDTH   => 1,
+      G_TIMEOUT_WIDTH => 16
+    )
+    port map(
+      CLK                 => CLK,
+      RST                 => RST,
+      S_TDATA             => axis_gen_rate_tdata,
+      S_TVALID            => axis_gen_rate_tvalid,
+      S_TLAST             => axis_gen_rate_tlast,
+      S_TUSER             => axis_gen_rate_tuser,
+      S_TSTRB             => (others => '-'),
+      S_TKEEP             => axis_gen_rate_tkeep,
+      S_TID               => (others => '-'),
+      S_TDEST             => (others => '-'),
+      S_TREADY            => axis_gen_rate_tready,
+      ENABLE              => GEN_ENABLE,
+      TIMEOUT_VALUE       => GEN_MON_TIMEOUT_VALUE,
+      TIMEOUT_READY_ERROR => GEN_MON_ERROR(0),
+      TIMEOUT_VALID_ERROR => GEN_MON_ERROR(1),
+      VALID_ERROR         => GEN_MON_ERROR(2),
+      DATA_ERROR          => GEN_MON_ERROR(3),
+      LAST_ERROR          => GEN_MON_ERROR(4),
+      USER_ERROR          => GEN_MON_ERROR(5),
+      STRB_ERROR          => open,
+      KEEP_ERROR          => GEN_MON_ERROR(6),
+      ID_ERROR            => open,
+      DEST_ERROR          => open
     );
 
-  axis_gen_tuser_full <= LB_GEN_DEST_PORT & LB_GEN_SRC_PORT & axis_gen_tuser(15 downto 0) & LB_GEN_DEST_IP_ADDR;
+  -- Compute test duration 
+  P_GEN_DURATION : process(CLK,RST)
+  begin
+    if G_ASYNC_RST and (RST = G_ACTIVE_RST) then
+      -- asynchronous reset
+      GEN_TEST_DURATION <= (others => '0');
+      gen_enable_r      <= '0';
+      gen_done_r        <= '0';
+      
+    elsif rising_edge(CLK) then
+      if (not G_ASYNC_RST) and (RST = G_ACTIVE_RST) then
+        -- Synchronous reset
+        GEN_TEST_DURATION <= (others => '0');
+        gen_enable_r      <= '0';
+        gen_done_r        <= '0';
+        
+      else
+        gen_enable_r <= GEN_ENABLE;
+        gen_done_r   <= gen_done_i;
+        
+        -- Increment counter when enable and not done
+        if (GEN_ENABLE = '1') and (gen_done_i /= '1') then
+          GEN_TEST_DURATION <= std_logic_vector(unsigned(GEN_TEST_DURATION) + 1);
+        end if;
+        
+        -- Init Time on rising_edge
+        if (gen_enable_r /= '1') and (GEN_ENABLE = '1') then
+          GEN_TEST_DURATION <= (others => '0');
+        end if;
+        
+      end if;
+    end if;
+  end process P_GEN_DURATION;
+
+  -- Generate Pulse done
+  GEN_DONE <= '1' when (gen_done_r /= '1') and (gen_done_i = '1') else '0';
+
+  --======================================
+  --   AXIS FRAME Checker
+  --======================================
 
   -- Checker
-  inst_uoe_axis_frame_chk : uoe_axis_frame
+  inst_axis_frame_chk : axis_frame_chk
     generic map(
-      C_TYPE             => "RO",
-      C_AXIS_TDATA_WIDTH => G_TDATA_WIDTH,
-      C_TIMEOUT          => C_TIMEOUT_TEST_ENVT,
-      C_FRAME_SIZE_MIN   => C_FRAME_SIZE_MIN_TEST_ENVT,
-      C_FRAME_SIZE_MAX   => C_FRAME_SIZE_MAX_TEST_ENVT,
-      C_INIT_VALUE       => C_INIT_VALUE_TEST_ENVT,
-      C_DATA_TYPE        => "PRBS"      -- "PRBS" "RAMP"
+      G_ASYNC_RST      => G_ASYNC_RST,
+      G_ACTIVE_RST     => G_ACTIVE_RST,
+      G_TDATA_WIDTH    => G_TDATA_WIDTH,
+      G_TUSER_WIDTH    => C_FRAME_SIZE,
+      G_LSB_TKEEP      => true,
+      G_FRAME_SIZE_MIN => C_FRAME_SIZE_MIN_TEST_ENVT,
+      G_FRAME_SIZE_MAX => C_FRAME_SIZE_MAX_TEST_ENVT,
+      G_DATA_TYPE      => C_GEN_PRBS
     )
     port map(
-      clk               => CLK,
-      rst               => RST,
-      --axis interface
-      m_axis_tdata      => open,
-      m_axis_tvalid     => open,
-      m_axis_tlast      => open,
-      m_axis_tkeep      => open,
-      m_axis_tuser      => open,
-      m_axis_tready     => '1',
-      s_axis_tdata      => axis_chk_tdata,
-      s_axis_tvalid     => axis_chk_tvalid,
-      s_axis_tlast      => axis_chk_tlast,
-      s_axis_tready     => axis_chk_tready,
-      s_axis_tuser      => axis_chk_tuser,
-      s_axis_tkeep      => axis_chk_tkeep,
-      --parameters      
-      start             => CHK_START_P,
-      stop              => CHK_STOP_P,
-      frame_size_type   => CHK_FRAME_SIZE_TYPE,
-      random_threshold  => CHK_RATE_LIMITATION,
-      nb_data           => CHK_NB_BYTES,
-      frame_size        => CHK_FRAME_SIZE_STATIC,
-      -- Results
-      transfert_time    => CHK_TEST_DURATION,
-      end_of_axis_frame => CHK_DONE,
-      tdata_error       => CHK_ERR_DATA,
-      link_error        => CHK_ERR_TIMEOUT
+      CLK               => CLK,
+      RST               => RST,
+      S_TDATA           => axis_chk_tdata,
+      S_TVALID          => axis_chk_tvalid,
+      S_TLAST           => axis_chk_tlast,
+      S_TUSER           => axis_chk_tuser,
+      S_TKEEP           => axis_chk_tkeep,
+      S_TREADY          => axis_chk_tready,
+      ENABLE            => CHK_ENABLE,
+      NB_FRAME          => CHK_NB_FRAME,
+      FRAME_TYPE        => CHK_FRAME_SIZE_TYPE,
+      FRAME_STATIC_SIZE => CHK_FRAME_SIZE_STATIC(C_FRAME_SIZE - 1 downto 0),
+      DONE              => chk_done_i,
+      DATA_ERROR        => CHK_ERROR(0),
+      LAST_ERROR        => CHK_ERROR(1),
+      KEEP_ERROR        => open,
+      USER_ERROR        => CHK_ERROR(2)
+    );
+  
+
+  -- Monitor 
+  inst_axis_monitor_rx : axis_monitor
+    generic map(
+      G_ASYNC_RST     => G_ASYNC_RST,
+      G_ACTIVE_RST    => G_ACTIVE_RST,
+      G_TDATA_WIDTH   => G_TDATA_WIDTH,
+      G_TUSER_WIDTH   => C_FRAME_SIZE,
+      G_TID_WIDTH     => 1,
+      G_TDEST_WIDTH   => 1,
+      G_TIMEOUT_WIDTH => 16
+    )
+    port map(
+      CLK                 => CLK,
+      RST                 => RST,
+      S_TDATA             => axis_chk_tdata,
+      S_TVALID            => axis_chk_tvalid,
+      S_TLAST             => axis_chk_tlast,
+      S_TUSER             => axis_chk_tuser,
+      S_TSTRB             => (others => '-'),
+      S_TKEEP             => axis_chk_tkeep,
+      S_TID               => (others => '-'),
+      S_TDEST             => (others => '-'),
+      S_TREADY            => axis_chk_tready,
+      ENABLE              => CHK_ENABLE,
+      TIMEOUT_VALUE       => CHK_MON_TIMEOUT_VALUE,
+      TIMEOUT_READY_ERROR => CHK_MON_ERROR(0),
+      TIMEOUT_VALID_ERROR => CHK_MON_ERROR(1),
+      VALID_ERROR         => CHK_MON_ERROR(2),
+      DATA_ERROR          => CHK_MON_ERROR(3),
+      LAST_ERROR          => CHK_MON_ERROR(4),
+      USER_ERROR          => CHK_MON_ERROR(5),
+      STRB_ERROR          => open,
+      KEEP_ERROR          => CHK_MON_ERROR(6),
+      ID_ERROR            => open,
+      DEST_ERROR          => open
     );
 
-  axis_chk_tuser <= x"0000" & axis_chk_tuser_full(47 downto 32);
+  -- Compute test duration 
+  P_CHK_DURATION : process(CLK,RST)
+  begin
+    if G_ASYNC_RST and (RST = G_ACTIVE_RST) then
+      -- asynchronous reset
+      CHK_TEST_DURATION <= (others => '0');
+      chk_enable_r      <= '0';
+      chk_done_r        <= '0';
+      chk_active        <= '0';
+      
+    elsif rising_edge(CLK) then
+      if (not G_ASYNC_RST) and (RST = G_ACTIVE_RST) then
+        -- Synchronous reset
+        CHK_TEST_DURATION <= (others => '0');
+        chk_enable_r      <= '0';
+        chk_done_r        <= '0';
+        chk_active        <= '0';
+      
+      else
+        chk_enable_r <= CHK_ENABLE;
+        chk_done_r   <= chk_done_i;
+        
+        if CHK_ENABLE = '1' then
+          -- Activate counter on the first transfer after ENABLE
+          if (axis_chk_tvalid = '1') and (axis_chk_tready = '1') then
+            chk_active <= '1';
+          end if;
+        else
+          chk_active <= '0';
+        end if;
+          
+        -- Increment counter when enable and not done
+        if (chk_active = '1') and (chk_done_i /= '1') then
+          CHK_TEST_DURATION <= std_logic_vector(unsigned(CHK_TEST_DURATION) + 1);
+        end if;
+        
+        -- Init Time on rising_edge
+        if (chk_enable_r /= '1') and (GEN_ENABLE = '1') then
+          CHK_TEST_DURATION <= (others => '0');
+        end if;
+      end if;
+    end if;
+  end process P_CHK_DURATION;
 
-  -------------------------------------------
+  -- Generate Pulse done
+  CHK_DONE <= '1' when (chk_done_r /= '1') and (chk_done_i = '1') else '0';
+
+  --======================================
   -- TX MUX
-  -------------------------------------------
+  --======================================
 
   -- Custom instance
   inst_axis_mux_custom_tx : axis_mux_custom
@@ -388,6 +553,8 @@ begin
       G_ASYNC_RST           => G_ASYNC_RST,
       G_TDATA_WIDTH         => G_TDATA_WIDTH,
       G_TUSER_WIDTH         => 80,
+      G_TID_WIDTH           => 1,
+      G_TDEST_WIDTH         => 1,
       G_NB_SLAVE            => 2,
       G_REG_SLAVES_FORWARD  => "00",
       G_REG_SLAVES_BACKWARD => "00",
@@ -406,13 +573,19 @@ begin
       S_TVALID => axis_tx_mux_tvalid,
       S_TLAST  => axis_tx_mux_tlast,
       S_TUSER  => axis_tx_mux_tuser,
+      S_TSTRB  => (others => '-'),
       S_TKEEP  => axis_tx_mux_tkeep,
+      S_TID    => (others => '-'),
+      S_TDEST  => (others => '-'),
       S_TREADY => axis_tx_mux_tready,
       M_TDATA  => axis_tx_tdata,
       M_TVALID => axis_tx_tvalid,
       M_TLAST  => axis_tx_tlast,
       M_TUSER  => axis_tx_tuser,
+      M_TSTRB  => open,
       M_TKEEP  => axis_tx_tkeep,
+      M_TID    => open,
+      M_TDEST  => open,
       M_TREADY => axis_tx_tready
     );
 
@@ -423,16 +596,20 @@ begin
   axis_tx_mux_tkeep(((G_TDATA_WIDTH / 8) - 1) downto 0) <= S_EXT_TX_TKEEP;
   S_EXT_TX_TREADY                                       <= axis_tx_mux_tready(0);
 
-  axis_tx_mux_tdata(axis_tx_mux_tdata'high downto G_TDATA_WIDTH)       <= axis_gen_tdata;
-  axis_tx_mux_tvalid(1)                                                <= axis_gen_tvalid;
-  axis_tx_mux_tlast(1)                                                 <= axis_gen_tlast;
-  axis_tx_mux_tuser(axis_tx_mux_tuser'high downto C_TUSER_WIDTH)       <= axis_gen_tuser_full;
-  axis_tx_mux_tkeep(axis_tx_mux_tkeep'high downto (G_TDATA_WIDTH / 8)) <= axis_gen_tkeep;
-  axis_gen_tready                                                      <= axis_tx_mux_tready(1);
+  axis_tx_mux_tdata(axis_tx_mux_tdata'high downto G_TDATA_WIDTH)       <= axis_gen_rate_tdata;
+  axis_tx_mux_tvalid(1)                                                <= axis_gen_rate_tvalid;
+  axis_tx_mux_tlast(1)                                                 <= axis_gen_rate_tlast;
+  axis_tx_mux_tuser(C_TUSER_WIDTH + 31 downto C_TUSER_WIDTH + 0)       <= LB_GEN_DEST_IP_ADDR;
+  axis_tx_mux_tuser(C_TUSER_WIDTH + 47 downto C_TUSER_WIDTH + 32)      <= std_logic_vector(resize(unsigned(axis_gen_rate_tuser),16));
+  axis_tx_mux_tuser(C_TUSER_WIDTH + 63 downto C_TUSER_WIDTH + 48)      <= LB_GEN_SRC_PORT;
+  axis_tx_mux_tuser(C_TUSER_WIDTH + 79 downto C_TUSER_WIDTH + 64)      <= LB_GEN_DEST_PORT;
+  axis_tx_mux_tkeep(axis_tx_mux_tkeep'high downto (G_TDATA_WIDTH / 8)) <= axis_gen_rate_tkeep;
+  axis_gen_rate_tready                                                 <= axis_tx_mux_tready(1);
 
-  -------------------------------------------
+
+  --======================================
   -- RX DEMUX
-  -------------------------------------------
+  --======================================
 
   axis_rx_tdest <= '1' when axis_rx_tuser(79 downto 64) = CHK_LISTENING_PORT else '0';
 
@@ -442,6 +619,7 @@ begin
       G_ASYNC_RST            => G_ASYNC_RST,
       G_TDATA_WIDTH          => G_TDATA_WIDTH,
       G_TUSER_WIDTH          => 80,
+      G_TID_WIDTH            => 1,
       G_TDEST_WIDTH          => 1,
       G_NB_MASTER            => 2,
       G_REG_SLAVE_FORWARD    => false,
@@ -456,14 +634,18 @@ begin
       S_TVALID   => axis_rx_tvalid,
       S_TLAST    => axis_rx_tlast,
       S_TUSER    => axis_rx_tuser,
+      S_TSTRB    => (others => '-'),
       S_TKEEP    => axis_rx_tkeep,
+      S_TID      => (others => '-'),
       S_TDEST(0) => axis_rx_tdest,
       S_TREADY   => axis_rx_tready,
       M_TDATA    => axis_rx_demux_tdata,
       M_TVALID   => axis_rx_demux_tvalid,
       M_TLAST    => axis_rx_demux_tlast,
       M_TUSER    => axis_rx_demux_tuser,
+      M_TSTRB    => open,
       M_TKEEP    => axis_rx_demux_tkeep,
+      M_TID      => open,
       M_TDEST    => open,
       M_TREADY   => axis_rx_demux_tready
     );
@@ -478,7 +660,7 @@ begin
   axis_chk_tdata          <= axis_rx_demux_tdata(axis_tx_mux_tdata'high downto G_TDATA_WIDTH);
   axis_chk_tvalid         <= axis_rx_demux_tvalid(1);
   axis_chk_tlast          <= axis_rx_demux_tlast(1);
-  axis_chk_tuser_full     <= axis_rx_demux_tuser(axis_tx_mux_tuser'high downto C_TUSER_WIDTH);
+  axis_chk_tuser          <= axis_rx_demux_tuser((C_TUSER_WIDTH + 32) + (C_FRAME_SIZE - 1) downto C_TUSER_WIDTH + 32);
   axis_chk_tkeep          <= axis_rx_demux_tkeep(axis_tx_mux_tkeep'high downto (G_TDATA_WIDTH / 8));
   axis_rx_demux_tready(1) <= axis_chk_tready;
 

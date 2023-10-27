@@ -20,6 +20,8 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use ieee.math_real.all;
 
+use std.textio.all;
+
 ----------------------------------
 -- Package axis_pkg
 ----------------------------------
@@ -49,6 +51,7 @@ use ieee.math_real.all;
 -- * axis_pkt_split_bytes
 -- * axis_pkt_split_words
 -- * axis_pkt_align
+-- * axis_loopback
 --
 -- This package also contains the declaration of the following functions
 -- * is_bytes_align
@@ -533,6 +536,50 @@ package axis_utils_pkg is
     );
   end component axis_switch_backbone;
 
+  -- reorder axis packet along index on TUSER
+  component axis_pkt_reorder is
+    generic(
+      G_ACTIVE_RST     : std_logic := '0';        -- State at which the reset signal is asserted (active low or active high)
+      G_ASYNC_RST      : boolean   := true;       -- Type of reset used (synchronous or asynchronous resets)
+      G_FULL_BANDWIDTH : boolean   := true;       -- Selection of operation mode (low ressources/full bandwidth)
+      G_INDEX_WIDTH    : positive  := 10;         -- Width of index in TUSER
+      G_MEM_ADDR_WIDTH : positive  := 10;         -- Depth of memory map. Equal to G_INDEX_WIDTH in most cases
+      G_TDATA_WIDTH    : positive  := 32;         -- Width of the tdata vector of the stream
+      G_TUSER_WIDTH    : positive  := 10;         -- Width of the tuser vector of the stream
+      G_TID_WIDTH      : positive  := 1;          -- Width of the tid vector of the stream
+      G_TDEST_WIDTH    : positive  := 1           -- Width of the tdest vector of the stream
+    );
+    port(
+      -- GLOBAL
+      CLK                   : in  std_logic;      -- Clock
+      RST                   : in  std_logic;      -- Reset
+      -- axi4-stream slave configuration interface
+      S_CFG_TDATA_FIRST_IDX : in  std_logic_vector(G_INDEX_WIDTH - 1 downto 0)             := (others => '0'); -- First index to keep
+      S_CFG_TDATA_LAST_IDX  : in  std_logic_vector(G_INDEX_WIDTH - 1 downto 0)             := (others => '1'); -- Last index to keep      S_CFG_TVALID : in  std_logic                                                := '1';
+      S_CFG_TVALID          : in  std_logic                                                := '1';
+      S_CFG_TREADY          : out std_logic;
+      -- axi4-stream slave
+      S_TDATA               : in  std_logic_vector(G_TDATA_WIDTH - 1 downto 0)             := (others => '-');
+      S_TVALID              : in  std_logic;
+      S_TLAST               : in  std_logic;
+      S_TUSER               : in  std_logic_vector(G_TUSER_WIDTH - 1 downto 0);
+      S_TSTRB               : in  std_logic_vector(((G_TDATA_WIDTH + 7) / 8) - 1 downto 0) := (others => '-');
+      S_TKEEP               : in  std_logic_vector(((G_TDATA_WIDTH + 7) / 8) - 1 downto 0) := (others => '-');
+      S_TID                 : in  std_logic_vector(G_TID_WIDTH - 1 downto 0)               := (others => '-');
+      S_TDEST               : in  std_logic_vector(G_TDEST_WIDTH - 1 downto 0)             := (others => '-');
+      S_TREADY              : out std_logic;
+      -- axi4-stream master
+      M_TDATA               : out std_logic_vector(G_TDATA_WIDTH - 1 downto 0);
+      M_TVALID              : out std_logic;
+      M_TLAST               : out std_logic;
+      M_TUSER               : out std_logic_vector(G_TUSER_WIDTH - 1 downto 0);
+      M_TSTRB               : out std_logic_vector(((G_TDATA_WIDTH + 7) / 8) - 1 downto 0);
+      M_TKEEP               : out std_logic_vector(((G_TDATA_WIDTH + 7) / 8) - 1 downto 0);
+      M_TID                 : out std_logic_vector(G_TID_WIDTH - 1 downto 0);
+      M_TDEST               : out std_logic_vector(G_TDEST_WIDTH - 1 downto 0);
+      M_TREADY              : in  std_logic                                                := '1'
+    );
+  end component axis_pkt_reorder;
 
   ---------------------------------------------------
   --
@@ -1169,6 +1216,88 @@ package axis_utils_pkg is
     );
   end component axis_pkt_drop;
 
+  ---------------------------------------------------
+  --
+  -- loopback
+  --
+  ---------------------------------------------------
+  
+  component axis_loopback is
+    generic(
+      G_ACTIVE_RST       : std_logic := '0';    -- State at which the reset signal is asserted (active low or active high)
+      G_ASYNC_RST        : boolean   := false;  -- Type of reset used (synchronous or asynchronous resets)
+      G_TDATA_WIDTH      : positive  := 64;     -- Width of the tdata vector of the stream
+      G_TUSER_WIDTH      : positive  := 1;      -- Width of the tuser vector of the stream
+      G_TID_WIDTH        : positive  := 1;      -- Width of the tid vector of the stream
+      G_TDEST_WIDTH      : positive  := 1;      -- Width of the tdest vector of the stream
+      G_PACKET_MODE      : boolean   := false;  -- Whether to arbitrate on TLAST (packet mode) or for each sample (sample mode)
+      G_FIFO_DEPTH       : integer   := 256     -- Depth of the loopback fifo (0 = No fifo)
+    );
+    port(
+      --GLOBAL
+      CLK              : in  std_logic;
+      RST              : in  std_logic;
+      ENABLE           : in  std_logic;
+      --RX SLAVE INTERFACE
+      S_LOOP_RX_TDATA  : in  std_logic_vector(G_TDATA_WIDTH - 1 downto 0)               := (others => '-');
+      S_LOOP_RX_TVALID : in  std_logic;
+      S_LOOP_RX_TLAST  : in  std_logic                                                  := '-';
+      S_LOOP_RX_TUSER  : in  std_logic_vector(G_TUSER_WIDTH - 1 downto 0)               := (others => '-');
+      S_LOOP_RX_TSTRB  : in  std_logic_vector(((G_TDATA_WIDTH + 7) / 8) - 1 downto 0)   := (others => '-');
+      S_LOOP_RX_TKEEP  : in  std_logic_vector(((G_TDATA_WIDTH + 7) / 8) - 1 downto 0)   := (others => '-');
+      S_LOOP_RX_TID    : in  std_logic_vector(G_TID_WIDTH - 1 downto 0)                 := (others => '-');
+      S_LOOP_RX_TDEST  : in  std_logic_vector(G_TDEST_WIDTH - 1 downto 0)               := (others => '-');
+      S_LOOP_RX_TREADY : out std_logic;
+      --RX MASTER INTERFACE
+      M_RX_TDATA       : out std_logic_vector(G_TDATA_WIDTH - 1 downto 0);
+      M_RX_TVALID      : out std_logic;
+      M_RX_TLAST       : out std_logic;
+      M_RX_TUSER       : out std_logic_vector(G_TUSER_WIDTH - 1 downto 0);
+      M_RX_TSTRB       : out std_logic_vector(((G_TDATA_WIDTH + 7) / 8) - 1 downto 0);
+      M_RX_TKEEP       : out std_logic_vector(((G_TDATA_WIDTH + 7) / 8) - 1 downto 0);
+      M_RX_TID         : out std_logic_vector(G_TID_WIDTH - 1 downto 0);
+      M_RX_TDEST       : out std_logic_vector(G_TDEST_WIDTH - 1 downto 0);
+      M_RX_TREADY      : in  std_logic                                                  := '1';
+      --TX SLAVE INTERFACE
+      S_TX_TDATA       : in  std_logic_vector(G_TDATA_WIDTH - 1 downto 0)               := (others => '-');
+      S_TX_TVALID      : in  std_logic;
+      S_TX_TLAST       : in  std_logic                                                  := '-';
+      S_TX_TUSER       : in  std_logic_vector(G_TUSER_WIDTH - 1 downto 0)               := (others => '-');
+      S_TX_TSTRB       : in  std_logic_vector(((G_TDATA_WIDTH + 7) / 8) - 1 downto 0)   := (others => '-');
+      S_TX_TKEEP       : in  std_logic_vector(((G_TDATA_WIDTH + 7) / 8) - 1 downto 0)   := (others => '-');
+      S_TX_TID         : in  std_logic_vector(G_TID_WIDTH - 1 downto 0)                 := (others => '-');
+      S_TX_TDEST       : in  std_logic_vector(G_TDEST_WIDTH - 1 downto 0)               := (others => '-');
+      S_TX_TREADY      : out std_logic;
+      -- TX MASTER INTERFACE
+      M_LOOP_TX_TDATA  : out std_logic_vector(G_TDATA_WIDTH - 1 downto 0);
+      M_LOOP_TX_TVALID : out std_logic;
+      M_LOOP_TX_TLAST  : out std_logic;
+      M_LOOP_TX_TUSER  : out std_logic_vector(G_TUSER_WIDTH - 1 downto 0);
+      M_LOOP_TX_TSTRB  : out std_logic_vector(((G_TDATA_WIDTH + 7) / 8) - 1 downto 0);
+      M_LOOP_TX_TKEEP  : out std_logic_vector(((G_TDATA_WIDTH + 7) / 8) - 1 downto 0);
+      M_LOOP_TX_TID    : out std_logic_vector(G_TID_WIDTH - 1 downto 0);
+      M_LOOP_TX_TDEST  : out std_logic_vector(G_TDEST_WIDTH - 1 downto 0);
+      M_LOOP_TX_TREADY : in  std_logic                                                  := '1'
+    );
+  end component axis_loopback;
+
+  ---------------------------------------------------
+  --
+  -- Type
+  --
+  ---------------------------------------------------
+  -- configuration for axis switch crossbar
+  type t_axis_switch_crossbar_configuration is record
+    reg_slaves_forward   : std_logic_vector;
+    reg_slaves_backward  : std_logic_vector;
+    reg_masters_forward  : std_logic_vector;
+    reg_masters_backward : std_logic_vector;
+    reg_arbs_forward     : std_logic_vector;
+    reg_arbs_backward    : std_logic_vector;
+    reg_links_forward    : std_logic_vector;
+    reg_links_backward   : std_logic_vector;
+    links_enable         : std_logic_vector;
+  end record t_axis_switch_crossbar_configuration;
 
   ---------------------------------------------------
   --
@@ -1178,6 +1307,16 @@ package axis_utils_pkg is
 
   -- Define if size is bytes aligned
   function is_bytes_align(constant size : in positive) return boolean;
+
+  -- Calculate length in bytes for tkeep and tstrb length
+  function length_in_bytes(constant size : in positive) return positive;
+
+  -- Generate an axis switch crossbar configuration from csv
+  impure function load_axis_switch_configuration_from_csv(
+    constant CONFIG_FILENAME : in string;
+    constant NB_SLAVES       : in integer;
+    constant NB_MASTERS      : in integer
+  ) return t_axis_switch_crossbar_configuration;
 
 end axis_utils_pkg;
 
@@ -1194,6 +1333,166 @@ package body axis_utils_pkg is
     begin
       return ((size mod 8) = 0);
   end function is_bytes_align;
+
+  -- Calculate length in bytes for tkeep and tstrb length
+  function length_in_bytes(constant size : in positive) return positive is
+  begin
+    return (size + 7) / 8;
+  end function length_in_bytes;
+
+  -- Return the forward, backward and link configuration from register string
+  function parse_register_configuration(
+    constant REG_STR : in string(0 to 3);
+    constant ERR_STR : in string;
+    constant EN_OPEN : in boolean := false
+  ) return std_logic_vector is
+    constant C_REG_FORWARD  : string := "forw";
+    constant C_REG_BACKWARD : string := "back";
+    constant C_REG_BOTH     : string := "both";
+    constant C_REG_NONE     : string := "none";
+    constant C_REG_OPEN     : string := "open";
+
+    variable result : std_logic_vector(2 downto 0);
+  begin
+    result := "100";
+    case REG_STR is
+      when C_REG_NONE =>
+        result(0) := '0';                         -- forward
+        result(1) := '0';                         -- backward
+      when C_REG_FORWARD =>
+        result(0) := '1';                         -- forward
+        result(1) := '0';                         -- backward
+      when C_REG_BACKWARD =>
+        result(0) := '0';                         -- forward
+        result(1) := '1';                         -- backward
+      when C_REG_BOTH =>
+        result(0) := '1';                         -- forward
+        result(1) := '1';                         -- backward
+      when C_REG_OPEN =>
+        assert EN_OPEN report ERR_STR & " can not be of type open" severity failure;
+        result(2) := '0';
+      when others =>
+        report "Unknown register type: '" & REG_STR & "' for " & ERR_STR severity failure;
+    end case;
+    return result;
+  end function parse_register_configuration;
+
+  -- Generate an axis switch crossbar configuration from csv
+  impure function load_axis_switch_configuration_from_csv( --@suppress
+    constant CONFIG_FILENAME : in string;
+    constant NB_SLAVES       : in integer;
+    constant NB_MASTERS      : in integer
+  ) return t_axis_switch_crossbar_configuration is
+
+    subtype t_switch_config_constrained is t_axis_switch_crossbar_configuration(
+      reg_slaves_forward(NB_SLAVES - 1 downto 0),
+      reg_slaves_backward(NB_SLAVES - 1 downto 0),
+      reg_masters_forward(NB_MASTERS - 1 downto 0),
+      reg_masters_backward(NB_MASTERS - 1 downto 0),
+      reg_arbs_forward(NB_MASTERS - 1 downto 0),
+      reg_arbs_backward(NB_MASTERS - 1 downto 0),
+      reg_links_forward((NB_SLAVES * NB_MASTERS) - 1 downto 0),
+      reg_links_backward((NB_SLAVES * NB_MASTERS) - 1 downto 0),
+      links_enable((NB_SLAVES * NB_MASTERS) - 1 downto 0)
+    );
+
+    constant C_SEP   : character := ';';
+    constant C_SEP_S : string    := "';'";
+
+    -- File reader
+    file configfile         : text;               -- CSV file with configuration
+    -- hds checking_off
+    -- Deactivate DRC (STYP4 rule) because variable type "line" is not synthesized in this case
+    variable configfileline : line;               -- @suppress line is not synthesized in this case
+    -- hds checking_on
+
+    variable rd_reg     : string(0 to 3);         -- Read register from line
+    variable sep        : character;              -- Read separator             -- @suppress "variable sep is never read"
+    variable config_reg : std_logic_vector(2 downto 0); -- Translation of register string in slv
+    variable config     : t_switch_config_constrained; -- Output configuration
+    variable link_index : integer range 0 to (NB_SLAVES * NB_MASTERS) - 1; -- Index for links configuratiton
+  begin
+    -- Access to file
+    file_open(configfile, CONFIG_FILENAME, READ_MODE);
+
+    -- Drop headers line with slave list
+    readline(configfile, configfileline);
+
+    -- **********************************************************
+    -- Read Slave register line
+    readline(configfile, configfileline);
+
+    -- Drop the first 3 columns
+    for drop in 1 to 3 loop
+      sep := 'a';
+      while (sep /= C_SEP) loop
+        read(configfileline, sep);
+      end loop;
+    end loop;
+
+    -- Load register configuration for slaves
+    for slave in 0 to NB_SLAVES - 1 loop
+      -- Read configuration
+      read(configfileline, rd_reg);
+      config_reg                        := parse_register_configuration(rd_reg, "slave register number " & integer'IMAGE(slave));
+      config.reg_slaves_forward(slave)  := config_reg(0);
+      config.reg_slaves_backward(slave) := config_reg(1);
+
+      -- Drop separator
+      if slave < (NB_SLAVES - 1) then
+        read(configfileline, sep);
+        assert sep = C_SEP report "Invalid format: " & C_SEP_S & " expected after configuration of slave register number " & integer'IMAGE(slave) severity failure;
+      end if;
+    end loop;                                     -- slaves' registers
+
+    -- **********************************************************
+    -- Read Masters configuration lines
+    for master in 0 to NB_MASTERS - 1 loop
+      readline(configfile, configfileline);
+
+      -- Drop master name
+      sep := 'a';
+      while (sep /= C_SEP) loop
+        read(configfileline, sep);
+      end loop;
+
+      -- Read master register configuration
+      read(configfileline, rd_reg);
+      config_reg                          := parse_register_configuration(rd_reg, "master register number " & integer'IMAGE(master));
+      config.reg_masters_forward(master)  := config_reg(0);
+      config.reg_masters_backward(master) := config_reg(1);
+      read(configfileline, sep);                  -- Drop separator
+      assert sep = C_SEP report "Invalid format: " & C_SEP_S & " expected after configuration of master register number " & integer'IMAGE(master) severity failure;
+
+      -- Read arbiter register configuration
+      read(configfileline, rd_reg);
+      config_reg                       := parse_register_configuration(rd_reg, "arbiter register number " & integer'IMAGE(master));
+      config.reg_arbs_forward(master)  := config_reg(0);
+      config.reg_arbs_backward(master) := config_reg(1);
+      read(configfileline, sep);                  -- Drop separator
+      assert sep = C_SEP report "Invalid format: " & C_SEP_S & " expected after configuration of arbiter register number " & integer'IMAGE(master) severity failure;
+
+      -- Read slave->master connection
+      for slave in 0 to (NB_SLAVES - 1) loop
+        link_index := (NB_MASTERS * slave) + master;
+
+        -- Read slave->master connection
+        read(configfileline, rd_reg);
+        config_reg                            := parse_register_configuration(rd_reg, "connection slave " & integer'IMAGE(slave) & " to master " & integer'IMAGE(master), true);
+        config.reg_links_forward(link_index)  := config_reg(0);
+        config.reg_links_backward(link_index) := config_reg(1);
+        config.links_enable(link_index)       := config_reg(2);
+
+        -- Drop separator
+        if slave < (NB_SLAVES - 1) then
+          read(configfileline, sep);
+          assert sep = C_SEP report "Invalid format: " & C_SEP_S & " expected after configuration of connection slave " & integer'IMAGE(slave) & " to master " & integer'IMAGE(master) severity failure;
+        end if;
+      end loop;                                   -- slaves connection
+    end loop;                                     -- masters' registers
+    file_close(configfile);
+    return config;
+  end function load_axis_switch_configuration_from_csv;
 
 end package body axis_utils_pkg;
 

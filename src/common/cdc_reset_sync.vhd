@@ -14,6 +14,7 @@
 --
 -- File subject to timestamp TSP22X5365 Thales, in the name of Thales SIX GTS France, made on 10/06/2022.
 --
+
 ------------------------------------------------
 --
 --        CDC_RESET_SYNC
@@ -40,6 +41,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+
 
 ------------------------------------------------------------------------
 -- Entity declaration
@@ -81,8 +83,8 @@ architecture rtl of cdc_reset_sync is
   --------------------------------------------
   signal srst_arr   : t_rst_sync;
   signal srst_arr_n : t_rst_sync;
-
-
+  
+  
   --------------------------------------------
   -- ATTRIBUTES
   --------------------------------------------
@@ -111,9 +113,9 @@ begin
         srst_arr(i) <= srst_arr(i)(G_NB_STAGE-2 downto 0) & '0';
       end if;
     end process SYNC_CDC_POS;
-
+    
     SRST(i) <= srst_arr(i)(G_NB_STAGE-1);
-
+  
 
     --------------------------------------------
     -- For active low reset
@@ -128,10 +130,10 @@ begin
         srst_arr_n(i) <= srst_arr_n(i)(G_NB_STAGE-2 downto 0) & '1';
       end if;
     end process SYNC_CDC_NEG;
-
+    
     SRST_N(i) <= srst_arr_n(i)(G_NB_STAGE-1);
-
-
+    
+    
   end generate GEN_RANGE;
 
 end rtl;

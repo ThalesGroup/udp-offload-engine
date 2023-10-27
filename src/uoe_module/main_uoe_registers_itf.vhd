@@ -55,23 +55,23 @@ entity main_uoe_registers_itf is
     ----------------------
     -- Input data for registers
     ----------------------
-    -- RO Registers 
+    -- RO Registers
     VERSION                                           : in  std_logic_vector(7 downto 0);                          -- Version number
     REVISION                                          : in  std_logic_vector(7 downto 0);                          -- Revision number
     DEBUG                                             : in  std_logic_vector(15 downto 0);                         -- Debug number
-    -- RZ Registers 
+    -- RZ Registers
     CRC_FILTER_COUNTER                                : in  std_logic_vector(31 downto 0);                         -- Number of frames filtered because of bad CRC
     MAC_FILTER_COUNTER                                : in  std_logic_vector(31 downto 0);                         -- Number of frames filtered following MAC configuration
     EXT_DROP_COUNTER                                  : in  std_logic_vector(31 downto 0);                         -- Number of frames dropped on externe interface
     RAW_DROP_COUNTER                                  : in  std_logic_vector(31 downto 0);                         -- Number of frames dropped on raw interface
     UDP_DROP_COUNTER                                  : in  std_logic_vector(31 downto 0);                         -- Number of frames dropped on udp interface
-    -- WO Registers 
+    -- WO Registers
     ARP_SW_REQ_DEST_IP_ADDR_IN                        : in  std_logic_vector(31 downto 0);                         -- Destination IP Address use to generate software request ARP
 
     ----------------------
     -- Registers output data
     ----------------------
-    -- RW Registers 
+    -- RW Registers
     LOCAL_MAC_ADDR_LSB                                : out std_logic_vector(31 downto 0);                         -- Local MAC Address LSB
     LOCAL_MAC_ADDR_MSB                                : out std_logic_vector(15 downto 0);                         -- Local MAC Address MSB
     LOCAL_IP_ADDR                                     : out std_logic_vector(31 downto 0);                         -- Local IP Address
@@ -96,11 +96,11 @@ entity main_uoe_registers_itf is
     ARP_RX_TEST_LOCAL_IP_CONFLICT                     : out std_logic;                                             -- Enable test "Local IP ADDR conflict"
     ARP_TABLE_CLEAR                                   : out std_logic;                                             -- Clear ARP Table (Should be drive like a pulse : '0' => '1' => '0')
     CONFIG_DONE                                       : out std_logic;                                             -- Flag Configuration Done
-    -- WO Registers 
+    -- WO Registers
     ARP_SW_REQ_DEST_IP_ADDR_OUT                       : out std_logic_vector(31 downto 0);                         -- Destination IP Address use to generate software request ARP
-    -- WO Pulses Registers 
+    -- WO Pulses Registers
     REG_ARP_SW_REQ_WRITE                              : out std_logic;
-    -- RZ Pulses Registers 
+    -- RZ Pulses Registers
     REG_MONITORING_CRC_FILTER_READ                    : out std_logic;
     REG_MONITORING_MAC_FILTER_READ                    : out std_logic;
     REG_MONITORING_EXT_DROP_READ                      : out std_logic;
@@ -123,8 +123,7 @@ entity main_uoe_registers_itf is
 
     -- output
     -- IRQ output
-    REG_INTERRUPT                                     : out std_logic 
-
+    REG_INTERRUPT                                     : out std_logic
 
   );
 end main_uoe_registers_itf;
@@ -137,18 +136,18 @@ architecture rtl of main_uoe_registers_itf is
 
 
   -- Irq Status register
-  signal reg_interrupt_status                              : std_logic_vector(8 downto 0); 
+  signal reg_interrupt_status                              : std_logic_vector(8 downto 0);
 
   -- IRQ Enable register
-  signal reg_interrupt_enable                              : std_logic_vector(8 downto 0); 
+  signal reg_interrupt_enable                              : std_logic_vector(8 downto 0);
 
   -- IRQ clear register
-  signal reg_interrupt_clear                               : std_logic_vector(8 downto 0); 
-  signal reg_interrupt_clear_write                         : std_logic; 
+  signal reg_interrupt_clear                               : std_logic_vector(8 downto 0);
+  signal reg_interrupt_clear_write                         : std_logic;
 
   -- IRQ set register
-  signal reg_interrupt_set                                 : std_logic_vector(8 downto 0); 
-  signal reg_interrupt_set_write                           : std_logic; 
+  signal reg_interrupt_set                                 : std_logic_vector(8 downto 0);
+  signal reg_interrupt_set_write                           : std_logic;
 
 
 
@@ -185,107 +184,107 @@ begin
       -- Input data for registers
       ----------------------
 
-      VERSION                                           => VERSION, 
-      REVISION                                          => REVISION, 
-      DEBUG                                             => DEBUG, 
-      CRC_FILTER_COUNTER                                => CRC_FILTER_COUNTER, 
-      MAC_FILTER_COUNTER                                => MAC_FILTER_COUNTER, 
-      EXT_DROP_COUNTER                                  => EXT_DROP_COUNTER, 
-      RAW_DROP_COUNTER                                  => RAW_DROP_COUNTER, 
-      UDP_DROP_COUNTER                                  => UDP_DROP_COUNTER, 
-      ARP_SW_REQ_DEST_IP_ADDR_IN                        => ARP_SW_REQ_DEST_IP_ADDR_IN, 
-      IRQ_INIT_DONE_CLEAR_in                            => reg_interrupt_clear(0), 
-      IRQ_ARP_TABLE_CLEAR_DONE_CLEAR_in                 => reg_interrupt_clear(1), 
-      IRQ_ARP_IP_CONFLICT_CLEAR_in                      => reg_interrupt_clear(2), 
-      IRQ_ARP_MAC_CONFLICT_CLEAR_in                     => reg_interrupt_clear(3), 
-      IRQ_ARP_ERROR_CLEAR_in                            => reg_interrupt_clear(4), 
-      IRQ_ARP_RX_FIFO_OVERFLOW_CLEAR_in                 => reg_interrupt_clear(5), 
-      IRQ_ROUTER_DATA_RX_FIFO_OVERFLOW_CLEAR_in         => reg_interrupt_clear(6), 
-      IRQ_ROUTER_CRC_RX_FIFO_OVERFLOW_CLEAR_in          => reg_interrupt_clear(7), 
-      IRQ_IPV4_RX_FRAG_OFFSET_ERROR_CLEAR_in            => reg_interrupt_clear(8), 
-      IRQ_INIT_DONE_SET_in                              => reg_interrupt_set(0), 
-      IRQ_ARP_TABLE_CLEAR_DONE_SET_in                   => reg_interrupt_set(1), 
-      IRQ_ARP_IP_CONFLICT_SET_in                        => reg_interrupt_set(2), 
-      IRQ_ARP_MAC_CONFLICT_SET_in                       => reg_interrupt_set(3), 
-      IRQ_ARP_ERROR_SET_in                              => reg_interrupt_set(4), 
-      IRQ_ARP_RX_FIFO_OVERFLOW_SET_in                   => reg_interrupt_set(5), 
-      IRQ_ROUTER_DATA_RX_FIFO_OVERFLOW_SET_in           => reg_interrupt_set(6), 
-      IRQ_ROUTER_CRC_RX_FIFO_OVERFLOW_SET_in            => reg_interrupt_set(7), 
-      IRQ_IPV4_RX_FRAG_OFFSET_ERROR_SET_in              => reg_interrupt_set(8), 
-      IRQ_INIT_DONE_STATUS                              => reg_interrupt_status(0), 
-      IRQ_ARP_TABLE_CLEAR_DONE_STATUS                   => reg_interrupt_status(1), 
-      IRQ_ARP_IP_CONFLICT_STATUS                        => reg_interrupt_status(2), 
-      IRQ_ARP_MAC_CONFLICT_STATUS                       => reg_interrupt_status(3), 
-      IRQ_ARP_ERROR_STATUS                              => reg_interrupt_status(4), 
-      IRQ_ARP_RX_FIFO_OVERFLOW_STATUS                   => reg_interrupt_status(5), 
-      IRQ_ROUTER_DATA_RX_FIFO_OVERFLOW_STATUS           => reg_interrupt_status(6), 
-      IRQ_ROUTER_CRC_RX_FIFO_OVERFLOW_STATUS            => reg_interrupt_status(7), 
-      IRQ_IPV4_RX_FRAG_OFFSET_ERROR_STATUS              => reg_interrupt_status(8), 
+      VERSION                                           => VERSION,
+      REVISION                                          => REVISION,
+      DEBUG                                             => DEBUG,
+      CRC_FILTER_COUNTER                                => CRC_FILTER_COUNTER,
+      MAC_FILTER_COUNTER                                => MAC_FILTER_COUNTER,
+      EXT_DROP_COUNTER                                  => EXT_DROP_COUNTER,
+      RAW_DROP_COUNTER                                  => RAW_DROP_COUNTER,
+      UDP_DROP_COUNTER                                  => UDP_DROP_COUNTER,
+      ARP_SW_REQ_DEST_IP_ADDR_IN                        => ARP_SW_REQ_DEST_IP_ADDR_IN,
+      IRQ_INIT_DONE_CLEAR_IN                            => reg_interrupt_clear(0),
+      IRQ_ARP_TABLE_CLEAR_DONE_CLEAR_IN                 => reg_interrupt_clear(1),
+      IRQ_ARP_IP_CONFLICT_CLEAR_IN                      => reg_interrupt_clear(2),
+      IRQ_ARP_MAC_CONFLICT_CLEAR_IN                     => reg_interrupt_clear(3),
+      IRQ_ARP_ERROR_CLEAR_IN                            => reg_interrupt_clear(4),
+      IRQ_ARP_RX_FIFO_OVERFLOW_CLEAR_IN                 => reg_interrupt_clear(5),
+      IRQ_ROUTER_DATA_RX_FIFO_OVERFLOW_CLEAR_IN         => reg_interrupt_clear(6),
+      IRQ_ROUTER_CRC_RX_FIFO_OVERFLOW_CLEAR_IN          => reg_interrupt_clear(7),
+      IRQ_IPV4_RX_FRAG_OFFSET_ERROR_CLEAR_IN            => reg_interrupt_clear(8),
+      IRQ_INIT_DONE_SET_IN                              => reg_interrupt_set(0),
+      IRQ_ARP_TABLE_CLEAR_DONE_SET_IN                   => reg_interrupt_set(1),
+      IRQ_ARP_IP_CONFLICT_SET_IN                        => reg_interrupt_set(2),
+      IRQ_ARP_MAC_CONFLICT_SET_IN                       => reg_interrupt_set(3),
+      IRQ_ARP_ERROR_SET_IN                              => reg_interrupt_set(4),
+      IRQ_ARP_RX_FIFO_OVERFLOW_SET_IN                   => reg_interrupt_set(5),
+      IRQ_ROUTER_DATA_RX_FIFO_OVERFLOW_SET_IN           => reg_interrupt_set(6),
+      IRQ_ROUTER_CRC_RX_FIFO_OVERFLOW_SET_IN            => reg_interrupt_set(7),
+      IRQ_IPV4_RX_FRAG_OFFSET_ERROR_SET_IN              => reg_interrupt_set(8),
+      IRQ_INIT_DONE_STATUS                              => reg_interrupt_status(0),
+      IRQ_ARP_TABLE_CLEAR_DONE_STATUS                   => reg_interrupt_status(1),
+      IRQ_ARP_IP_CONFLICT_STATUS                        => reg_interrupt_status(2),
+      IRQ_ARP_MAC_CONFLICT_STATUS                       => reg_interrupt_status(3),
+      IRQ_ARP_ERROR_STATUS                              => reg_interrupt_status(4),
+      IRQ_ARP_RX_FIFO_OVERFLOW_STATUS                   => reg_interrupt_status(5),
+      IRQ_ROUTER_DATA_RX_FIFO_OVERFLOW_STATUS           => reg_interrupt_status(6),
+      IRQ_ROUTER_CRC_RX_FIFO_OVERFLOW_STATUS            => reg_interrupt_status(7),
+      IRQ_IPV4_RX_FRAG_OFFSET_ERROR_STATUS              => reg_interrupt_status(8),
 
       ----------------------
       -- Registers output data
       ----------------------
 
-      LOCAL_MAC_ADDR_LSB                                => LOCAL_MAC_ADDR_LSB, 
-      LOCAL_MAC_ADDR_MSB                                => LOCAL_MAC_ADDR_MSB, 
-      LOCAL_IP_ADDR                                     => LOCAL_IP_ADDR, 
-      RAW_DEST_MAC_ADDR_LSB                             => RAW_DEST_MAC_ADDR_LSB, 
-      RAW_DEST_MAC_ADDR_MSB                             => RAW_DEST_MAC_ADDR_MSB, 
-      TTL                                               => TTL, 
-      BROADCAST_FILTER_ENABLE                           => BROADCAST_FILTER_ENABLE, 
-      IPV4_MULTICAST_FILTER_ENABLE                      => IPV4_MULTICAST_FILTER_ENABLE, 
-      UNICAST_FILTER_ENABLE                             => UNICAST_FILTER_ENABLE, 
-      MULTICAST_IP_ADDR_1                               => MULTICAST_IP_ADDR_1, 
-      MULTICAST_IP_ADDR_1_ENABLE                        => MULTICAST_IP_ADDR_1_ENABLE, 
-      MULTICAST_IP_ADDR_2                               => MULTICAST_IP_ADDR_2, 
-      MULTICAST_IP_ADDR_2_ENABLE                        => MULTICAST_IP_ADDR_2_ENABLE, 
-      MULTICAST_IP_ADDR_3                               => MULTICAST_IP_ADDR_3, 
-      MULTICAST_IP_ADDR_3_ENABLE                        => MULTICAST_IP_ADDR_3_ENABLE, 
-      MULTICAST_IP_ADDR_4                               => MULTICAST_IP_ADDR_4, 
-      MULTICAST_IP_ADDR_4_ENABLE                        => MULTICAST_IP_ADDR_4_ENABLE, 
-      ARP_TIMEOUT_MS                                    => ARP_TIMEOUT_MS, 
-      ARP_TRYINGS                                       => ARP_TRYINGS, 
-      ARP_GRATUITOUS_REQ                                => ARP_GRATUITOUS_REQ, 
-      ARP_RX_TARGET_IP_FILTER                           => ARP_RX_TARGET_IP_FILTER, 
-      ARP_RX_TEST_LOCAL_IP_CONFLICT                     => ARP_RX_TEST_LOCAL_IP_CONFLICT, 
-      ARP_TABLE_CLEAR                                   => ARP_TABLE_CLEAR, 
-      CONFIG_DONE                                       => CONFIG_DONE, 
-      ARP_SW_REQ_DEST_IP_ADDR_OUT                       => ARP_SW_REQ_DEST_IP_ADDR_OUT, 
-      REG_MONITORING_CRC_FILTER_READ                    => REG_MONITORING_CRC_FILTER_READ, 
-      REG_MONITORING_MAC_FILTER_READ                    => REG_MONITORING_MAC_FILTER_READ, 
-      REG_MONITORING_EXT_DROP_READ                      => REG_MONITORING_EXT_DROP_READ, 
-      REG_MONITORING_RAW_DROP_READ                      => REG_MONITORING_RAW_DROP_READ, 
-      REG_MONITORING_UDP_DROP_READ                      => REG_MONITORING_UDP_DROP_READ, 
-      REG_ARP_SW_REQ_WRITE                              => REG_ARP_SW_REQ_WRITE, 
-      IRQ_INIT_DONE_ENABLE                              => reg_interrupt_enable(0), 
-      IRQ_ARP_TABLE_CLEAR_DONE_ENABLE                   => reg_interrupt_enable(1), 
-      IRQ_ARP_IP_CONFLICT_ENABLE                        => reg_interrupt_enable(2), 
-      IRQ_ARP_MAC_CONFLICT_ENABLE                       => reg_interrupt_enable(3), 
-      IRQ_ARP_ERROR_ENABLE                              => reg_interrupt_enable(4), 
-      IRQ_ARP_RX_FIFO_OVERFLOW_ENABLE                   => reg_interrupt_enable(5), 
-      IRQ_ROUTER_DATA_RX_FIFO_OVERFLOW_ENABLE           => reg_interrupt_enable(6), 
-      IRQ_ROUTER_CRC_RX_FIFO_OVERFLOW_ENABLE            => reg_interrupt_enable(7), 
-      IRQ_IPV4_RX_FRAG_OFFSET_ERROR_ENABLE              => reg_interrupt_enable(8), 
-      IRQ_INIT_DONE_CLEAR_OUT                           => reg_interrupt_clear(0), 
-      IRQ_ARP_TABLE_CLEAR_DONE_CLEAR_OUT                => reg_interrupt_clear(1), 
-      IRQ_ARP_IP_CONFLICT_CLEAR_OUT                     => reg_interrupt_clear(2), 
-      IRQ_ARP_MAC_CONFLICT_CLEAR_OUT                    => reg_interrupt_clear(3), 
-      IRQ_ARP_ERROR_CLEAR_OUT                           => reg_interrupt_clear(4), 
-      IRQ_ARP_RX_FIFO_OVERFLOW_CLEAR_OUT                => reg_interrupt_clear(5), 
-      IRQ_ROUTER_DATA_RX_FIFO_OVERFLOW_CLEAR_OUT        => reg_interrupt_clear(6), 
-      IRQ_ROUTER_CRC_RX_FIFO_OVERFLOW_CLEAR_OUT         => reg_interrupt_clear(7), 
-      IRQ_IPV4_RX_FRAG_OFFSET_ERROR_CLEAR_OUT           => reg_interrupt_clear(8), 
-      IRQ_INIT_DONE_SET_OUT                             => reg_interrupt_set(0), 
-      IRQ_ARP_TABLE_CLEAR_DONE_SET_OUT                  => reg_interrupt_set(1), 
-      IRQ_ARP_IP_CONFLICT_SET_OUT                       => reg_interrupt_set(2), 
-      IRQ_ARP_MAC_CONFLICT_SET_OUT                      => reg_interrupt_set(3), 
-      IRQ_ARP_ERROR_SET_OUT                             => reg_interrupt_set(4), 
-      IRQ_ARP_RX_FIFO_OVERFLOW_SET_OUT                  => reg_interrupt_set(5), 
-      IRQ_ROUTER_DATA_RX_FIFO_OVERFLOW_SET_OUT          => reg_interrupt_set(6), 
-      IRQ_ROUTER_CRC_RX_FIFO_OVERFLOW_SET_OUT           => reg_interrupt_set(7), 
-      IRQ_IPV4_RX_FRAG_OFFSET_ERROR_SET_OUT             => reg_interrupt_set(8), 
-      REG_INTERRUPT_CLEAR_WRITE                         => reg_interrupt_clear_WRITE, 
-      REG_INTERRUPT_SET_WRITE                           => reg_interrupt_set_WRITE 
+      LOCAL_MAC_ADDR_LSB                                => LOCAL_MAC_ADDR_LSB,
+      LOCAL_MAC_ADDR_MSB                                => LOCAL_MAC_ADDR_MSB,
+      LOCAL_IP_ADDR                                     => LOCAL_IP_ADDR,
+      RAW_DEST_MAC_ADDR_LSB                             => RAW_DEST_MAC_ADDR_LSB,
+      RAW_DEST_MAC_ADDR_MSB                             => RAW_DEST_MAC_ADDR_MSB,
+      TTL                                               => TTL,
+      BROADCAST_FILTER_ENABLE                           => BROADCAST_FILTER_ENABLE,
+      IPV4_MULTICAST_FILTER_ENABLE                      => IPV4_MULTICAST_FILTER_ENABLE,
+      UNICAST_FILTER_ENABLE                             => UNICAST_FILTER_ENABLE,
+      MULTICAST_IP_ADDR_1                               => MULTICAST_IP_ADDR_1,
+      MULTICAST_IP_ADDR_1_ENABLE                        => MULTICAST_IP_ADDR_1_ENABLE,
+      MULTICAST_IP_ADDR_2                               => MULTICAST_IP_ADDR_2,
+      MULTICAST_IP_ADDR_2_ENABLE                        => MULTICAST_IP_ADDR_2_ENABLE,
+      MULTICAST_IP_ADDR_3                               => MULTICAST_IP_ADDR_3,
+      MULTICAST_IP_ADDR_3_ENABLE                        => MULTICAST_IP_ADDR_3_ENABLE,
+      MULTICAST_IP_ADDR_4                               => MULTICAST_IP_ADDR_4,
+      MULTICAST_IP_ADDR_4_ENABLE                        => MULTICAST_IP_ADDR_4_ENABLE,
+      ARP_TIMEOUT_MS                                    => ARP_TIMEOUT_MS,
+      ARP_TRYINGS                                       => ARP_TRYINGS,
+      ARP_GRATUITOUS_REQ                                => ARP_GRATUITOUS_REQ,
+      ARP_RX_TARGET_IP_FILTER                           => ARP_RX_TARGET_IP_FILTER,
+      ARP_RX_TEST_LOCAL_IP_CONFLICT                     => ARP_RX_TEST_LOCAL_IP_CONFLICT,
+      ARP_TABLE_CLEAR                                   => ARP_TABLE_CLEAR,
+      CONFIG_DONE                                       => CONFIG_DONE,
+      ARP_SW_REQ_DEST_IP_ADDR_OUT                       => ARP_SW_REQ_DEST_IP_ADDR_OUT,
+      REG_MONITORING_CRC_FILTER_READ                    => REG_MONITORING_CRC_FILTER_READ,
+      REG_MONITORING_MAC_FILTER_READ                    => REG_MONITORING_MAC_FILTER_READ,
+      REG_MONITORING_EXT_DROP_READ                      => REG_MONITORING_EXT_DROP_READ,
+      REG_MONITORING_RAW_DROP_READ                      => REG_MONITORING_RAW_DROP_READ,
+      REG_MONITORING_UDP_DROP_READ                      => REG_MONITORING_UDP_DROP_READ,
+      REG_ARP_SW_REQ_WRITE                              => REG_ARP_SW_REQ_WRITE,
+      IRQ_INIT_DONE_ENABLE                              => reg_interrupt_enable(0),
+      IRQ_ARP_TABLE_CLEAR_DONE_ENABLE                   => reg_interrupt_enable(1),
+      IRQ_ARP_IP_CONFLICT_ENABLE                        => reg_interrupt_enable(2),
+      IRQ_ARP_MAC_CONFLICT_ENABLE                       => reg_interrupt_enable(3),
+      IRQ_ARP_ERROR_ENABLE                              => reg_interrupt_enable(4),
+      IRQ_ARP_RX_FIFO_OVERFLOW_ENABLE                   => reg_interrupt_enable(5),
+      IRQ_ROUTER_DATA_RX_FIFO_OVERFLOW_ENABLE           => reg_interrupt_enable(6),
+      IRQ_ROUTER_CRC_RX_FIFO_OVERFLOW_ENABLE            => reg_interrupt_enable(7),
+      IRQ_IPV4_RX_FRAG_OFFSET_ERROR_ENABLE              => reg_interrupt_enable(8),
+      IRQ_INIT_DONE_CLEAR_OUT                           => reg_interrupt_clear(0),
+      IRQ_ARP_TABLE_CLEAR_DONE_CLEAR_OUT                => reg_interrupt_clear(1),
+      IRQ_ARP_IP_CONFLICT_CLEAR_OUT                     => reg_interrupt_clear(2),
+      IRQ_ARP_MAC_CONFLICT_CLEAR_OUT                    => reg_interrupt_clear(3),
+      IRQ_ARP_ERROR_CLEAR_OUT                           => reg_interrupt_clear(4),
+      IRQ_ARP_RX_FIFO_OVERFLOW_CLEAR_OUT                => reg_interrupt_clear(5),
+      IRQ_ROUTER_DATA_RX_FIFO_OVERFLOW_CLEAR_OUT        => reg_interrupt_clear(6),
+      IRQ_ROUTER_CRC_RX_FIFO_OVERFLOW_CLEAR_OUT         => reg_interrupt_clear(7),
+      IRQ_IPV4_RX_FRAG_OFFSET_ERROR_CLEAR_OUT           => reg_interrupt_clear(8),
+      IRQ_INIT_DONE_SET_OUT                             => reg_interrupt_set(0),
+      IRQ_ARP_TABLE_CLEAR_DONE_SET_OUT                  => reg_interrupt_set(1),
+      IRQ_ARP_IP_CONFLICT_SET_OUT                       => reg_interrupt_set(2),
+      IRQ_ARP_MAC_CONFLICT_SET_OUT                      => reg_interrupt_set(3),
+      IRQ_ARP_ERROR_SET_OUT                             => reg_interrupt_set(4),
+      IRQ_ARP_RX_FIFO_OVERFLOW_SET_OUT                  => reg_interrupt_set(5),
+      IRQ_ROUTER_DATA_RX_FIFO_OVERFLOW_SET_OUT          => reg_interrupt_set(6),
+      IRQ_ROUTER_CRC_RX_FIFO_OVERFLOW_SET_OUT           => reg_interrupt_set(7),
+      IRQ_IPV4_RX_FRAG_OFFSET_ERROR_SET_OUT             => reg_interrupt_set(8),
+      REG_INTERRUPT_CLEAR_WRITE                         => reg_interrupt_clear_write,
+      REG_INTERRUPT_SET_WRITE                           => reg_interrupt_set_write
 
 
 
@@ -306,15 +305,15 @@ begin
       CLK               => S_AXI_ACLK,
       RST               => S_AXI_ARESET,
       
-      IRQ_SOURCES(0)    => IRQ_INIT_DONE, 
-      IRQ_SOURCES(1)    => IRQ_ARP_TABLE_CLEAR_DONE, 
-      IRQ_SOURCES(2)    => IRQ_ARP_IP_CONFLICT, 
-      IRQ_SOURCES(3)    => IRQ_ARP_MAC_CONFLICT, 
-      IRQ_SOURCES(4)    => IRQ_ARP_ERROR, 
-      IRQ_SOURCES(5)    => IRQ_ARP_RX_FIFO_OVERFLOW, 
-      IRQ_SOURCES(6)    => IRQ_ROUTER_DATA_RX_FIFO_OVERFLOW, 
-      IRQ_SOURCES(7)    => IRQ_ROUTER_CRC_RX_FIFO_OVERFLOW, 
-      IRQ_SOURCES(8)    => IRQ_IPV4_RX_FRAG_OFFSET_ERROR, 
+      IRQ_SOURCES(0)    => IRQ_INIT_DONE,
+      IRQ_SOURCES(1)    => IRQ_ARP_TABLE_CLEAR_DONE,
+      IRQ_SOURCES(2)    => IRQ_ARP_IP_CONFLICT,
+      IRQ_SOURCES(3)    => IRQ_ARP_MAC_CONFLICT,
+      IRQ_SOURCES(4)    => IRQ_ARP_ERROR,
+      IRQ_SOURCES(5)    => IRQ_ARP_RX_FIFO_OVERFLOW,
+      IRQ_SOURCES(6)    => IRQ_ROUTER_DATA_RX_FIFO_OVERFLOW,
+      IRQ_SOURCES(7)    => IRQ_ROUTER_CRC_RX_FIFO_OVERFLOW,
+      IRQ_SOURCES(8)    => IRQ_IPV4_RX_FRAG_OFFSET_ERROR,
  
       IRQ_STATUS_RO     => reg_interrupt_status,
       IRQ_ENABLE_RW     => reg_interrupt_enable,

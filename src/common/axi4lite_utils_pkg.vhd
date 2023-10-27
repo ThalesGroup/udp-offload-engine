@@ -33,6 +33,7 @@ use common.dev_utils_2008_pkg.all;
 -- by a library user
 --
 -- This package contains the declaration of the following component
+-- * bridge_axi4lite
 -- * register
 -- * switch
 --
@@ -51,6 +52,66 @@ package axi4lite_utils_pkg is
   constant C_AXI_RESP_EXOKAY  : std_logic_vector(1 downto 0) := "01"; -- Exclusive access okay
   constant C_AXI_RESP_SLVERR  : std_logic_vector(1 downto 0) := "10"; -- Slave error
   constant C_AXI_RESP_DECERR  : std_logic_vector(1 downto 0) := "11"; -- Decode error
+
+  ----------------------------------
+  -- Bridge
+  ----------------------------------
+
+  component bridge_ascii_to_axi4lite is
+    generic(
+      G_ACTIVE_RST     : std_logic              := '0';       -- State at which the reset signal is asserted (active low or active high)
+      G_ASYNC_RST      : boolean                := true;      -- Type of reset used (synchronous or asynchronous resets)
+      G_AXI_DATA_WIDTH : positive range 8 to 64 := 32;        -- Width of the data vector of the axi4-lite
+      G_AXI_ADDR_WIDTH : positive range 4 to 64 := 16         -- Width of the address vector of the axi4-lite
+    );
+    port(
+      -- BASIC SIGNALS
+      CLK            : in  std_logic;                         -- Global clock, signals are samples at rising edge
+      RST            : in  std_logic;                         -- Global reset depends on configuration
+
+      -- SLAVE AXIS
+      S_AXIS_TDATA   : in  std_logic_vector(7 downto 0);      -- payload on slave interface
+      S_AXIS_TVALID  : in  std_logic;                         -- validity of transfer on slave interface
+      S_AXIS_TREADY  : out std_logic;                         -- acceptation of transfer on slave interface
+
+      -- MASTER AXIS
+      M_AXIS_TDATA   : out std_logic_vector(7 downto 0);      -- payload on master interface
+      M_AXIS_TVALID  : out std_logic;                         -- validity of transfer on master interface
+      M_AXIS_TREADY  : in  std_logic := '1';                  -- acceptation of transfer on master interface
+
+      -- MASTER AXI4-LITE
+
+      -- -- ADDRESS WRITE (AR)
+      M_AXIL_AWADDR  : out std_logic_vector(G_AXI_ADDR_WIDTH - 1 downto 0); -- payload on master axi4lite write address
+      M_AXIL_AWPROT  : out std_logic_vector(2 downto 0);
+      M_AXIL_AWVALID : out std_logic;                         -- validity of transaction on master axi4lite write adress
+      M_AXIL_AWREADY : in  std_logic;                         -- acceptation of transaction on master axi4lite write adress
+
+      -- -- WRITE (W)
+      M_AXIL_WDATA   : out std_logic_vector(G_AXI_DATA_WIDTH - 1 downto 0); -- payload on master axi4lite write data
+      M_AXIL_WSTRB   : out std_logic_vector((G_AXI_DATA_WIDTH / 8) - 1 downto 0);
+      M_AXIL_WVALID  : out std_logic;                         -- validity of transaction on master axi4lite write data
+      M_AXIL_WREADY  : in  std_logic;                         -- acceptation of transaction on master axi4lite write data
+
+      -- -- RESPONSE WRITE (B)
+      M_AXIL_BRESP   : in  std_logic_vector(1 downto 0);
+      M_AXIL_BVALID  : in  std_logic;                         -- validity of transaction on master axi4lite write response
+      M_AXIL_BREADY  : out std_logic;                         -- acceptation of transaction on master axi4lite write response
+
+      -- -- ADDRESS READ (AR)
+      M_AXIL_ARADDR  : out std_logic_vector(G_AXI_ADDR_WIDTH - 1 downto 0); -- payload on master axi4lite read address
+      M_AXIL_ARPROT  : out std_logic_vector(2 downto 0);
+      M_AXIL_ARVALID : out std_logic;                         -- validity of transaction on master axi4lite read adress
+      M_AXIL_ARREADY : in  std_logic;                         -- acceptation of transaction on master axi4lite read adress
+
+      -- -- READ (R)
+      M_AXIL_RDATA   : in  std_logic_vector(G_AXI_DATA_WIDTH - 1 downto 0); -- payload on master axi4lite read data
+      M_AXIL_RVALID  : in  std_logic;                         -- validity of transaction on master axi4lite read data / read response
+      M_AXIL_RRESP   : in  std_logic_vector(1 downto 0);
+      M_AXIL_RREADY  : out std_logic                          -- acceptation of transaction on master axi4lite read data / read response
+
+    );
+  end component bridge_ascii_to_axi4lite;
 
   ----------------------------------
   -- Simple Port RAM Controller

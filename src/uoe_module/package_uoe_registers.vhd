@@ -43,7 +43,7 @@ package package_uoe_registers is
   end component interruptions;
 
 
-  -- Main 
+  -- Main
 
   component main_uoe_registers is
     port(
@@ -73,19 +73,19 @@ package package_uoe_registers is
       ----------------------
       -- Input data for registers
       ----------------------
-      -- RO Registers 
+      -- RO Registers
       VERSION                                           : in  std_logic_vector(7 downto 0);                          -- Version number
       REVISION                                          : in  std_logic_vector(7 downto 0);                          -- Revision number
       DEBUG                                             : in  std_logic_vector(15 downto 0);                         -- Debug number
-      -- RZ Registers 
+      -- RZ Registers
       CRC_FILTER_COUNTER                                : in  std_logic_vector(31 downto 0);                         -- Number of frames filtered because of bad CRC
       MAC_FILTER_COUNTER                                : in  std_logic_vector(31 downto 0);                         -- Number of frames filtered following MAC configuration
       EXT_DROP_COUNTER                                  : in  std_logic_vector(31 downto 0);                         -- Number of frames dropped on externe interface
       RAW_DROP_COUNTER                                  : in  std_logic_vector(31 downto 0);                         -- Number of frames dropped on raw interface
       UDP_DROP_COUNTER                                  : in  std_logic_vector(31 downto 0);                         -- Number of frames dropped on udp interface
-      -- WO Registers 
+      -- WO Registers
       ARP_SW_REQ_DEST_IP_ADDR_IN                        : in  std_logic_vector(31 downto 0);                         -- Destination IP Address use to generate software request ARP
-      -- Irq WO Registers 
+      -- Irq WO Registers
       IRQ_INIT_DONE_CLEAR_IN                            : in  std_logic;                                             -- Field description
       IRQ_ARP_TABLE_CLEAR_DONE_CLEAR_IN                 : in  std_logic;                                             -- Field description
       IRQ_ARP_IP_CONFLICT_CLEAR_IN                      : in  std_logic;                                             -- Field description
@@ -104,7 +104,7 @@ package package_uoe_registers is
       IRQ_ROUTER_DATA_RX_FIFO_OVERFLOW_SET_IN           : in  std_logic;                                             -- Field description
       IRQ_ROUTER_CRC_RX_FIFO_OVERFLOW_SET_IN            : in  std_logic;                                             -- Field description
       IRQ_IPV4_RX_FRAG_OFFSET_ERROR_SET_IN              : in  std_logic;                                             -- Field description
-      -- Irq RO Registers 
+      -- Irq RO Registers
       IRQ_INIT_DONE_STATUS                              : in  std_logic;                                             -- Field description
       IRQ_ARP_TABLE_CLEAR_DONE_STATUS                   : in  std_logic;                                             -- Field description
       IRQ_ARP_IP_CONFLICT_STATUS                        : in  std_logic;                                             -- Field description
@@ -118,7 +118,7 @@ package package_uoe_registers is
       ----------------------
       -- Registers output data
       ----------------------
-      -- RW Registers 
+      -- RW Registers
       LOCAL_MAC_ADDR_LSB                                : out std_logic_vector(31 downto 0);                         -- Local MAC Address LSB
       LOCAL_MAC_ADDR_MSB                                : out std_logic_vector(15 downto 0);                         -- Local MAC Address MSB
       LOCAL_IP_ADDR                                     : out std_logic_vector(31 downto 0);                         -- Local IP Address
@@ -143,17 +143,17 @@ package package_uoe_registers is
       ARP_RX_TEST_LOCAL_IP_CONFLICT                     : out std_logic;                                             -- Enable test "Local IP ADDR conflict"
       ARP_TABLE_CLEAR                                   : out std_logic;                                             -- Clear ARP Table (Should be drive like a pulse : '0' => '1' => '0')
       CONFIG_DONE                                       : out std_logic;                                             -- Flag Configuration Done
-      -- WO Registers 
+      -- WO Registers
       ARP_SW_REQ_DEST_IP_ADDR_OUT                       : out std_logic_vector(31 downto 0);                         -- Destination IP Address use to generate software request ARP
-      -- WO Pulses Registers 
+      -- WO Pulses Registers
       REG_ARP_SW_REQ_WRITE                              : out std_logic;
-      -- RZ Pulses Registers 
+      -- RZ Pulses Registers
       REG_MONITORING_CRC_FILTER_READ                    : out std_logic;
       REG_MONITORING_MAC_FILTER_READ                    : out std_logic;
       REG_MONITORING_EXT_DROP_READ                      : out std_logic;
       REG_MONITORING_RAW_DROP_READ                      : out std_logic;
       REG_MONITORING_UDP_DROP_READ                      : out std_logic;
-      -- Irq RW Registers 
+      -- Irq RW Registers
       IRQ_INIT_DONE_ENABLE                              : out std_logic;                                             -- Field description
       IRQ_ARP_TABLE_CLEAR_DONE_ENABLE                   : out std_logic;                                             -- Field description
       IRQ_ARP_IP_CONFLICT_ENABLE                        : out std_logic;                                             -- Field description
@@ -163,7 +163,7 @@ package package_uoe_registers is
       IRQ_ROUTER_DATA_RX_FIFO_OVERFLOW_ENABLE           : out std_logic;                                             -- Field description
       IRQ_ROUTER_CRC_RX_FIFO_OVERFLOW_ENABLE            : out std_logic;                                             -- Field description
       IRQ_IPV4_RX_FRAG_OFFSET_ERROR_ENABLE              : out std_logic;                                             -- Field description
-      -- Irq WO Registers 
+      -- Irq WO Registers
       IRQ_INIT_DONE_CLEAR_OUT                           : out std_logic;                                             -- Field description
       IRQ_ARP_TABLE_CLEAR_DONE_CLEAR_OUT                : out std_logic;                                             -- Field description
       IRQ_ARP_IP_CONFLICT_CLEAR_OUT                     : out std_logic;                                             -- Field description
@@ -182,14 +182,14 @@ package package_uoe_registers is
       IRQ_ROUTER_DATA_RX_FIFO_OVERFLOW_SET_OUT          : out std_logic;                                             -- Field description
       IRQ_ROUTER_CRC_RX_FIFO_OVERFLOW_SET_OUT           : out std_logic;                                             -- Field description
       IRQ_IPV4_RX_FRAG_OFFSET_ERROR_SET_OUT             : out std_logic;                                             -- Field description
-      -- Irq WO Pulses Registers 
+      -- Irq WO Pulses Registers
       REG_INTERRUPT_CLEAR_WRITE                         : out std_logic;
-      REG_INTERRUPT_SET_WRITE                           : out std_logic 
+      REG_INTERRUPT_SET_WRITE                           : out std_logic
 
     );
   end component main_uoe_registers;
 
-  -- Itf Main 
+  -- Itf Main
 
   component main_uoe_registers_itf is
     port(
@@ -219,23 +219,23 @@ package package_uoe_registers is
       ----------------------
       -- Input data for registers
       ----------------------
-      -- RO Registers 
+      -- RO Registers
       VERSION                                           : in  std_logic_vector(7 downto 0);                          -- Version number
       REVISION                                          : in  std_logic_vector(7 downto 0);                          -- Revision number
       DEBUG                                             : in  std_logic_vector(15 downto 0);                         -- Debug number
-      -- RZ Registers 
+      -- RZ Registers
       CRC_FILTER_COUNTER                                : in  std_logic_vector(31 downto 0);                         -- Number of frames filtered because of bad CRC
       MAC_FILTER_COUNTER                                : in  std_logic_vector(31 downto 0);                         -- Number of frames filtered following MAC configuration
       EXT_DROP_COUNTER                                  : in  std_logic_vector(31 downto 0);                         -- Number of frames dropped on externe interface
       RAW_DROP_COUNTER                                  : in  std_logic_vector(31 downto 0);                         -- Number of frames dropped on raw interface
       UDP_DROP_COUNTER                                  : in  std_logic_vector(31 downto 0);                         -- Number of frames dropped on udp interface
-      -- WO Registers 
+      -- WO Registers
       ARP_SW_REQ_DEST_IP_ADDR_IN                        : in  std_logic_vector(31 downto 0);                         -- Destination IP Address use to generate software request ARP
 
       ----------------------
       -- Registers output data
       ----------------------
-      -- RW Registers 
+      -- RW Registers
       LOCAL_MAC_ADDR_LSB                                : out std_logic_vector(31 downto 0);                         -- Local MAC Address LSB
       LOCAL_MAC_ADDR_MSB                                : out std_logic_vector(15 downto 0);                         -- Local MAC Address MSB
       LOCAL_IP_ADDR                                     : out std_logic_vector(31 downto 0);                         -- Local IP Address
@@ -260,11 +260,11 @@ package package_uoe_registers is
       ARP_RX_TEST_LOCAL_IP_CONFLICT                     : out std_logic;                                             -- Enable test "Local IP ADDR conflict"
       ARP_TABLE_CLEAR                                   : out std_logic;                                             -- Clear ARP Table (Should be drive like a pulse : '0' => '1' => '0')
       CONFIG_DONE                                       : out std_logic;                                             -- Flag Configuration Done
-      -- WO Registers 
+      -- WO Registers
       ARP_SW_REQ_DEST_IP_ADDR_OUT                       : out std_logic_vector(31 downto 0);                         -- Destination IP Address use to generate software request ARP
-      -- WO Pulses Registers 
+      -- WO Pulses Registers
       REG_ARP_SW_REQ_WRITE                              : out std_logic;
-      -- RZ Pulses Registers 
+      -- RZ Pulses Registers
       REG_MONITORING_CRC_FILTER_READ                    : out std_logic;
       REG_MONITORING_MAC_FILTER_READ                    : out std_logic;
       REG_MONITORING_EXT_DROP_READ                      : out std_logic;
@@ -272,7 +272,7 @@ package package_uoe_registers is
       REG_MONITORING_UDP_DROP_READ                      : out std_logic;
 
       ----------------------
-      -- IRQ 
+      -- IRQ
       ---------------------
       -- IRQ sources
       IRQ_INIT_DONE                                     : in  std_logic;                                             -- Field description
@@ -287,12 +287,12 @@ package package_uoe_registers is
 
       -- output
       -- IRQ output
-      REG_INTERRUPT                                     : out std_logic 
+      REG_INTERRUPT                                     : out std_logic
 
-      
     );
   end component main_uoe_registers_itf;
-  -- Test 
+
+  -- Test
 
   component test_uoe_registers is
     port(
@@ -322,7 +322,7 @@ package package_uoe_registers is
       ----------------------
       -- Input data for registers
       ----------------------
-      -- RO Registers 
+      -- RO Registers
       GEN_TEST_DURATION_LSB                       : in  std_logic_vector(31 downto 0);                   -- Duration time to generate all data (LSB)
       GEN_TEST_DURATION_MSB                       : in  std_logic_vector(31 downto 0);                   -- Duration time to generate all data (MSB)
       CHK_TEST_DURATION_LSB                       : in  std_logic_vector(31 downto 0);                   -- Duration time to received all data (LSB)
@@ -335,43 +335,76 @@ package package_uoe_registers is
       RX_RM_CNT_BYTES_MSB                         : in  std_logic_vector(31 downto 0);                   -- Value of the bytes counter registered when trigger is asserted (MSB)
       RX_RM_CNT_CYCLES_LSB                        : in  std_logic_vector(31 downto 0);                   -- Value of the clock counter registered when trigger is asserted (LSB)
       RX_RM_CNT_CYCLES_MSB                        : in  std_logic_vector(31 downto 0);                   -- Value of the clock counter registered when trigger is asserted (MSB)
-      -- WO Registers 
-      LOOPBACK_MAC_EN_IN                          : in  std_logic;                                       -- Enable Loopback on MAC interface
-      LOOPBACK_UDP_EN_IN                          : in  std_logic;                                       -- Enable Loopback on UDP interface
-      GEN_START_IN                                : in  std_logic;                                       -- Start the Axis Frame Checker
-      GEN_STOP_IN                                 : in  std_logic;                                       -- Start the Axis Frame Checker
-      CHK_START_IN                                : in  std_logic;                                       -- Start the Axis Frame Checker
-      CHK_STOP_IN                                 : in  std_logic;                                       -- Stop the Axis Frame Checker
+      -- WO Registers
       TX_RM_INIT_COUNTER_IN                       : in  std_logic;                                       -- Initialization of Rate meter counter (take into account when trigger is asserted)
       RX_RM_INIT_COUNTER_IN                       : in  std_logic;                                       -- Initialization of Rate meter counter (take into account when trigger is asserted)
-      -- Irq WO Registers 
+      -- Irq WO Registers
       IRQ_GEN_DONE_CLEAR_IN                       : in  std_logic;                                       -- End of frames generation
-      IRQ_GEN_ERR_TIMEOUT_CLEAR_IN                : in  std_logic;                                       -- Timeout reach during generation of frames
+      IRQ_GEN_MON_TIMEOUT_READY_CLEAR_IN          : in  std_logic;                                       -- Timeout reach waiting ready signal
+      IRQ_GEN_MON_TIMEOUT_VALID_CLEAR_IN          : in  std_logic;                                       -- Timeout reach waiting valid signal
+      IRQ_GEN_MON_VALID_ERROR_CLEAR_IN            : in  std_logic;                                       -- TVALID value changed during a transfer without handshake
+      IRQ_GEN_MON_DATA_ERROR_CLEAR_IN             : in  std_logic;                                       -- TDATA value changed during a transfer without handshake
+      IRQ_GEN_MON_LAST_ERROR_CLEAR_IN             : in  std_logic;                                       -- TLAST value changed during a transfer without handshake
+      IRQ_GEN_MON_USER_ERROR_CLEAR_IN             : in  std_logic;                                       -- TUSER value changed during a transfer without handshake
+      IRQ_GEN_MON_KEEP_ERROR_CLEAR_IN             : in  std_logic;                                       -- TKEEP value changed during a transfer without handshake
       IRQ_CHK_DONE_CLEAR_IN                       : in  std_logic;                                       -- End of frames verification
-      IRQ_CHK_ERR_FRAME_SIZE_CLEAR_IN             : in  std_logic;                                       -- Frame size error detection
       IRQ_CHK_ERR_DATA_CLEAR_IN                   : in  std_logic;                                       -- Data error detection
-      IRQ_CHK_ERR_TIMEOUT_CLEAR_IN                : in  std_logic;                                       -- Timeout reach during checking of frames
+      IRQ_CHK_ERR_SIZE_CLEAR_IN                   : in  std_logic;                                       -- Frame size error detection
+      IRQ_CHK_ERR_LAST_CLEAR_IN                   : in  std_logic;                                       -- last error detection
+      IRQ_CHK_MON_TIMEOUT_READY_CLEAR_IN          : in  std_logic;                                       -- Timeout reach waiting ready signal
+      IRQ_CHK_MON_TIMEOUT_VALID_CLEAR_IN          : in  std_logic;                                       -- Timeout reach waiting valid signal
+      IRQ_CHK_MON_VALID_ERROR_CLEAR_IN            : in  std_logic;                                       -- TVALID value changed during a transfer without handshake
+      IRQ_CHK_MON_DATA_ERROR_CLEAR_IN             : in  std_logic;                                       -- TDATA value changed during a transfer without handshake
+      IRQ_CHK_MON_LAST_ERROR_CLEAR_IN             : in  std_logic;                                       -- TLAST value changed during a transfer without handshake
+      IRQ_CHK_MON_USER_ERROR_CLEAR_IN             : in  std_logic;                                       -- TUSER value changed during a transfer without handshake
+      IRQ_CHK_MON_KEEP_ERROR_CLEAR_IN             : in  std_logic;                                       -- TKEEP value changed during a transfer without handshake
       IRQ_RATE_METER_TX_DONE_CLEAR_IN             : in  std_logic;                                       -- End of measurement
       IRQ_RATE_METER_TX_OVERFLOW_CLEAR_IN         : in  std_logic;                                       -- Counter reach the maximum size of the counter
       IRQ_RATE_METER_RX_DONE_CLEAR_IN             : in  std_logic;                                       -- End of measurement
       IRQ_RATE_METER_RX_OVERFLOW_CLEAR_IN         : in  std_logic;                                       -- Counter reach the maximum size of the counter
       IRQ_GEN_DONE_SET_IN                         : in  std_logic;                                       -- End of frames generation
-      IRQ_GEN_ERR_TIMEOUT_SET_IN                  : in  std_logic;                                       -- Timeout reach during generation of frames
+      IRQ_GEN_MON_TIMEOUT_READY_SET_IN            : in  std_logic;                                       -- Timeout reach waiting ready signal
+      IRQ_GEN_MON_TIMEOUT_VALID_SET_IN            : in  std_logic;                                       -- Timeout reach waiting valid signal
+      IRQ_GEN_MON_VALID_ERROR_SET_IN              : in  std_logic;                                       -- TVALID value changed during a transfer without handshake
+      IRQ_GEN_MON_DATA_ERROR_SET_IN               : in  std_logic;                                       -- TDATA value changed during a transfer without handshake
+      IRQ_GEN_MON_LAST_ERROR_SET_IN               : in  std_logic;                                       -- TLAST value changed during a transfer without handshake
+      IRQ_GEN_MON_USER_ERROR_SET_IN               : in  std_logic;                                       -- TUSER value changed during a transfer without handshake
+      IRQ_GEN_MON_KEEP_ERROR_SET_IN               : in  std_logic;                                       -- TKEEP value changed during a transfer without handshake
       IRQ_CHK_DONE_SET_IN                         : in  std_logic;                                       -- End of frames verification
-      IRQ_CHK_ERR_FRAME_SIZE_SET_IN               : in  std_logic;                                       -- Frame size error detection
       IRQ_CHK_ERR_DATA_SET_IN                     : in  std_logic;                                       -- Data error detection
-      IRQ_CHK_ERR_TIMEOUT_SET_IN                  : in  std_logic;                                       -- Timeout reach during checking of frames
+      IRQ_CHK_ERR_SIZE_SET_IN                     : in  std_logic;                                       -- Frame size error detection
+      IRQ_CHK_ERR_LAST_SET_IN                     : in  std_logic;                                       -- last error detection
+      IRQ_CHK_MON_TIMEOUT_READY_SET_IN            : in  std_logic;                                       -- Timeout reach waiting ready signal
+      IRQ_CHK_MON_TIMEOUT_VALID_SET_IN            : in  std_logic;                                       -- Timeout reach waiting valid signal
+      IRQ_CHK_MON_VALID_ERROR_SET_IN              : in  std_logic;                                       -- TVALID value changed during a transfer without handshake
+      IRQ_CHK_MON_DATA_ERROR_SET_IN               : in  std_logic;                                       -- TDATA value changed during a transfer without handshake
+      IRQ_CHK_MON_LAST_ERROR_SET_IN               : in  std_logic;                                       -- TLAST value changed during a transfer without handshake
+      IRQ_CHK_MON_USER_ERROR_SET_IN               : in  std_logic;                                       -- TUSER value changed during a transfer without handshake
+      IRQ_CHK_MON_KEEP_ERROR_SET_IN               : in  std_logic;                                       -- TKEEP value changed during a transfer without handshake
       IRQ_RATE_METER_TX_DONE_SET_IN               : in  std_logic;                                       -- End of measurement
       IRQ_RATE_METER_TX_OVERFLOW_SET_IN           : in  std_logic;                                       -- Counter reach the maximum size of the counter
       IRQ_RATE_METER_RX_DONE_SET_IN               : in  std_logic;                                       -- End of measurement
       IRQ_RATE_METER_RX_OVERFLOW_SET_IN           : in  std_logic;                                       -- Counter reach the maximum size of the counter
-      -- Irq RO Registers 
+      -- Irq RO Registers
       IRQ_GEN_DONE_STATUS                         : in  std_logic;                                       -- End of frames generation
-      IRQ_GEN_ERR_TIMEOUT_STATUS                  : in  std_logic;                                       -- Timeout reach during generation of frames
+      IRQ_GEN_MON_TIMEOUT_READY_STATUS            : in  std_logic;                                       -- Timeout reach waiting ready signal
+      IRQ_GEN_MON_TIMEOUT_VALID_STATUS            : in  std_logic;                                       -- Timeout reach waiting valid signal
+      IRQ_GEN_MON_VALID_ERROR_STATUS              : in  std_logic;                                       -- TVALID value changed during a transfer without handshake
+      IRQ_GEN_MON_DATA_ERROR_STATUS               : in  std_logic;                                       -- TDATA value changed during a transfer without handshake
+      IRQ_GEN_MON_LAST_ERROR_STATUS               : in  std_logic;                                       -- TLAST value changed during a transfer without handshake
+      IRQ_GEN_MON_USER_ERROR_STATUS               : in  std_logic;                                       -- TUSER value changed during a transfer without handshake
+      IRQ_GEN_MON_KEEP_ERROR_STATUS               : in  std_logic;                                       -- TKEEP value changed during a transfer without handshake
       IRQ_CHK_DONE_STATUS                         : in  std_logic;                                       -- End of frames verification
-      IRQ_CHK_ERR_FRAME_SIZE_STATUS               : in  std_logic;                                       -- Frame size error detection
       IRQ_CHK_ERR_DATA_STATUS                     : in  std_logic;                                       -- Data error detection
-      IRQ_CHK_ERR_TIMEOUT_STATUS                  : in  std_logic;                                       -- Timeout reach during checking of frames
+      IRQ_CHK_ERR_SIZE_STATUS                     : in  std_logic;                                       -- Frame size error detection
+      IRQ_CHK_ERR_LAST_STATUS                     : in  std_logic;                                       -- last error detection
+      IRQ_CHK_MON_TIMEOUT_READY_STATUS            : in  std_logic;                                       -- Timeout reach waiting ready signal
+      IRQ_CHK_MON_TIMEOUT_VALID_STATUS            : in  std_logic;                                       -- Timeout reach waiting valid signal
+      IRQ_CHK_MON_VALID_ERROR_STATUS              : in  std_logic;                                       -- TVALID value changed during a transfer without handshake
+      IRQ_CHK_MON_DATA_ERROR_STATUS               : in  std_logic;                                       -- TDATA value changed during a transfer without handshake
+      IRQ_CHK_MON_LAST_ERROR_STATUS               : in  std_logic;                                       -- TLAST value changed during a transfer without handshake
+      IRQ_CHK_MON_USER_ERROR_STATUS               : in  std_logic;                                       -- TUSER value changed during a transfer without handshake
+      IRQ_CHK_MON_KEEP_ERROR_STATUS               : in  std_logic;                                       -- TKEEP value changed during a transfer without handshake
       IRQ_RATE_METER_TX_DONE_STATUS               : in  std_logic;                                       -- End of measurement
       IRQ_RATE_METER_TX_OVERFLOW_STATUS           : in  std_logic;                                       -- Counter reach the maximum size of the counter
       IRQ_RATE_METER_RX_DONE_STATUS               : in  std_logic;                                       -- End of measurement
@@ -380,17 +413,21 @@ package package_uoe_registers is
       ----------------------
       -- Registers output data
       ----------------------
-      -- RW Registers 
-      GEN_FRAME_SIZE_TYPE                         : out std_logic;                                       -- Frame size type : '0' => static, '1' => dynamic
+      -- RW Registers
+      LOOPBACK_MAC_EN                             : out std_logic;                                       -- Enable Loopback on MAC interface
+      LOOPBACK_UDP_EN                             : out std_logic;                                       -- Enable Loopback on UDP interface
+      GEN_ENABLE                                  : out std_logic;                                       -- Generator Enable
+      GEN_FRAME_SIZE_TYPE                         : out std_logic;                                       -- Generator Frame size type ('0' : Static, '1' : Dynamic Pseudo Random)
+      CHK_ENABLE                                  : out std_logic;                                       -- Checker Enable
+      CHK_FRAME_SIZE_TYPE                         : out std_logic;                                       -- Checker Frame size type ('0' : Static, '1' : Dynamic Pseudo Random)
+      GEN_NB_FRAMES                               : out std_logic_vector(15 downto 0);                   -- Number of frames to generate (if 0, frames are generated endlessly)
       GEN_FRAME_SIZE_STATIC                       : out std_logic_vector(15 downto 0);                   -- Frame size used in static mode
-      GEN_RATE_LIMITATION                         : out std_logic_vector(7 downto 0);                    -- Rate limitation / Example : 50% = (2^7)-1
-      GEN_NB_BYTES_LSB                            : out std_logic_vector(31 downto 0);                   -- Number of bytes to generate (LSB)
-      GEN_NB_BYTES_MSB                            : out std_logic_vector(31 downto 0);                   -- Number of bytes to generate (MSB)
-      CHK_FRAME_SIZE_TYPE                         : out std_logic;                                       -- Frame size type : '0' => static, '1' => dynamic
+      GEN_RATE_NB_TRANSFERS                       : out std_logic_vector(7 downto 0);                    -- Number of transfers allow during a time window
+      GEN_RATE_WINDOW_SIZE                        : out std_logic_vector(7 downto 0);                    -- Size of the time window (Period)
+      GEN_MON_TIMEOUT_VALUE                       : out std_logic_vector(15 downto 0);                   -- Timeout value used for the axis monitoring
+      CHK_NB_FRAMES                               : out std_logic_vector(15 downto 0);                   -- Number of frames to generate (if 0, frames are generated endlessly)
       CHK_FRAME_SIZE_STATIC                       : out std_logic_vector(15 downto 0);                   -- Frame size used in static mode
-      CHK_RATE_LIMITATION                         : out std_logic_vector(7 downto 0);                    -- Rate limitation / Example : 50% = (2^7)-1
-      CHK_NB_BYTES_LSB                            : out std_logic_vector(31 downto 0);                   -- Number of bytes to check (LSB)
-      CHK_NB_BYTES_MSB                            : out std_logic_vector(31 downto 0);                   -- Number of bytes to check (MSB)
+      CHK_MON_TIMEOUT_VALUE                       : out std_logic_vector(15 downto 0);                   -- Timeout value used for the axis monitoring
       LB_GEN_DEST_PORT                            : out std_logic_vector(15 downto 0);                   -- Destination port use for generated frames and loopback
       LB_GEN_SRC_PORT                             : out std_logic_vector(15 downto 0);                   -- Source port use for generated frames and loopback
       LB_GEN_DEST_IP_ADDR                         : out std_logic_vector(31 downto 0);                   -- Destination IP Address use for generated frames and loopback
@@ -399,59 +436,91 @@ package package_uoe_registers is
       TX_RM_BYTES_EXPT_MSB                        : out std_logic_vector(31 downto 0);                   -- Number of bytes expected during the measurment (MSB)
       RX_RM_BYTES_EXPT_LSB                        : out std_logic_vector(31 downto 0);                   -- Number of bytes expected during the measurment (LSB)
       RX_RM_BYTES_EXPT_MSB                        : out std_logic_vector(31 downto 0);                   -- Number of bytes expected during the measurment (MSB)
-      -- WO Registers 
-      LOOPBACK_MAC_EN_OUT                         : out std_logic;                                       -- Enable Loopback on MAC interface
-      LOOPBACK_UDP_EN_OUT                         : out std_logic;                                       -- Enable Loopback on UDP interface
-      GEN_START_OUT                               : out std_logic;                                       -- Start the Axis Frame Checker
-      GEN_STOP_OUT                                : out std_logic;                                       -- Start the Axis Frame Checker
-      CHK_START_OUT                               : out std_logic;                                       -- Start the Axis Frame Checker
-      CHK_STOP_OUT                                : out std_logic;                                       -- Stop the Axis Frame Checker
+      -- WO Registers
       TX_RM_INIT_COUNTER_OUT                      : out std_logic;                                       -- Initialization of Rate meter counter (take into account when trigger is asserted)
       RX_RM_INIT_COUNTER_OUT                      : out std_logic;                                       -- Initialization of Rate meter counter (take into account when trigger is asserted)
-      -- WO Pulses Registers 
-      REG_GEN_CHK_CONTROL_WRITE                   : out std_logic;
+      -- WO Pulses Registers
       REG_TX_RATE_METER_CTRL_WRITE                : out std_logic;
       REG_RX_RATE_METER_CTRL_WRITE                : out std_logic;
-      -- Irq RW Registers 
+      -- Irq RW Registers
       IRQ_GEN_DONE_ENABLE                         : out std_logic;                                       -- End of frames generation
-      IRQ_GEN_ERR_TIMEOUT_ENABLE                  : out std_logic;                                       -- Timeout reach during generation of frames
+      IRQ_GEN_MON_TIMEOUT_READY_ENABLE            : out std_logic;                                       -- Timeout reach waiting ready signal
+      IRQ_GEN_MON_TIMEOUT_VALID_ENABLE            : out std_logic;                                       -- Timeout reach waiting valid signal
+      IRQ_GEN_MON_VALID_ERROR_ENABLE              : out std_logic;                                       -- TVALID value changed during a transfer without handshake
+      IRQ_GEN_MON_DATA_ERROR_ENABLE               : out std_logic;                                       -- TDATA value changed during a transfer without handshake
+      IRQ_GEN_MON_LAST_ERROR_ENABLE               : out std_logic;                                       -- TLAST value changed during a transfer without handshake
+      IRQ_GEN_MON_USER_ERROR_ENABLE               : out std_logic;                                       -- TUSER value changed during a transfer without handshake
+      IRQ_GEN_MON_KEEP_ERROR_ENABLE               : out std_logic;                                       -- TKEEP value changed during a transfer without handshake
       IRQ_CHK_DONE_ENABLE                         : out std_logic;                                       -- End of frames verification
-      IRQ_CHK_ERR_FRAME_SIZE_ENABLE               : out std_logic;                                       -- Frame size error detection
       IRQ_CHK_ERR_DATA_ENABLE                     : out std_logic;                                       -- Data error detection
-      IRQ_CHK_ERR_TIMEOUT_ENABLE                  : out std_logic;                                       -- Timeout reach during checking of frames
+      IRQ_CHK_ERR_SIZE_ENABLE                     : out std_logic;                                       -- Frame size error detection
+      IRQ_CHK_ERR_LAST_ENABLE                     : out std_logic;                                       -- last error detection
+      IRQ_CHK_MON_TIMEOUT_READY_ENABLE            : out std_logic;                                       -- Timeout reach waiting ready signal
+      IRQ_CHK_MON_TIMEOUT_VALID_ENABLE            : out std_logic;                                       -- Timeout reach waiting valid signal
+      IRQ_CHK_MON_VALID_ERROR_ENABLE              : out std_logic;                                       -- TVALID value changed during a transfer without handshake
+      IRQ_CHK_MON_DATA_ERROR_ENABLE               : out std_logic;                                       -- TDATA value changed during a transfer without handshake
+      IRQ_CHK_MON_LAST_ERROR_ENABLE               : out std_logic;                                       -- TLAST value changed during a transfer without handshake
+      IRQ_CHK_MON_USER_ERROR_ENABLE               : out std_logic;                                       -- TUSER value changed during a transfer without handshake
+      IRQ_CHK_MON_KEEP_ERROR_ENABLE               : out std_logic;                                       -- TKEEP value changed during a transfer without handshake
       IRQ_RATE_METER_TX_DONE_ENABLE               : out std_logic;                                       -- End of measurement
       IRQ_RATE_METER_TX_OVERFLOW_ENABLE           : out std_logic;                                       -- Counter reach the maximum size of the counter
       IRQ_RATE_METER_RX_DONE_ENABLE               : out std_logic;                                       -- End of measurement
       IRQ_RATE_METER_RX_OVERFLOW_ENABLE           : out std_logic;                                       -- Counter reach the maximum size of the counter
-      -- Irq WO Registers 
+      -- Irq WO Registers
       IRQ_GEN_DONE_CLEAR_OUT                      : out std_logic;                                       -- End of frames generation
-      IRQ_GEN_ERR_TIMEOUT_CLEAR_OUT               : out std_logic;                                       -- Timeout reach during generation of frames
+      IRQ_GEN_MON_TIMEOUT_READY_CLEAR_OUT         : out std_logic;                                       -- Timeout reach waiting ready signal
+      IRQ_GEN_MON_TIMEOUT_VALID_CLEAR_OUT         : out std_logic;                                       -- Timeout reach waiting valid signal
+      IRQ_GEN_MON_VALID_ERROR_CLEAR_OUT           : out std_logic;                                       -- TVALID value changed during a transfer without handshake
+      IRQ_GEN_MON_DATA_ERROR_CLEAR_OUT            : out std_logic;                                       -- TDATA value changed during a transfer without handshake
+      IRQ_GEN_MON_LAST_ERROR_CLEAR_OUT            : out std_logic;                                       -- TLAST value changed during a transfer without handshake
+      IRQ_GEN_MON_USER_ERROR_CLEAR_OUT            : out std_logic;                                       -- TUSER value changed during a transfer without handshake
+      IRQ_GEN_MON_KEEP_ERROR_CLEAR_OUT            : out std_logic;                                       -- TKEEP value changed during a transfer without handshake
       IRQ_CHK_DONE_CLEAR_OUT                      : out std_logic;                                       -- End of frames verification
-      IRQ_CHK_ERR_FRAME_SIZE_CLEAR_OUT            : out std_logic;                                       -- Frame size error detection
       IRQ_CHK_ERR_DATA_CLEAR_OUT                  : out std_logic;                                       -- Data error detection
-      IRQ_CHK_ERR_TIMEOUT_CLEAR_OUT               : out std_logic;                                       -- Timeout reach during checking of frames
+      IRQ_CHK_ERR_SIZE_CLEAR_OUT                  : out std_logic;                                       -- Frame size error detection
+      IRQ_CHK_ERR_LAST_CLEAR_OUT                  : out std_logic;                                       -- last error detection
+      IRQ_CHK_MON_TIMEOUT_READY_CLEAR_OUT         : out std_logic;                                       -- Timeout reach waiting ready signal
+      IRQ_CHK_MON_TIMEOUT_VALID_CLEAR_OUT         : out std_logic;                                       -- Timeout reach waiting valid signal
+      IRQ_CHK_MON_VALID_ERROR_CLEAR_OUT           : out std_logic;                                       -- TVALID value changed during a transfer without handshake
+      IRQ_CHK_MON_DATA_ERROR_CLEAR_OUT            : out std_logic;                                       -- TDATA value changed during a transfer without handshake
+      IRQ_CHK_MON_LAST_ERROR_CLEAR_OUT            : out std_logic;                                       -- TLAST value changed during a transfer without handshake
+      IRQ_CHK_MON_USER_ERROR_CLEAR_OUT            : out std_logic;                                       -- TUSER value changed during a transfer without handshake
+      IRQ_CHK_MON_KEEP_ERROR_CLEAR_OUT            : out std_logic;                                       -- TKEEP value changed during a transfer without handshake
       IRQ_RATE_METER_TX_DONE_CLEAR_OUT            : out std_logic;                                       -- End of measurement
       IRQ_RATE_METER_TX_OVERFLOW_CLEAR_OUT        : out std_logic;                                       -- Counter reach the maximum size of the counter
       IRQ_RATE_METER_RX_DONE_CLEAR_OUT            : out std_logic;                                       -- End of measurement
       IRQ_RATE_METER_RX_OVERFLOW_CLEAR_OUT        : out std_logic;                                       -- Counter reach the maximum size of the counter
       IRQ_GEN_DONE_SET_OUT                        : out std_logic;                                       -- End of frames generation
-      IRQ_GEN_ERR_TIMEOUT_SET_OUT                 : out std_logic;                                       -- Timeout reach during generation of frames
+      IRQ_GEN_MON_TIMEOUT_READY_SET_OUT           : out std_logic;                                       -- Timeout reach waiting ready signal
+      IRQ_GEN_MON_TIMEOUT_VALID_SET_OUT           : out std_logic;                                       -- Timeout reach waiting valid signal
+      IRQ_GEN_MON_VALID_ERROR_SET_OUT             : out std_logic;                                       -- TVALID value changed during a transfer without handshake
+      IRQ_GEN_MON_DATA_ERROR_SET_OUT              : out std_logic;                                       -- TDATA value changed during a transfer without handshake
+      IRQ_GEN_MON_LAST_ERROR_SET_OUT              : out std_logic;                                       -- TLAST value changed during a transfer without handshake
+      IRQ_GEN_MON_USER_ERROR_SET_OUT              : out std_logic;                                       -- TUSER value changed during a transfer without handshake
+      IRQ_GEN_MON_KEEP_ERROR_SET_OUT              : out std_logic;                                       -- TKEEP value changed during a transfer without handshake
       IRQ_CHK_DONE_SET_OUT                        : out std_logic;                                       -- End of frames verification
-      IRQ_CHK_ERR_FRAME_SIZE_SET_OUT              : out std_logic;                                       -- Frame size error detection
       IRQ_CHK_ERR_DATA_SET_OUT                    : out std_logic;                                       -- Data error detection
-      IRQ_CHK_ERR_TIMEOUT_SET_OUT                 : out std_logic;                                       -- Timeout reach during checking of frames
+      IRQ_CHK_ERR_SIZE_SET_OUT                    : out std_logic;                                       -- Frame size error detection
+      IRQ_CHK_ERR_LAST_SET_OUT                    : out std_logic;                                       -- last error detection
+      IRQ_CHK_MON_TIMEOUT_READY_SET_OUT           : out std_logic;                                       -- Timeout reach waiting ready signal
+      IRQ_CHK_MON_TIMEOUT_VALID_SET_OUT           : out std_logic;                                       -- Timeout reach waiting valid signal
+      IRQ_CHK_MON_VALID_ERROR_SET_OUT             : out std_logic;                                       -- TVALID value changed during a transfer without handshake
+      IRQ_CHK_MON_DATA_ERROR_SET_OUT              : out std_logic;                                       -- TDATA value changed during a transfer without handshake
+      IRQ_CHK_MON_LAST_ERROR_SET_OUT              : out std_logic;                                       -- TLAST value changed during a transfer without handshake
+      IRQ_CHK_MON_USER_ERROR_SET_OUT              : out std_logic;                                       -- TUSER value changed during a transfer without handshake
+      IRQ_CHK_MON_KEEP_ERROR_SET_OUT              : out std_logic;                                       -- TKEEP value changed during a transfer without handshake
       IRQ_RATE_METER_TX_DONE_SET_OUT              : out std_logic;                                       -- End of measurement
       IRQ_RATE_METER_TX_OVERFLOW_SET_OUT          : out std_logic;                                       -- Counter reach the maximum size of the counter
       IRQ_RATE_METER_RX_DONE_SET_OUT              : out std_logic;                                       -- End of measurement
       IRQ_RATE_METER_RX_OVERFLOW_SET_OUT          : out std_logic;                                       -- Counter reach the maximum size of the counter
-      -- Irq WO Pulses Registers 
+      -- Irq WO Pulses Registers
       REG_INTERRUPT_CLEAR_WRITE                   : out std_logic;
-      REG_INTERRUPT_SET_WRITE                     : out std_logic 
+      REG_INTERRUPT_SET_WRITE                     : out std_logic
 
     );
   end component test_uoe_registers;
 
-  -- Itf Test 
+  -- Itf Test
 
   component test_uoe_registers_itf is
     port(
@@ -481,7 +550,7 @@ package package_uoe_registers is
       ----------------------
       -- Input data for registers
       ----------------------
-      -- RO Registers 
+      -- RO Registers
       GEN_TEST_DURATION_LSB                       : in  std_logic_vector(31 downto 0);                   -- Duration time to generate all data (LSB)
       GEN_TEST_DURATION_MSB                       : in  std_logic_vector(31 downto 0);                   -- Duration time to generate all data (MSB)
       CHK_TEST_DURATION_LSB                       : in  std_logic_vector(31 downto 0);                   -- Duration time to received all data (LSB)
@@ -494,30 +563,28 @@ package package_uoe_registers is
       RX_RM_CNT_BYTES_MSB                         : in  std_logic_vector(31 downto 0);                   -- Value of the bytes counter registered when trigger is asserted (MSB)
       RX_RM_CNT_CYCLES_LSB                        : in  std_logic_vector(31 downto 0);                   -- Value of the clock counter registered when trigger is asserted (LSB)
       RX_RM_CNT_CYCLES_MSB                        : in  std_logic_vector(31 downto 0);                   -- Value of the clock counter registered when trigger is asserted (MSB)
-      -- WO Registers 
-      LOOPBACK_MAC_EN_IN                          : in  std_logic;                                       -- Enable Loopback on MAC interface
-      LOOPBACK_UDP_EN_IN                          : in  std_logic;                                       -- Enable Loopback on UDP interface
-      GEN_START_IN                                : in  std_logic;                                       -- Start the Axis Frame Checker
-      GEN_STOP_IN                                 : in  std_logic;                                       -- Start the Axis Frame Checker
-      CHK_START_IN                                : in  std_logic;                                       -- Start the Axis Frame Checker
-      CHK_STOP_IN                                 : in  std_logic;                                       -- Stop the Axis Frame Checker
+      -- WO Registers
       TX_RM_INIT_COUNTER_IN                       : in  std_logic;                                       -- Initialization of Rate meter counter (take into account when trigger is asserted)
       RX_RM_INIT_COUNTER_IN                       : in  std_logic;                                       -- Initialization of Rate meter counter (take into account when trigger is asserted)
 
       ----------------------
       -- Registers output data
       ----------------------
-      -- RW Registers 
-      GEN_FRAME_SIZE_TYPE                         : out std_logic;                                       -- Frame size type : '0' => static, '1' => dynamic
+      -- RW Registers
+      LOOPBACK_MAC_EN                             : out std_logic;                                       -- Enable Loopback on MAC interface
+      LOOPBACK_UDP_EN                             : out std_logic;                                       -- Enable Loopback on UDP interface
+      GEN_ENABLE                                  : out std_logic;                                       -- Generator Enable
+      GEN_FRAME_SIZE_TYPE                         : out std_logic;                                       -- Generator Frame size type ('0' : Static, '1' : Dynamic Pseudo Random)
+      CHK_ENABLE                                  : out std_logic;                                       -- Checker Enable
+      CHK_FRAME_SIZE_TYPE                         : out std_logic;                                       -- Checker Frame size type ('0' : Static, '1' : Dynamic Pseudo Random)
+      GEN_NB_FRAMES                               : out std_logic_vector(15 downto 0);                   -- Number of frames to generate (if 0, frames are generated endlessly)
       GEN_FRAME_SIZE_STATIC                       : out std_logic_vector(15 downto 0);                   -- Frame size used in static mode
-      GEN_RATE_LIMITATION                         : out std_logic_vector(7 downto 0);                    -- Rate limitation / Example : 50% = (2^7)-1
-      GEN_NB_BYTES_LSB                            : out std_logic_vector(31 downto 0);                   -- Number of bytes to generate (LSB)
-      GEN_NB_BYTES_MSB                            : out std_logic_vector(31 downto 0);                   -- Number of bytes to generate (MSB)
-      CHK_FRAME_SIZE_TYPE                         : out std_logic;                                       -- Frame size type : '0' => static, '1' => dynamic
+      GEN_RATE_NB_TRANSFERS                       : out std_logic_vector(7 downto 0);                    -- Number of transfers allow during a time window
+      GEN_RATE_WINDOW_SIZE                        : out std_logic_vector(7 downto 0);                    -- Size of the time window (Period)
+      GEN_MON_TIMEOUT_VALUE                       : out std_logic_vector(15 downto 0);                   -- Timeout value used for the axis monitoring
+      CHK_NB_FRAMES                               : out std_logic_vector(15 downto 0);                   -- Number of frames to generate (if 0, frames are generated endlessly)
       CHK_FRAME_SIZE_STATIC                       : out std_logic_vector(15 downto 0);                   -- Frame size used in static mode
-      CHK_RATE_LIMITATION                         : out std_logic_vector(7 downto 0);                    -- Rate limitation / Example : 50% = (2^7)-1
-      CHK_NB_BYTES_LSB                            : out std_logic_vector(31 downto 0);                   -- Number of bytes to check (LSB)
-      CHK_NB_BYTES_MSB                            : out std_logic_vector(31 downto 0);                   -- Number of bytes to check (MSB)
+      CHK_MON_TIMEOUT_VALUE                       : out std_logic_vector(15 downto 0);                   -- Timeout value used for the axis monitoring
       LB_GEN_DEST_PORT                            : out std_logic_vector(15 downto 0);                   -- Destination port use for generated frames and loopback
       LB_GEN_SRC_PORT                             : out std_logic_vector(15 downto 0);                   -- Source port use for generated frames and loopback
       LB_GEN_DEST_IP_ADDR                         : out std_logic_vector(31 downto 0);                   -- Destination IP Address use for generated frames and loopback
@@ -526,30 +593,36 @@ package package_uoe_registers is
       TX_RM_BYTES_EXPT_MSB                        : out std_logic_vector(31 downto 0);                   -- Number of bytes expected during the measurment (MSB)
       RX_RM_BYTES_EXPT_LSB                        : out std_logic_vector(31 downto 0);                   -- Number of bytes expected during the measurment (LSB)
       RX_RM_BYTES_EXPT_MSB                        : out std_logic_vector(31 downto 0);                   -- Number of bytes expected during the measurment (MSB)
-      -- WO Registers 
-      LOOPBACK_MAC_EN_OUT                         : out std_logic;                                       -- Enable Loopback on MAC interface
-      LOOPBACK_UDP_EN_OUT                         : out std_logic;                                       -- Enable Loopback on UDP interface
-      GEN_START_OUT                               : out std_logic;                                       -- Start the Axis Frame Checker
-      GEN_STOP_OUT                                : out std_logic;                                       -- Start the Axis Frame Checker
-      CHK_START_OUT                               : out std_logic;                                       -- Start the Axis Frame Checker
-      CHK_STOP_OUT                                : out std_logic;                                       -- Stop the Axis Frame Checker
+      -- WO Registers
       TX_RM_INIT_COUNTER_OUT                      : out std_logic;                                       -- Initialization of Rate meter counter (take into account when trigger is asserted)
       RX_RM_INIT_COUNTER_OUT                      : out std_logic;                                       -- Initialization of Rate meter counter (take into account when trigger is asserted)
-      -- WO Pulses Registers 
-      REG_GEN_CHK_CONTROL_WRITE                   : out std_logic;
+      -- WO Pulses Registers
       REG_TX_RATE_METER_CTRL_WRITE                : out std_logic;
       REG_RX_RATE_METER_CTRL_WRITE                : out std_logic;
 
       ----------------------
-      -- IRQ 
+      -- IRQ
       ---------------------
       -- IRQ sources
       IRQ_GEN_DONE                                : in  std_logic;                                       -- End of frames generation
-      IRQ_GEN_ERR_TIMEOUT                         : in  std_logic;                                       -- Timeout reach during generation of frames
+      IRQ_GEN_MON_TIMEOUT_READY                   : in  std_logic;                                       -- Timeout reach waiting ready signal
+      IRQ_GEN_MON_TIMEOUT_VALID                   : in  std_logic;                                       -- Timeout reach waiting valid signal
+      IRQ_GEN_MON_VALID_ERROR                     : in  std_logic;                                       -- TVALID value changed during a transfer without handshake
+      IRQ_GEN_MON_DATA_ERROR                      : in  std_logic;                                       -- TDATA value changed during a transfer without handshake
+      IRQ_GEN_MON_LAST_ERROR                      : in  std_logic;                                       -- TLAST value changed during a transfer without handshake
+      IRQ_GEN_MON_USER_ERROR                      : in  std_logic;                                       -- TUSER value changed during a transfer without handshake
+      IRQ_GEN_MON_KEEP_ERROR                      : in  std_logic;                                       -- TKEEP value changed during a transfer without handshake
       IRQ_CHK_DONE                                : in  std_logic;                                       -- End of frames verification
-      IRQ_CHK_ERR_FRAME_SIZE                      : in  std_logic;                                       -- Frame size error detection
       IRQ_CHK_ERR_DATA                            : in  std_logic;                                       -- Data error detection
-      IRQ_CHK_ERR_TIMEOUT                         : in  std_logic;                                       -- Timeout reach during checking of frames
+      IRQ_CHK_ERR_SIZE                            : in  std_logic;                                       -- Frame size error detection
+      IRQ_CHK_ERR_LAST                            : in  std_logic;                                       -- last error detection
+      IRQ_CHK_MON_TIMEOUT_READY                   : in  std_logic;                                       -- Timeout reach waiting ready signal
+      IRQ_CHK_MON_TIMEOUT_VALID                   : in  std_logic;                                       -- Timeout reach waiting valid signal
+      IRQ_CHK_MON_VALID_ERROR                     : in  std_logic;                                       -- TVALID value changed during a transfer without handshake
+      IRQ_CHK_MON_DATA_ERROR                      : in  std_logic;                                       -- TDATA value changed during a transfer without handshake
+      IRQ_CHK_MON_LAST_ERROR                      : in  std_logic;                                       -- TLAST value changed during a transfer without handshake
+      IRQ_CHK_MON_USER_ERROR                      : in  std_logic;                                       -- TUSER value changed during a transfer without handshake
+      IRQ_CHK_MON_KEEP_ERROR                      : in  std_logic;                                       -- TKEEP value changed during a transfer without handshake
       IRQ_RATE_METER_TX_DONE                      : in  std_logic;                                       -- End of measurement
       IRQ_RATE_METER_TX_OVERFLOW                  : in  std_logic;                                       -- Counter reach the maximum size of the counter
       IRQ_RATE_METER_RX_DONE                      : in  std_logic;                                       -- End of measurement
@@ -557,11 +630,11 @@ package package_uoe_registers is
 
       -- output
       -- IRQ output
-      REG_INTERRUPT                               : out std_logic 
+      REG_INTERRUPT                               : out std_logic
 
-      
     );
   end component test_uoe_registers_itf;
+
 
 
   constant C_MAIN_REG_VERSION                                                                  : std_logic_vector(7 downto 0):="00000000";
@@ -590,36 +663,35 @@ package package_uoe_registers is
   constant C_MAIN_REG_MONITORING_UDP_DROP                                                      : std_logic_vector(7 downto 0):="01010000";
   constant C_TEST_REG_GEN_TEST_DURATION_LSB                                        : std_logic_vector(7 downto 0):="00010000";
   constant C_TEST_REG_GEN_TEST_DURATION_MSB                                        : std_logic_vector(7 downto 0):="00010100";
-  constant C_TEST_REG_CHK_TEST_DURATION_LSB                                        : std_logic_vector(7 downto 0):="00100100";
-  constant C_TEST_REG_CHK_TEST_DURATION_MSB                                        : std_logic_vector(7 downto 0):="00101000";
-  constant C_TEST_REG_TX_RM_CNT_BYTES_LSB                                          : std_logic_vector(7 downto 0):="01010100";
-  constant C_TEST_REG_TX_RM_CNT_BYTES_MSB                                          : std_logic_vector(7 downto 0):="01011000";
-  constant C_TEST_REG_TX_RM_CNT_CYCLES_LSB                                         : std_logic_vector(7 downto 0):="01011100";
-  constant C_TEST_REG_TX_RM_CNT_CYCLES_MSB                                         : std_logic_vector(7 downto 0):="01100000";
-  constant C_TEST_REG_RX_RM_CNT_BYTES_LSB                                          : std_logic_vector(7 downto 0):="01110000";
-  constant C_TEST_REG_RX_RM_CNT_BYTES_MSB                                          : std_logic_vector(7 downto 0):="01110100";
-  constant C_TEST_REG_RX_RM_CNT_CYCLES_LSB                                         : std_logic_vector(7 downto 0):="01111000";
-  constant C_TEST_REG_RX_RM_CNT_CYCLES_MSB                                         : std_logic_vector(7 downto 0):="01111100";
-  constant C_TEST_REG_INTERRUPT_STATUS                                             : std_logic_vector(7 downto 0):="00111000";
+  constant C_TEST_REG_CHK_TEST_DURATION_LSB                                        : std_logic_vector(7 downto 0):="00100000";
+  constant C_TEST_REG_CHK_TEST_DURATION_MSB                                        : std_logic_vector(7 downto 0):="00100100";
+  constant C_TEST_REG_TX_RM_CNT_BYTES_LSB                                          : std_logic_vector(7 downto 0):="01010000";
+  constant C_TEST_REG_TX_RM_CNT_BYTES_MSB                                          : std_logic_vector(7 downto 0):="01010100";
+  constant C_TEST_REG_TX_RM_CNT_CYCLES_LSB                                         : std_logic_vector(7 downto 0):="01011000";
+  constant C_TEST_REG_TX_RM_CNT_CYCLES_MSB                                         : std_logic_vector(7 downto 0):="01011100";
+  constant C_TEST_REG_RX_RM_CNT_BYTES_LSB                                          : std_logic_vector(7 downto 0):="01101100";
+  constant C_TEST_REG_RX_RM_CNT_BYTES_MSB                                          : std_logic_vector(7 downto 0):="01110000";
+  constant C_TEST_REG_RX_RM_CNT_CYCLES_LSB                                         : std_logic_vector(7 downto 0):="01110100";
+  constant C_TEST_REG_RX_RM_CNT_CYCLES_MSB                                         : std_logic_vector(7 downto 0):="01111000";
+  constant C_TEST_REG_INTERRUPT_STATUS                                             : std_logic_vector(7 downto 0):="00110100";
+  constant C_TEST_REG_TX_RATE_METER_CTRL                                           : std_logic_vector(7 downto 0):="01000100";
+  constant C_TEST_REG_RX_RATE_METER_CTRL                                           : std_logic_vector(7 downto 0):="01100000";
+  constant C_TEST_REG_INTERRUPT_CLEAR                                              : std_logic_vector(7 downto 0):="00111100";
+  constant C_TEST_REG_INTERRUPT_SET                                                : std_logic_vector(7 downto 0):="01000000";
   constant C_TEST_REG_GEN_CHK_CONTROL                                              : std_logic_vector(7 downto 0):="00000000";
-  constant C_TEST_REG_TX_RATE_METER_CTRL                                           : std_logic_vector(7 downto 0):="01001000";
-  constant C_TEST_REG_RX_RATE_METER_CTRL                                           : std_logic_vector(7 downto 0):="01100100";
-  constant C_TEST_REG_INTERRUPT_CLEAR                                              : std_logic_vector(7 downto 0):="01000000";
-  constant C_TEST_REG_INTERRUPT_SET                                                : std_logic_vector(7 downto 0):="01000100";
-  constant C_TEST_REG_GEN_CONFIG                                                   : std_logic_vector(7 downto 0):="00000100";
-  constant C_TEST_REG_GEN_NB_BYTES_LSB                                             : std_logic_vector(7 downto 0):="00001000";
-  constant C_TEST_REG_GEN_NB_BYTES_MSB                                             : std_logic_vector(7 downto 0):="00001100";
-  constant C_TEST_REG_CHK_CONFIG                                                   : std_logic_vector(7 downto 0):="00011000";
-  constant C_TEST_REG_CHK_NB_BYTES_LSB                                             : std_logic_vector(7 downto 0):="00011100";
-  constant C_TEST_REG_CHK_NB_BYTES_MSB                                             : std_logic_vector(7 downto 0):="00100000";
-  constant C_TEST_REG_LB_GEN_UDP_PORT                                              : std_logic_vector(7 downto 0):="00101100";
-  constant C_TEST_REG_LB_GEN_DEST_IP_ADDR                                          : std_logic_vector(7 downto 0):="00110000";
-  constant C_TEST_REG_CHK_UDP_PORT                                                 : std_logic_vector(7 downto 0):="00110100";
-  constant C_TEST_REG_TX_RM_BYTES_EXPT_LSB                                         : std_logic_vector(7 downto 0):="01001100";
-  constant C_TEST_REG_TX_RM_BYTES_EXPT_MSB                                         : std_logic_vector(7 downto 0):="01010000";
-  constant C_TEST_REG_RX_FM_BYTES_EXPT_LSB                                         : std_logic_vector(7 downto 0):="01101000";
-  constant C_TEST_REG_RX_RM_BYTES_EXPT_MSB                                         : std_logic_vector(7 downto 0):="01101100";
-  constant C_TEST_REG_INTERRUPT_ENABLE                                             : std_logic_vector(7 downto 0):="00111100";
+  constant C_TEST_REG_GEN_FRAME                                                    : std_logic_vector(7 downto 0):="00000100";
+  constant C_TEST_REG_GEN_RATE                                                     : std_logic_vector(7 downto 0):="00001000";
+  constant C_TEST_REG_GEN_MONITOR                                                  : std_logic_vector(7 downto 0):="00001100";
+  constant C_TEST_REG_CHK_FRAME                                                    : std_logic_vector(7 downto 0):="00011000";
+  constant C_TEST_REG_CHK_MONITOR                                                  : std_logic_vector(7 downto 0):="00011100";
+  constant C_TEST_REG_LB_GEN_UDP_PORT                                              : std_logic_vector(7 downto 0):="00101000";
+  constant C_TEST_REG_LB_GEN_DEST_IP_ADDR                                          : std_logic_vector(7 downto 0):="00101100";
+  constant C_TEST_REG_CHK_UDP_PORT                                                 : std_logic_vector(7 downto 0):="00110000";
+  constant C_TEST_REG_TX_RM_BYTES_EXPT_LSB                                         : std_logic_vector(7 downto 0):="01001000";
+  constant C_TEST_REG_TX_RM_BYTES_EXPT_MSB                                         : std_logic_vector(7 downto 0):="01001100";
+  constant C_TEST_REG_RX_FM_BYTES_EXPT_LSB                                         : std_logic_vector(7 downto 0):="01100100";
+  constant C_TEST_REG_RX_RM_BYTES_EXPT_MSB                                         : std_logic_vector(7 downto 0):="01101000";
+  constant C_TEST_REG_INTERRUPT_ENABLE                                             : std_logic_vector(7 downto 0):="00111000";
 
 
 end package_uoe_registers;
