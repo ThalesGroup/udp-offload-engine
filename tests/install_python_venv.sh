@@ -25,4 +25,4 @@ pip install -e .
 deactivate
 
 # Add Lib Path
-echo $(pwd)/lib/ > .venv/lib/python3.10/site-packages/lib_path_cocotb.pth
+echo $(pwd)/lib/ > .venv/lib/python3.9/site-packages/lib_path_cocotb.pth
