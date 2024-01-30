@@ -45,6 +45,7 @@ WAVES=1
 # Append VHDL files
 TOPLEVEL_LANG ?= vhdl
 
+
 -include $(PWD)/../../src/uoe_module/uoe_module.mk
 -include $(PWD)/../../src/common/common.mk
 
@@ -62,9 +63,12 @@ MODULE = tb_uoe_icmp_module
 
 # Module Parameters
 export G_ACTIVE_RST := 1
-export G_ASYNC_RST := true
-export G_TDATA_WIDTH := 64
-export G_FREQ_KHZ := 100 # accelerate simulation
+export G_ASYNC_RST := TRUE
+export G_LE := TRUE
+export G_PING_SIZE := 32
+export G_DATA_SIZE := 64
+
+
 
 ifeq ($(SIM), questa)
 	GUI = 1
