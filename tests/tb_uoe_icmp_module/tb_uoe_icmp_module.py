@@ -142,6 +142,6 @@ async def handlermain(dut):
     cocotb.log.info("after RESET, write")
       
         
-    await Timer(1, units='us')
+    await Timer(500, units='ns')
     
 
