@@ -57,16 +57,16 @@ SIM_BUILD = workspace/sim_build
 VCD_FILE_DIR = workspace/ghdl_sim.vcd
 
 # Top Level
-TOPLEVEL = uoe_icmp_module
+TOPLEVEL = uoe_icmp_module_echo_reply
 # Testbench Python
-MODULE = tb_uoe_icmp_module
+MODULE = tb_uoe_icmp_module_echo_reply
 
 # Module Parameters
 export G_ACTIVE_RST := 1
 export G_ASYNC_RST := TRUE
 export G_LE := TRUE
 export G_PING_SIZE := 32
-export G_DATA_SIZE := 64
+export G_DATA_SIZE := 16
 
 
 

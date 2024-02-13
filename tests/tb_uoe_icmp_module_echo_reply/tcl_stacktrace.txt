@@ -1,0 +1,10 @@
+Tue Feb 06 16:02:12 CET 2024
+Trace back: bad window path name ""
+    while executing
+"winfo class $widget"
+    (procedure "treeUpDown" line 5)
+    invoked from within
+"treeUpDown [TreeFromWidget2 .main_pane.wave.interior.cs.body.pw.wf.grid.row0,name.data] -1"
+    (command bound to event)
+  <2:/home/ETUDIANT/e19b973d/intelFPGA/23.1std/questa_fse/linux_x86_64/tk8.6/bgerror.tcl:106: ::tkerror {bad window path name ""}
+  <1:eval:1: ::tk::dialog::error::bgerror {bad window path name ""}

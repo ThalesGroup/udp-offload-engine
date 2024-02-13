@@ -5,6 +5,7 @@ use ieee.math_real.all;
 
 use work.ICMP_pkg.all;
 
+
 library common;
 use common.axis_utils_pkg.axis_register;
 use common.axis_utils_pkg.axis_fifo;
@@ -17,7 +18,7 @@ use common.axis_utils_pkg.axis_fifo;
 --
 --------------------------------------------------------------------
 
-entity uoe_icmp_module is
+entity uoe_icmp_module_echo_reply is
     generic(
         G_ACTIVE_RST    : std_logic := '1';     -- State at which the reset signal is asserted (active low or active high)
         G_ASYNC_RST     : boolean   := TRUE;    -- Type of reset used (synchronous or asynchronous resets)
@@ -57,10 +58,10 @@ entity uoe_icmp_module is
         ECHO_TDEST       : out std_logic_vector(G_TDEST_WIDTH - 1 downto 0);
         ECHO_TREADY      : in  std_logic
     );
-end uoe_icmp_module;
+end uoe_icmp_module_echo_reply;
 
 
-architecture rtl of uoe_icmp_module is
+architecture rtl of uoe_icmp_module_echo_reply is
 
 -- FIFO Component
 component axis_fifo is
@@ -303,8 +304,8 @@ begin
     end if;
 end process compute_checksum;
 
--- Store process for a data size of 64 bits or less
-generate_max_64 : if (G_DATA_SIZE < 64 or G_DATA_SIZE = 64) generate
+-- Store process for a data size of less than 64 bits
+generate_max_64 : if (G_DATA_SIZE < 64) generate
     -- Store Data in FIFO and build the echo
     store_data : process (CLK, RST)
     variable count_snd : integer range 0 to 64+G_PING_SIZE*8 + G_DATA_SIZE;
@@ -576,8 +577,8 @@ end generate generate_max_64;
 
 
 
--- Store process for a data size of more than 64 bits
-generate_min_64 : if (G_DATA_SIZE > 64) generate
+-- Store process for a data size of 64 bits or more
+generate_min_64 : if (G_DATA_SIZE > 64 or G_DATA_SIZE = 64) generate
     -- Store Data in FIFO and build the echo
     store_data : process (CLK, RST)
     variable count_snd : integer range 0 to 64+G_PING_SIZE*8 + G_DATA_SIZE;
