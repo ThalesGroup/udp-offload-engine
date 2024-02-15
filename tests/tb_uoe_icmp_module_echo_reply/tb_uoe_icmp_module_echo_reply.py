@@ -18,92 +18,119 @@ from cocotb.triggers import Timer
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge,FallingEdge
 from cocotbext.axi import (AxiBus,AxiMaster,AxiStreamBus, AxiStreamSource, AxiStreamSink, AxiStreamMonitor, AxiStreamFrame)
+from cocotbext.axi.axis import AxiStreamPause
 
 # Others
 import random
 from random import randbytes
 from random import Random
 import logging
+import itertools
 
 #====================================================================== Useful functions and variables=============================================
 
-REQUEST_1 = 0x6162636465666768696a6b6c6d6e6f7071727374757677616263646566676869
-REQUEST_2 = 0x08004d56000100056162636465666768696a6b6c6d6e6f7071727374757677616263646566676869
-
+REQUEST_1 = 0x08004d56000100056162636465666768696a6b6c6d6e6f7071727374757677616263646566676869
+#REQUEST_2 = 0x08004d56000100056162636465666768696a6b6c6d6e6f7071727374757677616263646566676869
 ECHO_1 = 0x00005556000100056162636465666768696a6b6c6d6e6f7071727374757677616263646566676869
-ECHO_2 = 0x08005556000100056162636465666768696a6b6c6d6e6f7071727374757677616263646566676869
+#ECHO_2 = 0x08005556000100056162636465666768696a6b6c6d6e6f7071727374757677616263646566676869
+
+TYPE_ECHO = 0x0800
+TYPE_REPLY = 0x0000
+CHECKSUM_NULL = 0x0000
+IDENTIFIER = 0x0001
+SEQUENCE_NUMBER = 0x0005
+
+header_echo = TYPE_ECHO.to_bytes(2,'big') + CHECKSUM_NULL.to_bytes(2,'big') + IDENTIFIER.to_bytes(2,'big') + SEQUENCE_NUMBER.to_bytes(2,'big')
+header_reply = TYPE_REPLY.to_bytes(2,'big') + CHECKSUM_NULL.to_bytes(2,'big') + IDENTIFIER.to_bytes(2,'big') + SEQUENCE_NUMBER.to_bytes(2,'big')
+
+PAYLOAD_SIZE_MIN = 1
+PAYLOAD_SIZE_MAX = 64
+PAYLOAD_SIZE = 32
+
+NB_RANDOM_BITS = 10
+NB_FRAMES = 5
+frames = []
 
 SEED = 1234567890
 
 
-
-def gen_icmpframes_tosend(frame):
+def gen_icmpframes(frame):
     """Generates correct format from icmp frame, from hexedecimal data"""
 
     data = frame.to_bytes(40,'big')
     return AxiStreamFrame(tdata = data)
     
     
+       
     
-def genRandom_icmpframes(gen_random):
+def genRandom_icmpframes(gen_random,header):
     """generating pseudo random frames for icmp module to receive"""
     
     # generating random data of random size
-    #payload_size = gen_random.randint(8,64)
-    payload_size = 32
-    cocotb.log.info(f"Generating payload of size {payload_size}")
-    #data = gen_random.randbytes(payload_size)
-    data = REQUEST_1.to_bytes(32,'big')
-    data_hex = return_frame_hexa_format(data)
-    cocotb.log.info(f"payload : {data_hex}")
+    #payload_size = gen_random.randint(PAYLOAD_SIZE_MIN,PAYLOAD_SIZE_MAX)
+
+    #cocotb.log.info(f"Generating payload of size {PAYLOAD_SIZE}")
+    data = gen_random.randbytes(PAYLOAD_SIZE)
+    #data = REQUEST_1.to_bytes(32,'big')
+    #cocotb.log.info(f"payload : {return_frame_hexa_format(data)}")
     
-    header = 0x0800000000010005
-    data_checksum = header.to_bytes(8,'big') + data
-    
-    code = 0x0800
-    checksum = calculate_checksum(data_checksum)
-    identifier = 0x0001
-    sequence_number = 0x0005
-   
-    
-    data = code.to_bytes(2,'big') + checksum.to_bytes(2,'big') + identifier.to_bytes(2,'big') + sequence_number.to_bytes(2,'big') + data
+    data_check = header + data
+    #cocotb.log.info(f"frame before check: {return_frame_hexa_format(data_check)}")    
+    checksum = calculate_checksum(data_check)
+    checksum = checksum.to_bytes(2,'big')
+    #cocotb.log.info(f"checksum sent : {return_frame_hexa_format(checksum)}")
+
+    header = TYPE_ECHO.to_bytes(2,'big') + checksum + IDENTIFIER.to_bytes(2,'big') + SEQUENCE_NUMBER.to_bytes(2,'big')    
+    data = header + data
+    #checksum = calculate_checksum(data)
     tkeep = [1] * len(data)
     
-    data_hex = return_frame_hexa_format(data)
-    cocotb.log.info(f"frame : {data_hex}")
+    #cocotb.log.info(f"frame sent : {return_frame_hexa_format(data)}")
     return AxiStreamFrame(tdata = data,tkeep = tkeep)
 
+
+
+    
     
     
 def return_frame_hexa_format(frame):
     hex_format = "0x"
     for i in range(len(frame)):
         temp = frame[i]
+
         temp = format(temp,'02x')
+
         hex_format +=  str(temp)
     return hex_format
+
+
+
+
 
 
 
 def calculate_checksum(frame):
     # Dividing sent message in packets of bits.
     sum = 0
-    for i in range(0,len(frame)-1,2):
-        temp = frame[i]*256 + frame[i+1]
-        if (i!=2):
-            cocotb.log.info(f"Byte : {temp}")
-            sum = sum + temp
+    for i in range(len(frame)):
+        temp = frame[i]
+        if (i%2 == 0):
+            temp = temp * 256
+        
+        #cocotb.log.info(f"Byte : {hex(temp)}")
+        sum = sum + temp
+        #cocotb.log.info(f"sum : {hex(sum)}")
                
-    sum = bin(sum) [2:]   
-    cocotb.log.info(f"Result of sum : {sum}")
-    
+    sum = bin(sum)   
+    sum = sum[2:] 
     # Adding the overflow bits
     if(len(sum) > 16):
         x = len(sum)-16
         sum = bin(int(sum[0:x], 2)+int(sum[x:], 2))[2:]
     if(len(sum) < 16):
         sum = '0'*(16-len(sum))+sum
-   
+    #cocotb.log.info(f"Result of sum : {sum}")
+    
     # Calculating the complement of sum
     Checksum = ''
     for i in sum:
@@ -113,8 +140,64 @@ def calculate_checksum(frame):
             Checksum += '1'
             
     Checksum = int(Checksum,2)
-    cocotb.log.info(f"Checksum in hex : {hex(Checksum)}")
+    #cocotb.log.info(f"Checksum in hex : {hex(Checksum)}")
     return Checksum
+
+
+
+
+
+def check_icmp_frame(frame_to_check, frame_sent):
+   """function to check if given frame is correct"""
+   
+   # Error variable
+   global simulation_err
+
+   cocotb.log.info(f"frame sent : {return_frame_hexa_format(frame_sent)}")
+   
+
+   payload_sent = frame_sent[8:]
+   theoric_checksum = calculate_checksum(header_reply + payload_sent)
+   cocotb.log.info(f"checksum theoric : {hex(theoric_checksum)}")
+   
+   cocotb.log.info(f"frame received : {return_frame_hexa_format(frame_to_check)}")
+   
+   if((TYPE_REPLY.to_bytes(2,'big') == frame_to_check[0:2]) and (theoric_checksum.to_bytes(2,'big') == frame_to_check[2:4]) and (IDENTIFIER.to_bytes(1,'big') == frame_to_check[5].to_bytes(1,'big')) and (SEQUENCE_NUMBER.to_bytes(2,'big') == frame_to_check[6:8]) and (payload_sent == frame_to_check[8:])):
+
+       cocotb.log.info("Correct frame ! Request has passed")
+
+   else :
+       cocotb.log.error("Incorrect frame ! Request 2 has failed")
+       #cocotb.log.error(f"{ECHO_1:#0{82}x} : was expected ")
+       simulation_err += 1
+    
+ 
+
+#def set_axis_throughput(axis_pause: AxiStreamPause, throughput: Real):
+#    """ Manage the AXI Stream throughput : TREADY or TVALID"""
+#    if (throughput < 0.0) or (throughput > 1.0):
+#        raise ValueError("Throughput must be between 0.0 and 1.0")
+#    axis_pause.set_pause_generator(gen_rand_bool(false_probability=throughput)) 
+   
+    
+    
+def gen_pause_cycle(gen_seed):
+    """Generate a pause cycle for a stream source"""
+    
+    """
+    loop = [] 
+    for i in range(NB_RANDOM_BITS):
+        loop.append(gen_seed.randint(0,1))
+    
+    """
+    
+    loop = [1,1,0,0,0,0,0,0,0,0,0,1,1,1,0,1,1,1,0,1,0,1,0,0]
+    
+    return itertools.cycle(loop)
+    
+    
+    
+
 
 #====================================================================== Coroutines handler ============================================
 
@@ -132,17 +215,20 @@ async def handlerReset(dut):
 async def handleslave_send_frame(dut):
     """coroutine to gen and send icmp frame to module"""
     
-# Init source
+    
+     # Init source
     logging.getLogger("cocotb.uoe_icmp_module.Request").setLevel("WARNING")
     slave = AxiStreamSource(AxiStreamBus.from_prefix(dut, "Request"), dut.clk, dut.rst, reset_active_level=True)
-    
     
     # Init random generator
     gen_random = Random()
     gen_random.seed(SEED)
     
-    cocotb.log.info("generating random frame")
-    frame = genRandom_icmpframes(gen_random)
+   
+    cocotb.log.info(f"generating {NB_FRAMES} random frames")
+    for i in range(NB_FRAMES):
+        frames.append(genRandom_icmpframes(gen_random,header_echo))
+  
     
     # Init signals
     dut.Request_tkeep = 0
@@ -151,18 +237,25 @@ async def handleslave_send_frame(dut):
     #wait for reset
     await FallingEdge(dut.rst)
     await RisingEdge(dut.clk)
-    await RisingEdge(dut.clk)
     
-    # Data send,first correct framme then wrong frame
-    #await slave.send(gen_icmpframes_tosend(REQUEST_1))
+  
+    #await slave.send(gen_icmpframes(REQUEST_1))
+    #await FallingEdge(dut.Echo_TLAST)
     
-    await slave.send(frame)
+   
     
-    #wait for end of receptionEQUEST_1))
+    slave.set_pause_generator(gen_pause_cycle(gen_random)) 
+    
+    
+    for i in range(NB_FRAMES):
+       
+        await slave.send(frames[i])
+    
+        #wait for end of reception REQUEST_1))
 
-    await FallingEdge(dut.Echo_TLAST)
+        await FallingEdge(dut.Echo_TLAST)
 
-    await slave.send(gen_icmpframes_tosend(REQUEST_2))
+ 
 
     cocotb.log.info("End of handlerSlave_rx")
     
@@ -171,10 +264,7 @@ async def handleslave_send_frame(dut):
 
 async def handlermaster_receive_reply(dut):
     """coroutine used to check generated frame"""
-
-      # Error variable
-    global simulation_err
-
+   
     # Init source
     logging.getLogger("cocotb.uoe_icmp_module.Echo").setLevel("WARNING")
     master = AxiStreamSink(AxiStreamBus.from_prefix(dut, "Echo"), dut.clk, dut.rst, reset_active_level=True)
@@ -186,35 +276,16 @@ async def handlermaster_receive_reply(dut):
     
     await FallingEdge(dut.rst)
     
+    
+    #data = await master.recv()  
+    #check_icmp_frame(data.tdata,gen_icmpframes(REQUEST_1).tdata)
+    
     #receive data : echo frame correct
-    data = await master.recv()  
+    cocotb.log.info(f"receiving {NB_FRAMES} random frames")
     
-    data_hexa = return_frame_hexa_format(data.tdata)
-    if (data.tdata ==  ECHO_1.to_bytes(40,"big") ):
-        cocotb.log.info("Correct frame ! Request 1 has passed")
-        cocotb.log.info(f"{ECHO_1:#0{82}x} : was expected ")
-        cocotb.log.info(f"{data_hexa} : was received")
-    else :
-        cocotb.log.error("Incorrect frame ! Request 1 has failed")
-        cocotb.log.error(f"{ECHO_1:#0{82}x} : was expected ")
-        cocotb.log.error(f"{data_hexa} : was received")
-        simulation_err += 1
-    
-
-    data = await master.recv()  
-    
-    data_hexa = return_frame_hexa_format(data.tdata)
-    if (data ==  ECHO_2.to_bytes(40,"big") ):
-        cocotb.log.info("Correct frame ! Request 2 has passed")
-        cocotb.log.info(f"{ECHO_2:#0{82}x}': was expected ")
-        cocotb.log.info(f"{data_hexa} : was received")
-    else :
-        
-        cocotb.log.error("Incorrect frame ! Request 2 has failed")
-        cocotb.log.error(f"{ECHO_2:#0{82}x} : was expected ")
-        cocotb.log.error(f"{data_hexa} : was received")
-        simulation_err += 1
-
+    for i in range(NB_FRAMES):
+        data = await master.recv() 
+        check_icmp_frame(data.tdata,frames[i].tdata)
 
 
     
@@ -242,7 +313,9 @@ async def handlermain(dut):
     # Error variable
     global simulation_err
     simulation_err = 0
-
+	
+	
+	
     # Init clock
     clk100M = Clock(dut.clk, 10, units='ns')
     # start clock
@@ -270,7 +343,7 @@ async def handlermain(dut):
     cocotb.log.info("After coroutines, end of handler MAIN")
       
         
-    await Timer(500, units='ns')
+    await Timer(300, units='ns')
     
     
     
