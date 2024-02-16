@@ -67,6 +67,7 @@ entity main_uoe_registers is
     UDP_DROP_COUNTER                                  : in  std_logic_vector(31 downto 0);                         -- Number of frames dropped on udp interface
     -- WO Registers
     ARP_SW_REQ_DEST_IP_ADDR_IN                        : in  std_logic_vector(31 downto 0);                         -- Destination IP Address use to generate software request ARP
+    ICMP_MODULE_ERROR                                 : in  std_logic_vector(1 downto 0);                          -- ICMP error
     -- Irq WO Registers
     IRQ_INIT_DONE_CLEAR_IN                            : in  std_logic;                                             -- Field description
     IRQ_ARP_TABLE_CLEAR_DONE_CLEAR_IN                 : in  std_logic;                                             -- Field description
@@ -719,7 +720,8 @@ begin
         if (rd_req = '1') then
           -- Decode register address to read
           case rd_addr is
-
+            when C_MAIN_REG_ICMP_ERROR =>
+              rd_data(1 downto 0)                           <= ICMP_MODULE_ERROR;
             when C_MAIN_REG_VERSION => 
               rd_data(7 downto 0)                           <= VERSION;
               rd_data(15 downto 8)                          <= REVISION;

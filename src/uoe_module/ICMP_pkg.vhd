@@ -25,6 +25,7 @@ constant C_MAIN_REG_ICMP_ERROR  : std_logic_vector(7 downto 0) := x"64";
 constant C_NO_ERROR         : std_logic_vector(1 downto 0) := "00";  -- No error detected
 constant C_CHECKSUM_ERROR   : std_logic_vector(1 downto 0) := "01";  -- Wrong checksum
 constant C_FIFO_FULL        : std_logic_vector(1 downto 0) := "10";  -- FIFO is full
+constant C_TYPE_ERROR       : std_logic_vector(1 downto 0) := "11";  -- Type and code recieved does not correspond to ICMP request
 
 end ICMP_pkg;
 

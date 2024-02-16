@@ -145,7 +145,10 @@ entity uoe_core is
     S_AXI_ARP_TABLE_RDATA   : out std_logic_vector(31 downto 0);
     S_AXI_ARP_TABLE_RRESP   : out std_logic_vector(1 downto 0);
     S_AXI_ARP_TABLE_RVALID  : out std_logic;
-    S_AXI_ARP_TABLE_RREADY  : in  std_logic
+    S_AXI_ARP_TABLE_RREADY  : in  std_logic;
+      
+    LOCAL_IP_ADDR   : out std_logic_vector(31 downto 0);
+    LOCAL_MAC_ADDR  : out std_logic_vector(47 downto 0)
   );
 end uoe_core;
 
@@ -313,7 +316,8 @@ architecture rtl of uoe_core is
       INIT_DONE                 : in  std_logic;
       TTL                       : in  std_logic_vector(7 downto 0);
       LOCAL_IP_ADDR             : in  std_logic_vector(31 downto 0);
-      IPV4_RX_FRAG_OFFSET_ERROR : out std_logic
+      IPV4_RX_FRAG_OFFSET_ERROR : out std_logic;
+      ICMP_MODULE_ERROR         : out std_logic_vector(1 downto 0)
     );
   end component uoe_internet_layer;
 
@@ -387,6 +391,7 @@ architecture rtl of uoe_core is
       RAW_DROP_COUNTER                 : in  std_logic_vector(31 downto 0);
       UDP_DROP_COUNTER                 : in  std_logic_vector(31 downto 0);
       ARP_SW_REQ_DEST_IP_ADDR_IN       : in  std_logic_vector(31 downto 0);
+      ICMP_MODULE_ERROR                : in  std_logic_vector(1 downto 0);
       LOCAL_MAC_ADDR_LSB               : out std_logic_vector(31 downto 0);
       LOCAL_MAC_ADDR_MSB               : out std_logic_vector(15 downto 0);
       LOCAL_IP_ADDR                    : out std_logic_vector(31 downto 0);
@@ -521,6 +526,7 @@ architecture rtl of uoe_core is
   signal reg_arp_rx_target_ip_filter       : std_logic_vector(1 downto 0);
   signal reg_arp_rx_test_local_ip_conflict : std_logic;
   signal reg_arp_sw_req_dest_ip_addr       : std_logic_vector(31 downto 0);
+  signal reg_icmp_module_error             : std_logic_vector(1 downto 0);
   signal reg_arp_sw_req                    : std_logic;
   signal reg_arp_table_clear               : std_logic;
   signal reg_config_done                   : std_logic;
@@ -561,6 +567,9 @@ architecture rtl of uoe_core is
   signal flag_udp_drop            : std_logic;
 
 begin
+
+  LOCAL_IP_ADDR   <= reg_local_ip_addr;
+  LOCAL_MAC_ADDR  <= reg_local_mac_addr;
 
   -------------------------------------------
   -- link layer
@@ -723,7 +732,8 @@ begin
       INIT_DONE                 => st_arp_init_done,
       TTL                       => reg_ttl,
       LOCAL_IP_ADDR             => reg_local_ip_addr,
-      IPV4_RX_FRAG_OFFSET_ERROR => irq_ipv4_rx_frag_offset_error
+      IPV4_RX_FRAG_OFFSET_ERROR => irq_ipv4_rx_frag_offset_error,
+      ICMP_MODULE_ERROR         => reg_icmp_module_error
     );
 
   -------------------------------------------
@@ -954,6 +964,7 @@ begin
       UDP_DROP_COUNTER                 => st_udp_drop_counter,
       -- WO Registers Input
       ARP_SW_REQ_DEST_IP_ADDR_IN       => reg_arp_sw_req_dest_ip_addr,
+      ICMP_MODULE_ERROR                => reg_icmp_module_error,
       -- RW Registers 
       LOCAL_MAC_ADDR_LSB               => reg_local_mac_addr(31 downto 0),
       LOCAL_MAC_ADDR_MSB               => reg_local_mac_addr(47 downto 32),

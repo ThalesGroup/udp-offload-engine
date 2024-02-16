@@ -67,7 +67,7 @@ entity main_uoe_registers_itf is
     UDP_DROP_COUNTER                                  : in  std_logic_vector(31 downto 0);                         -- Number of frames dropped on udp interface
     -- WO Registers
     ARP_SW_REQ_DEST_IP_ADDR_IN                        : in  std_logic_vector(31 downto 0);                         -- Destination IP Address use to generate software request ARP
-
+    ICMP_MODULE_ERROR                                 : in  std_logic_vector(1 downto 0);                          -- ICMP error
     ----------------------
     -- Registers output data
     ----------------------
@@ -193,6 +193,7 @@ begin
       RAW_DROP_COUNTER                                  => RAW_DROP_COUNTER,
       UDP_DROP_COUNTER                                  => UDP_DROP_COUNTER,
       ARP_SW_REQ_DEST_IP_ADDR_IN                        => ARP_SW_REQ_DEST_IP_ADDR_IN,
+      ICMP_MODULE_ERROR                                 => ICMP_MODULE_ERROR,
       IRQ_INIT_DONE_CLEAR_IN                            => reg_interrupt_clear(0),
       IRQ_ARP_TABLE_CLEAR_DONE_CLEAR_IN                 => reg_interrupt_clear(1),
       IRQ_ARP_IP_CONFLICT_CLEAR_IN                      => reg_interrupt_clear(2),

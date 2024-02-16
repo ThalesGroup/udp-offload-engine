@@ -30,7 +30,7 @@ import itertools
 #====================================================================== Useful functions and variables=============================================
 
 REQUEST_1 = 0x08004d56000100056162636465666768696a6b6c6d6e6f7071727374757677616263646566676869
-#REQUEST_2 = 0x08004d56000100056162636465666768696a6b6c6d6e6f7071727374757677616263646566676869
+REQUEST_2 = 0x0800fb5400010005944c055728f53d4427682bc28d4eece4548776f5d43010e179a306ee6247464ed0069cef06d6f0d221ecb6bcfdaadae19c65d86bc5b0046299003eec69e8bf25
 ECHO_1 = 0x00005556000100056162636465666768696a6b6c6d6e6f7071727374757677616263646566676869
 #ECHO_2 = 0x08005556000100056162636465666768696a6b6c6d6e6f7071727374757677616263646566676869
 
@@ -47,17 +47,17 @@ PAYLOAD_SIZE_MIN = 1
 PAYLOAD_SIZE_MAX = 64
 PAYLOAD_SIZE = 32
 
-NB_RANDOM_BITS = 10
-NB_FRAMES = 5
+NB_RANDOM_BITS = 100
+NB_FRAMES = 10
 frames = []
 
-SEED = 1234567890
+SEED = 1234567898
 
 
 def gen_icmpframes(frame):
     """Generates correct format from icmp frame, from hexedecimal data"""
 
-    data = frame.to_bytes(40,'big')
+    data = frame.to_bytes(72,'big')
     return AxiStreamFrame(tdata = data)
     
     
@@ -71,7 +71,7 @@ def genRandom_icmpframes(gen_random,header):
 
     #cocotb.log.info(f"Generating payload of size {PAYLOAD_SIZE}")
     data = gen_random.randbytes(PAYLOAD_SIZE)
-    #data = REQUEST_1.to_bytes(32,'big')
+    
     #cocotb.log.info(f"payload : {return_frame_hexa_format(data)}")
     
     data_check = header + data
@@ -80,12 +80,14 @@ def genRandom_icmpframes(gen_random,header):
     checksum = checksum.to_bytes(2,'big')
     #cocotb.log.info(f"checksum sent : {return_frame_hexa_format(checksum)}")
 
-    header = TYPE_ECHO.to_bytes(2,'big') + checksum + IDENTIFIER.to_bytes(2,'big') + SEQUENCE_NUMBER.to_bytes(2,'big')    
+    header = TYPE_ECHO.to_bytes(2,'big') + checksum + IDENTIFIER.to_bytes(2,'big') + SEQUENCE_NUMBER.to_bytes(2,'big')  
     data = header + data
-    #checksum = calculate_checksum(data)
+ 
     tkeep = [1] * len(data)
     
     #cocotb.log.info(f"frame sent : {return_frame_hexa_format(data)}")
+    
+    
     return AxiStreamFrame(tdata = data,tkeep = tkeep)
 
 
@@ -104,8 +106,51 @@ def return_frame_hexa_format(frame):
     return hex_format
 
 
-
-
+"""
+def calculate_checksum_test(frame):
+    # Dividing sent message in packets of bits.
+    sum = 0
+    for i in range(len(frame)):
+        temp = frame[i]
+        if (i%2 == 0):
+            temp = temp * 256
+        
+        cocotb.log.info(f"Byte : {hex(temp)}")
+        sum = sum + temp
+        
+        test = bin(sum)[2:]
+        if(len(test) > 16):
+            x = len(test)-16
+            cocotb.log.info(f"ici")
+            sum = int(test[0:x], 2)+int(test[x:], 2)
+        cocotb.log.info(f"sum : {hex(sum)}")
+    
+               
+    sum = bin(sum)  
+    cocotb.log.info(f"Result of sum : {sum}") 
+    sum = sum[2:] 
+    # Adding the overflow bits
+    if(len(sum) > 16):
+        x = len(sum)-16
+        sum = bin(int(sum[0:x], 2)+int(sum[x:], 2))[2:]
+    if(len(sum) < 16):
+        sum = '0'*(16-len(sum))+sum
+    cocotb.log.info(f"Result of sum : {sum}")
+    
+    cocotb.log.info(f"sum non complement in hex : {hex(int(sum[0:],2))}")
+    
+    # Calculating the complement of sum
+    Checksum = ''
+    for i in sum:
+        if(i == '1'):
+            Checksum += '0'
+        else:
+            Checksum += '1'
+    cocotb.log.info(f"Checksum in bin : {Checksum}")        
+    Checksum = int(Checksum,2)
+    cocotb.log.info(f"Checksum in hex : {hex(Checksum)}")
+    return Checksum
+"""
 
 
 
@@ -121,7 +166,8 @@ def calculate_checksum(frame):
         sum = sum + temp
         #cocotb.log.info(f"sum : {hex(sum)}")
                
-    sum = bin(sum)   
+    sum = bin(sum)  
+    #cocotb.log.info(f"Result of sum : {sum}") 
     sum = sum[2:] 
     # Adding the overflow bits
     if(len(sum) > 16):
@@ -184,14 +230,13 @@ def check_icmp_frame(frame_to_check, frame_sent):
 def gen_pause_cycle(gen_seed):
     """Generate a pause cycle for a stream source"""
     
-    """
+    
     loop = [] 
     for i in range(NB_RANDOM_BITS):
         loop.append(gen_seed.randint(0,1))
     
-    """
-    
-    loop = [1,1,0,0,0,0,0,0,0,0,0,1,1,1,0,1,1,1,0,1,0,1,0,0]
+    cocotb.log.info(f"loop is : {loop}")
+    #loop = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1]
     
     return itertools.cycle(loop)
     
@@ -230,6 +275,8 @@ async def handleslave_send_frame(dut):
         frames.append(genRandom_icmpframes(gen_random,header_echo))
   
     
+    slave.set_pause_generator(gen_pause_cycle(gen_random))     
+    
     # Init signals
     dut.Request_tkeep = 0
     dut.Request_tdata = 0
@@ -244,7 +291,7 @@ async def handleslave_send_frame(dut):
     
    
     
-    slave.set_pause_generator(gen_pause_cycle(gen_random)) 
+
     
     
     for i in range(NB_FRAMES):
@@ -269,9 +316,15 @@ async def handlermaster_receive_reply(dut):
     logging.getLogger("cocotb.uoe_icmp_module.Echo").setLevel("WARNING")
     master = AxiStreamSink(AxiStreamBus.from_prefix(dut, "Echo"), dut.clk, dut.rst, reset_active_level=True)
 
-    # Init signal
     
-    dut.Echo_tready = 1
+    # Init random generator
+    gen_random = Random()
+    gen_random.seed(SEED+1)
+
+    #master.set_pause_generator(gen_pause_cycle(gen_random))
+
+    # Init signal
+    dut.Echo_tready = 0
     
     
     await FallingEdge(dut.rst)

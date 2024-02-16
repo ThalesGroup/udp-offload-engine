@@ -66,7 +66,7 @@ export G_ACTIVE_RST := 1
 export G_ASYNC_RST := TRUE
 export G_LE := TRUE
 export G_PING_SIZE := 32
-export G_DATA_SIZE := 16
+export G_DATA_SIZE := 32
 
 
 

@@ -7,7 +7,6 @@ library common;
 use common.axis_utils_pkg.axis_mux_custom;
 use common.axis_utils_pkg.axis_demux_custom;
 
-
 use work.ICMP_pkg.all;
 
 --------------------------------------------------------------------
@@ -203,7 +202,7 @@ inst_fifo_gen: component axis_fifo
     );
 
 -- Assign valid and ready signals
-rd_ready <= rd_en and ECHO_TREADY;
+rd_ready <= rd_en;
 wr_valid <= wr_en;
 
 -- Create new header
@@ -218,8 +217,10 @@ start <= REQUEST_TVALID and wr_ready;
 ECHO_TID <= header_snd(63 downto 48);
 
 -- Compute Checksum
-compute_checksum : process (CLK, RST, chksm_en, nbit_recv)
-variable sum_tmp : std_logic_vector(23 downto 0);
+compute_checksum  : process (CLK, RST, chksm_en, nbit_recv)
+variable sum_tmp  : std_logic_vector(23 downto 0);
+variable sum_recv : std_logic_vector(23 downto 0);
+variable sum_send : std_logic_vector(23 downto 0);
 variable count_recv : integer range 0 to 64+G_PING_SIZE*8;
 variable i : integer range 0 to G_DATA_SIZE/8;
 begin
@@ -239,7 +240,9 @@ begin
             checksum_recv <= (others => '0');
             checksum_snd <= (others => '0');
             sum <= (others => '0');
-            sum_tmp := (others => '0');
+            sum_tmp  := (others => '0');
+			sum_recv := (others => '0');
+			sum_send := (others => '0');
             count_recv := 0;
             nbit_recv <= 0;
             i := 0;
@@ -274,16 +277,24 @@ begin
                 end loop;
                 sum <= std_logic_vector(unsigned(sum) + unsigned(sum_tmp));
                 nbit_recv <= count_recv;
+				
+				sum_recv := std_logic_vector(unsigned(sum) + unsigned(sum_tmp) - unsigned(header_recv(47 downto 32)));
+				sum_send := std_logic_vector(unsigned(sum) + unsigned(sum_tmp) + unsigned(header_snd(15 downto 0)) + unsigned(header_snd(63 downto 48)) + unsigned(header_snd(31 downto 16)) - unsigned(header_recv(15 downto 0)) - unsigned(header_recv(31 downto 16)) - unsigned(header_recv(63 downto 48)) - unsigned(header_recv(47 downto 32)));
             else
                 -- Sum finished
-                if (sum(23 downto 16) = x"00") then
+                if (sum_recv(23 downto 16) = x"00" and sum_send(23 downto 16) = x"00") then
                 -- Compute one's complement
-                    checksum_recv <= compute_C1(input => std_logic_vector(unsigned(sum(15 downto 0)) - unsigned(header_recv(47 downto 32))));
-                    checksum_snd <= compute_C1(input => std_logic_vector(unsigned(sum(15 downto 0)) + unsigned(header_snd(15 downto 0)) + unsigned(header_snd(63 downto 48)) + unsigned(header_snd(31 downto 16)) - unsigned(header_recv(15 downto 0)) - unsigned(header_recv(31 downto 16)) - unsigned(header_recv(63 downto 48)) - unsigned(header_recv(47 downto 32))));
+                    checksum_recv <= compute_C1(input => sum_recv(15 downto 0));
+                    checksum_snd <= compute_C1(input => sum_send(15 downto 0));
                     chksm_done <= '1';
-                else
-                -- Add retenue
-                    sum <= std_logic_vector(unsigned(x"00" & sum(15 downto 0)) + unsigned(sum(23 downto 16)));
+				end if;
+                if (sum_recv(23 downto 16) /= x"00") then
+				    -- Add retenue
+                    sum_recv := std_logic_vector(unsigned(x"00" & sum_recv(15 downto 0)) + unsigned(sum_recv(23 downto 16)));
+				end if;
+				if (sum_send(23 downto 16) /= x"00") then
+                    -- Add retenue
+                    sum_send := std_logic_vector(unsigned(x"00" & sum_send(15 downto 0)) + unsigned(sum_send(23 downto 16)));
                 end if;
             end if;
         end if;
@@ -352,6 +363,7 @@ generate_max_64 : if (G_DATA_SIZE < 64) generate
                 -- Defualt signal values
                 wr_rst <= not G_ACTIVE_RST;
                 rd_rst <= not G_ACTIVE_RST;
+                wr_last         <= REQUEST_TLAST;
                 wr_en <= '0';
                 rd_en <= '0';
                 chksm_en <= '0';
@@ -381,7 +393,7 @@ generate_max_64 : if (G_DATA_SIZE < 64) generate
                         chksm_en <= '1';
                         j := 0;
                         
-                        if (wr_en = '1') then
+                        if (REQUEST_TVALID = '1') then
                             -- Save data into the header
                             while j < G_DATA_SIZE/8 and nbit_recv < 64 - G_DATA_SIZE*(G_DATA_SIZE mod 16)/8 loop
                                 if G_LE then
@@ -417,7 +429,7 @@ generate_max_64 : if (G_DATA_SIZE < 64) generate
                         REQUEST_TREADY   <= wr_ready;
                             
                         -- Change state
-                        if (nbit_recv > 63 - G_DATA_SIZE) then
+                        if (nbit_recv > 63 - G_DATA_SIZE and REQUEST_TVALID = '1') then
                             store_status <= RECEIVE_PAYLOAD;
                             if (nbit_recv + G_DATA_SIZE = C_NBR_BITS or nbit_recv = C_NBR_BITS) then
                                 -- De-assert ready if data all recived
@@ -436,7 +448,7 @@ generate_max_64 : if (G_DATA_SIZE < 64) generate
                             wr_id           <= REQUEST_TID;
                             REQUEST_TREADY   <= wr_ready;
                             
-                            if (nbit_recv = C_NBR_BITS - G_DATA_SIZE or nbit_recv > C_NBR_BITS - G_DATA_SIZE) then
+                            if ((nbit_recv = C_NBR_BITS - G_DATA_SIZE or nbit_recv > C_NBR_BITS - G_DATA_SIZE) and REQUEST_TVALID = '1') then
                                 REQUEST_TREADY   <= '0';
                             end if;                         
                             
@@ -445,6 +457,7 @@ generate_max_64 : if (G_DATA_SIZE < 64) generate
                         end if;
                     when CHECK_ERROR =>
                         -- Checksum verification
+                        
                         if (header_recv(47 downto 32) /= checksum_recv) then
                             -- Wrong Checksum
                             chksm_rst <= G_ACTIVE_RST;
@@ -458,6 +471,13 @@ generate_max_64 : if (G_DATA_SIZE < 64) generate
                             wr_rst <= G_ACTIVE_RST;
                             rd_rst <= G_ACTIVE_RST;
                             ERROR_REG <= C_FIFO_FULL;
+                            store_status <= IDLE;
+						elsif (header_recv(63 downto 48) /= x"0800") then
+                            -- Type and code recieved does not correspond to ICMP request
+                            chksm_rst <= G_ACTIVE_RST;
+                            wr_rst <= G_ACTIVE_RST;
+                            rd_rst <= G_ACTIVE_RST;
+                            ERROR_REG <= C_TYPE_ERROR;
                             store_status <= IDLE;
                         else
                             rd_en <= '1';
@@ -535,6 +555,7 @@ generate_max_64 : if (G_DATA_SIZE < 64) generate
                                 ERROR_REG <= C_NO_ERROR;
                                 store_status <= IDLE;
                             end if;
+                            
                         end if;
                     when others =>
                         -- Go to IDLE
@@ -681,7 +702,7 @@ generate_min_64 : if (G_DATA_SIZE > 64 or G_DATA_SIZE = 64) generate
                             wr_id           <= REQUEST_TID;
                             REQUEST_TREADY   <= wr_ready;
                             
-                            if (nbit_recv = C_NBR_BITS - G_DATA_SIZE or nbit_recv > C_NBR_BITS - G_DATA_SIZE or G_DATA_SIZE > C_NBR_BITS or G_DATA_SIZE = C_NBR_BITS) then
+                            if ((nbit_recv = C_NBR_BITS - G_DATA_SIZE or nbit_recv > C_NBR_BITS - G_DATA_SIZE or G_DATA_SIZE > C_NBR_BITS or G_DATA_SIZE = C_NBR_BITS) and REQUEST_TVALID = '1') then
                                 REQUEST_TREADY   <= '0';
                             end if;
 
@@ -705,6 +726,13 @@ generate_min_64 : if (G_DATA_SIZE > 64 or G_DATA_SIZE = 64) generate
                             wr_rst <= G_ACTIVE_RST;
                             rd_rst <= G_ACTIVE_RST;
                             ERROR_REG <= C_FIFO_FULL;
+                            store_status <= IDLE;
+						elsif (header_recv(63 downto 48) /= x"0800") then
+                            -- Type and code recieved does not correspond to ICMP request
+                            chksm_rst <= G_ACTIVE_RST;
+                            wr_rst <= G_ACTIVE_RST;
+                            rd_rst <= G_ACTIVE_RST;
+                            ERROR_REG <= C_TYPE_ERROR;
                             store_status <= IDLE;
                         else
                             rd_en <= '1';

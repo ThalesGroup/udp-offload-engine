@@ -85,6 +85,7 @@ package package_uoe_registers is
       UDP_DROP_COUNTER                                  : in  std_logic_vector(31 downto 0);                         -- Number of frames dropped on udp interface
       -- WO Registers
       ARP_SW_REQ_DEST_IP_ADDR_IN                        : in  std_logic_vector(31 downto 0);                         -- Destination IP Address use to generate software request ARP
+      ICMP_MODULE_ERROR                                 : in  std_logic_vector(1 downto 0);                          -- ICMP error
       -- Irq WO Registers
       IRQ_INIT_DONE_CLEAR_IN                            : in  std_logic;                                             -- Field description
       IRQ_ARP_TABLE_CLEAR_DONE_CLEAR_IN                 : in  std_logic;                                             -- Field description
@@ -231,7 +232,7 @@ package package_uoe_registers is
       UDP_DROP_COUNTER                                  : in  std_logic_vector(31 downto 0);                         -- Number of frames dropped on udp interface
       -- WO Registers
       ARP_SW_REQ_DEST_IP_ADDR_IN                        : in  std_logic_vector(31 downto 0);                         -- Destination IP Address use to generate software request ARP
-
+      ICMP_MODULE_ERROR                                 : in  std_logic_vector(1 downto 0);                          -- ICMP error
       ----------------------
       -- Registers output data
       ----------------------
@@ -661,6 +662,7 @@ package package_uoe_registers is
   constant C_MAIN_REG_MONITORING_EXT_DROP                                                      : std_logic_vector(7 downto 0):="01001000";
   constant C_MAIN_REG_MONITORING_RAW_DROP                                                      : std_logic_vector(7 downto 0):="01001100";
   constant C_MAIN_REG_MONITORING_UDP_DROP                                                      : std_logic_vector(7 downto 0):="01010000";
+  constant C_MAIN_REG_ICMP_ERROR                                                               : std_logic_vector(7 downto 0):= "01100100";
   constant C_TEST_REG_GEN_TEST_DURATION_LSB                                        : std_logic_vector(7 downto 0):="00010000";
   constant C_TEST_REG_GEN_TEST_DURATION_MSB                                        : std_logic_vector(7 downto 0):="00010100";
   constant C_TEST_REG_CHK_TEST_DURATION_LSB                                        : std_logic_vector(7 downto 0):="00100000";

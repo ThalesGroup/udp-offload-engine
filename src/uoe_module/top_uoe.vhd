@@ -129,7 +129,10 @@ entity top_uoe is
     S_AXI_RDATA     : out std_logic_vector(31 downto 0);
     S_AXI_RRESP     : out std_logic_vector(1 downto 0);
     S_AXI_RVALID    : out std_logic;
-    S_AXI_RREADY    : in  std_logic
+    S_AXI_RREADY    : in  std_logic;
+    
+    LOCAL_IP_ADDR   : out std_logic_vector(31 downto 0);
+    LOCAL_MAC_ADDR  : out std_logic_vector(47 downto 0)
   );
 end top_uoe;
 
@@ -235,7 +238,10 @@ architecture rtl of top_uoe is
       S_AXI_ARP_TABLE_RDATA   : out std_logic_vector(31 downto 0);
       S_AXI_ARP_TABLE_RRESP   : out std_logic_vector(1 downto 0);
       S_AXI_ARP_TABLE_RVALID  : out std_logic;
-      S_AXI_ARP_TABLE_RREADY  : in  std_logic
+      S_AXI_ARP_TABLE_RREADY  : in  std_logic;
+      
+      LOCAL_IP_ADDR   : out std_logic_vector(31 downto 0);
+      LOCAL_MAC_ADDR  : out std_logic_vector(47 downto 0)
     );
   end component uoe_core;
 
@@ -307,7 +313,7 @@ architecture rtl of top_uoe is
   signal axis_udp_rx_tready : std_logic;
 
 begin
-
+  
   -- UOE Core
   inst_uoe_core : uoe_core
     generic map(
@@ -409,7 +415,10 @@ begin
       S_AXI_ARP_TABLE_RDATA   => axi_sw_rdata((C_IDX_ARP_TABLE * C_AXI_DATA_WIDTH) + 31 downto (C_IDX_ARP_TABLE * C_AXI_DATA_WIDTH)),
       S_AXI_ARP_TABLE_RRESP   => axi_sw_rresp((C_IDX_ARP_TABLE * 2) + 1 downto (C_IDX_ARP_TABLE * 2)),
       S_AXI_ARP_TABLE_RVALID  => axi_sw_rvalid(C_IDX_ARP_TABLE),
-      S_AXI_ARP_TABLE_RREADY  => axi_sw_rready(C_IDX_ARP_TABLE)
+      S_AXI_ARP_TABLE_RREADY  => axi_sw_rready(C_IDX_ARP_TABLE),
+      
+      LOCAL_IP_ADDR => LOCAL_IP_ADDR,
+      LOCAL_MAC_ADDR => LOCAL_MAC_ADDR
     );
 
   -- AXI4Lite Switch
