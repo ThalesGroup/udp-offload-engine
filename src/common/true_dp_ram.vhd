@@ -1,16 +1,17 @@
--- Copyright (c) 2022-2022 THALES. All Rights Reserved
+-- Copyright (c) 2022-2024 THALES. All Rights Reserved
 --
--- Licensed under the Apache License, Version 2.0 (the "License");
--- you may not use this file except in compliance with the License.
--- You may obtain a copy of the License at
+-- Licensed under the SolderPad Hardware License v 2.1 (the "License");
+-- you may not use this file except in compliance with the License, or,
+-- at your option. You may obtain a copy of the License at
 --
--- http://www.apache.org/licenses/LICENSE-2.0
+-- https://solderpad.org/licenses/SHL-2.1/
 --
--- Unless required by applicable law or agreed to in writing, software
--- distributed under the License is distributed on an "AS IS" BASIS,
--- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
--- See the License for the specific language governing permissions and
--- limitations under the License.
+-- Unless required by applicable law or agreed to in writing, any
+-- work distributed under the License is distributed on an "AS IS"
+-- BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+-- either express or implied. See the License for the specific
+-- language governing permissions and limitations under the
+-- License.
 --
 -- File subject to timestamp TSP22X5365 Thales, in the name of Thales SIX GTS France, made on 10/06/2022.
 --
@@ -26,6 +27,7 @@
 -- The entity is parametrizable in data width
 -- The entity is parametrizable in address width (memory depth)
 -- The entity is parametrizable in optional output registers for each port
+-- The entity is parametrizable in asymmetric ratio
 -- The entity is parametrizable in initial content at power up
 -- The entity is parametrizable in synthesis ram style
 --
@@ -43,21 +45,25 @@
 -- The code is optimized for Xilinx 7 series but is written in generic VHDL
 ----------------------------------
 
+use std.textio.all; -- to parse the .mif
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use ieee.std_logic_textio.all;
+use ieee.math_real.all;
 
-use std.textio.all;
 
 ------------------------------------------------------------------------
 -- Entity declaration
 ------------------------------------------------------------------------
 entity true_dp_ram is
   generic (
-    G_DATA_WIDTH     : positive  := 32; -- Specify RAM data width
+    G_DATA_WIDTH     : positive  := 32; -- Specify RAM word width (total port width depends on G_PACK_RATIO)
     G_ADDR_WIDTH     : positive  := 10; -- Specify RAM address width (number of entries is 2**ADDR_WIDTH)
+    G_PACK_RATIO_A   : positive  := 1;  -- Specify RAM pack factor of word on each access on Port A (allow assymetry)
     G_OUT_REG_A      : boolean   := false; -- Specify output registers for Port A
+    G_PACK_RATIO_B   : positive  := 1;  -- Specify RAM pack factor of word on each access on Port B (allow assymetry)
     G_OUT_REG_B      : boolean   := false; -- Specify output registers for Port B
     G_ACTIVE_RST     : std_logic := '1'; -- State at which the reset signal is asserted: active low or active high (not used if G_OUT_REG_* = false)
     G_ASYNC_RST      : boolean   := false; -- Type of reset used for the output registers: synchronous or asynchronous (not used if G_OUT_REG_* = false)
@@ -73,10 +79,10 @@ entity true_dp_ram is
     RST_A            : in  std_logic; -- Port A reset used to clear output registers (not used if G_OUT_REG_A = false)
     EN_A             : in  std_logic; -- Port A RAM Enable, for additional power savings, disable port when not in use
     REGCE_A          : in  std_logic; -- Port A Output register clock enable
-    ADDR_A           : in  std_logic_vector(G_ADDR_WIDTH - 1 downto 0); -- Port A Address bus, width determined from RAM_DEPTH
-    DIN_A            : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0); -- Port A RAM input data
+    ADDR_A           : in  std_logic_vector((G_ADDR_WIDTH - integer(floor(log2(real(G_PACK_RATIO_A))))) - 1 downto 0); -- Port A Address bus, width determined from RAM_DEPTH
+    DIN_A            : in  std_logic_vector((G_DATA_WIDTH * G_PACK_RATIO_A) - 1 downto 0); -- Port A RAM input data
     WREN_A           : in  std_logic; -- Port A Write enable
-    DOUT_A           : out std_logic_vector(G_DATA_WIDTH - 1 downto 0); -- Port A RAM output data
+    DOUT_A           : out std_logic_vector((G_DATA_WIDTH * G_PACK_RATIO_A) - 1 downto 0); -- Port A RAM output data
     ----------------------
     -- PORT B
     ----------------------
@@ -84,11 +90,17 @@ entity true_dp_ram is
     RST_B            : in  std_logic; -- Port B reset used to clear output registers (not used if G_OUT_REG_B = false)
     EN_B             : in  std_logic; -- Port B RAM Enable, for additional power savings, disable port when not in use
     REGCE_B          : in  std_logic; -- Port B Output register clock enable
-    ADDR_B           : in  std_logic_vector(G_ADDR_WIDTH - 1 downto 0); -- Port B Address bus, width determined from RAM_DEPTH
-    DIN_B            : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0); -- Port B RAM input data
+    ADDR_B           : in  std_logic_vector((G_ADDR_WIDTH - integer(floor(log2(real(G_PACK_RATIO_B))))) - 1 downto 0); -- Port B Address bus, width determined from RAM_DEPTH
+    DIN_B            : in  std_logic_vector((G_DATA_WIDTH * G_PACK_RATIO_B) - 1 downto 0); -- Port B RAM input data
     WREN_B           : in  std_logic; -- Port B Write enable
-    DOUT_B           : out std_logic_vector(G_DATA_WIDTH - 1 downto 0)  -- Port B RAM output data
+    DOUT_B           : out std_logic_vector((G_DATA_WIDTH * G_PACK_RATIO_B) - 1 downto 0)  -- Port B RAM output data
   );
+begin
+  -- Check that PACK ratios are power of 2
+  -- synthesis translate_off
+  assert G_PACK_RATIO_A = (2 ** integer(log2(real(G_PACK_RATIO_A)))) report "Pack ratio for port A must be a power of 2" severity error;
+  assert G_PACK_RATIO_B = (2 ** integer(log2(real(G_PACK_RATIO_B)))) report "Pack ratio for port B must be a power of 2" severity error;
+  -- synthesis translate_on
 end true_dp_ram;
 
 
@@ -115,7 +127,7 @@ architecture rtl of true_dp_ram is
     -- Deactivate DRC (SR9 rule) because signal type "file" is synthesizable for RAM initialization
     file ramfile         : text;
     -- hds checking_on
-    
+
     -- hds checking_off
     -- Deactivate DRC (STYP4 rule) because signal type "line" is synthesizable for RAM initialization
     variable ramfileline : line;
@@ -166,8 +178,8 @@ architecture rtl of true_dp_ram is
   -- SIGNALS
   --------------------------------------------
   -- Data output registers
-  signal dout_a_int : std_logic_vector(G_DATA_WIDTH - 1 downto 0);
-  signal dout_b_int : std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+  signal dout_a_int : std_logic_vector(DOUT_A'range);
+  signal dout_b_int : std_logic_vector(DOUT_B'range);
 
 
 begin
@@ -177,15 +189,26 @@ begin
   --------------------------------------------
   -- synchronous process to write on port A
   SYNC_PORT_A : process(CLK_A)
+    -- Address extension for sub word access
+    constant C_ADDR_WIDTH_EXT_A : integer := integer(ceil(log2(real(G_PACK_RATIO_A))));
   begin
     if rising_edge(CLK_A) then
-      if EN_A = '1' then
-        if WREN_A = '1' then
-          mem(to_integer(unsigned(ADDR_A))) := DIN_A;
-        else
-          dout_a_int <= mem(to_integer(unsigned(ADDR_A)));
+      -- Loop over the words in the data port
+      for w in 0 to G_PACK_RATIO_A - 1 loop
+        -- Check if memory is enabled
+        if EN_A = '1' then
+          -- Work in write no read mode
+          if WREN_A = '1' then
+            -- Write the word into memory
+            mem(to_integer(unsigned(ADDR_A) & to_unsigned(w, C_ADDR_WIDTH_EXT_A)))
+              := DIN_A(((w + 1) * G_DATA_WIDTH) - 1 downto w * G_DATA_WIDTH);
+          else
+            -- Read the word from memory
+            dout_a_int(((w + 1) * G_DATA_WIDTH) - 1 downto w * G_DATA_WIDTH)
+              <= mem(to_integer(unsigned(ADDR_A) & to_unsigned(w, C_ADDR_WIDTH_EXT_A)));
+          end if;
         end if;
-      end if;
+      end loop;
     end if;
   end process SYNC_PORT_A;
 
@@ -240,15 +263,26 @@ begin
   --------------------------------------------
   -- synchronous process to write on port B
   SYNC_PORT_B : process(CLK_B)
+    -- Address extension for sub word access
+    constant C_ADDR_WIDTH_EXT_B : integer := integer(ceil(log2(real(G_PACK_RATIO_B))));
   begin
     if rising_edge(CLK_B) then
-      if EN_B = '1' then
-        if WREN_B = '1' then
-          mem(to_integer(unsigned(ADDR_B))) := DIN_B;
-        else
-          dout_b_int <= mem(to_integer(unsigned(ADDR_B)));
+      -- Loop over the words in the data port
+      for w in 0 to G_PACK_RATIO_B - 1 loop
+        -- Check if memory is enabled
+        if EN_B = '1' then
+          -- Work in write no read mode
+          if WREN_B = '1' then
+            -- Write the word into memory
+            mem(to_integer(unsigned(ADDR_B) & to_unsigned(w, C_ADDR_WIDTH_EXT_B)))
+              := DIN_B(((w + 1) * G_DATA_WIDTH) - 1 downto w * G_DATA_WIDTH);
+          else
+            -- Read the word from memory
+            dout_b_int(((w + 1) * G_DATA_WIDTH) - 1 downto w * G_DATA_WIDTH)
+              <= mem(to_integer(unsigned(ADDR_B) & to_unsigned(w, C_ADDR_WIDTH_EXT_B)));
+          end if;
         end if;
-      end if;
+      end loop;
     end if;
   end process SYNC_PORT_B;
 

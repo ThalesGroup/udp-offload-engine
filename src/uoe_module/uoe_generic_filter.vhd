@@ -1,16 +1,17 @@
--- Copyright (c) 2022-2022 THALES. All Rights Reserved
+-- Copyright (c) 2022-2024 THALES. All Rights Reserved
 --
--- Licensed under the Apache License, Version 2.0 (the "License");
--- you may not use this file except in compliance with the License.
--- You may obtain a copy of the License at
+-- Licensed under the SolderPad Hardware License v 2.1 (the "License");
+-- you may not use this file except in compliance with the License, or,
+-- at your option. You may obtain a copy of the License at
 --
--- http://www.apache.org/licenses/LICENSE-2.0
+-- https://solderpad.org/licenses/SHL-2.1/
 --
--- Unless required by applicable law or agreed to in writing, software
--- distributed under the License is distributed on an "AS IS" BASIS,
--- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
--- See the License for the specific language governing permissions and
--- limitations under the License.
+-- Unless required by applicable law or agreed to in writing, any
+-- work distributed under the License is distributed on an "AS IS"
+-- BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+-- either express or implied. See the License for the specific
+-- language governing permissions and limitations under the
+-- License.
 --
 -- File subject to timestamp TSP22X5365 Thales, in the name of Thales SIX GTS France, made on 10/06/2022.
 --
@@ -116,6 +117,11 @@ begin
           axis_init <= '0';
         end if;
 
+        -- AXI4-Stream handshake
+        if M_TREADY = '1' then
+          m_tvalid_int <= '0';
+        end if;
+
         -- clear pulse
         FLAG <= '0';
 
@@ -133,15 +139,9 @@ begin
               s_tready_en <= '0';
               init_done_r <= INIT_DONE;
             end if;
-          else
-            -- change only valid state to avoid logic toggling (and save power)
-            m_tvalid_int <= '0';
           end if;
         else
           init_done_r <= INIT_DONE;
-          if s_tready_en /= '1' then
-            m_tvalid_int <= '0';
-          end if;
         end if;
 
         -- Read Status

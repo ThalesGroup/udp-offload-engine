@@ -1,16 +1,20 @@
--- ******************************************************************************************
--- * This program is the Confidential and Proprietary product of THALES.                    *
--- * Any unauthorized use, reproduction or transfer of this program is strictly prohibited. *
--- * Copyright (c) 2018-2019 THALES SGF. All Rights Reserved.              *
--- ******************************************************************************************
--- -------------------------------------------------------------------------------
--- Company                : SGF
--- Authors                : Mathias CHIRON
--- Content Description    : Top module of the demo UOE
--- Limitations            :
--- Coding & Design Std    : 87100217_DDQ_GRP_EN / 87206624_DDQ_GRP_EN
--- VHDL Version           : VHDL-1993
--- -------------------------------------------------------------------------------
+-- Copyright (c) 2022-2024 THALES. All Rights Reserved
+--
+-- Licensed under the SolderPad Hardware License v 2.1 (the "License");
+-- you may not use this file except in compliance with the License, or,
+-- at your option. You may obtain a copy of the License at
+--
+-- https://solderpad.org/licenses/SHL-2.1/
+--
+-- Unless required by applicable law or agreed to in writing, any
+-- work distributed under the License is distributed on an "AS IS"
+-- BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+-- either express or implied. See the License for the specific
+-- language governing permissions and limitations under the
+-- License.
+--
+-- File subject to timestamp TSP22X5365 Thales, in the name of Thales SIX GTS France, made on 10/06/2022.
+--
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -18,8 +22,15 @@ use ieee.numeric_std.all;
 
 library common;
 use common.axi4lite_utils_pkg.axi4lite_switch;
-use common.axis_utils_pkg.axis_dwidth_converter;
+use common.axi4lite_utils_pkg.bridge_ascii_to_axi4lite;
+
 use common.axis_utils_pkg.axis_fifo;
+use common.axis_utils_pkg.axis_dwidth_converter;
+
+use common.cdc_utils_pkg.cdc_reset_sync;
+use common.cdc_utils_pkg.cdc_bit_sync;
+
+use work.serial_if_pkg.all;
 
 entity top_demo_uoe is
   port(
@@ -33,6 +44,8 @@ entity top_demo_uoe is
     SFP_RX_N     : in  std_logic_vector(1 downto 0);
     SFP_RX_P     : in  std_logic_vector(1 downto 0);
     SFP_LOS      : in  std_logic_vector(1 downto 0);
+    UART_RX      : in  std_logic;
+    UART_TX      : out std_logic;
     GPIO_LED     : out std_logic_vector(7 downto 0);
     GPIO_DIP_SW  : in  std_logic_vector(3 downto 0)
   );
@@ -40,24 +53,6 @@ end top_demo_uoe;
 
 architecture rtl of top_demo_uoe is
 
-  -- CDC
-  component cdc_reset_sync is
-    generic(
-      G_NB_STAGE    : integer range 2 to integer'high := 2;
-      G_NB_CLOCK    : positive                        := 5;
-      G_ACTIVE_ARST : std_logic                       := '1'
-    );
-    port(
-      -- asynchronous domain
-      ARST   : in  std_logic;
-      -- synchronous domain
-      CLK    : in  std_logic_vector(G_NB_CLOCK - 1 downto 0);
-      SRST   : out std_logic_vector(G_NB_CLOCK - 1 downto 0);
-      SRST_N : out std_logic_vector(G_NB_CLOCK - 1 downto 0)
-    );
-  end component cdc_reset_sync;
-
-  -- TOP UOE
   component top_uoe
     generic(
       G_ACTIVE_RST          : std_logic := '0';
@@ -284,10 +279,11 @@ architecture rtl of top_demo_uoe is
   constant C_AXI_DATA_WIDTH : integer := 32;
   constant C_AXI_STRB_WIDTH : integer := C_AXI_DATA_WIDTH / 8;
 
-  constant C_NB_MASTER : integer := 1;
+  constant C_NB_MASTER : integer := 2;
   constant C_NB_SLAVE  : integer := 3;
 
   constant C_IDX_MASTER_JTAG2AXI : integer := 0;
+  constant C_IDX_MASTER_UART     : integer := 1;
 
   constant C_IDX_SLAVE_UOE_10G   : integer := 0;
   constant C_IDX_SLAVE_UOE_1G    : integer := 1;
@@ -386,6 +382,17 @@ architecture rtl of top_demo_uoe is
   -- UOE Interrupt
   signal interrupt_1g  : std_logic_vector(1 downto 0);
   signal interrupt_10g : std_logic_vector(1 downto 0);
+
+  -- Uart to bridge ascii
+  signal uart_rx_sync : std_logic;
+
+  signal axis_uart_dr_tdata  : std_logic_vector(7 downto 0);
+  signal axis_uart_dr_tvalid : std_logic;
+  signal axis_uart_dr_tready : std_logic;
+
+  signal axis_uart_dx_tdata  : std_logic_vector(7 downto 0);
+  signal axis_uart_dx_tvalid : std_logic;
+  signal axis_uart_dx_tready : std_logic;
 
   -- Switch Input
   -- 0 => JTAG to AXI output, 1 => Uart
@@ -776,7 +783,6 @@ begin
       S_TDEST               => (others => '-'),
       S_TREADY              => axis_rx_1g_64b_tready,
       M_CLK                 => sys_clk,
-      M_RST                 => sys_rst,
       M_TDATA               => axis_tx_10g_tdata,
       M_TVALID              => axis_tx_10g_tvalid,
       M_TLAST               => axis_tx_10g_tlast,
@@ -826,7 +832,6 @@ begin
       S_TDEST               => (others => '-'),
       S_TREADY              => axis_rx_10g_tready,
       M_CLK                 => sys_clk,
-      M_RST                 => sys_rst,
       M_TDATA               => axis_tx_1g_64b_tdata,
       M_TVALID              => axis_tx_1g_64b_tvalid,
       M_TLAST               => axis_tx_1g_64b_tlast,
@@ -911,6 +916,108 @@ begin
 
   axi_switch_in_awaddr((C_IDX_MASTER_JTAG2AXI * C_AXI_ADDR_WIDTH) + 15 downto (C_IDX_MASTER_JTAG2AXI * C_AXI_ADDR_WIDTH)) <= axi_jtag2axi_awaddr(15 downto 0);
   axi_switch_in_araddr((C_IDX_MASTER_JTAG2AXI * C_AXI_ADDR_WIDTH) + 15 downto (C_IDX_MASTER_JTAG2AXI * C_AXI_ADDR_WIDTH)) <= axi_jtag2axi_araddr(15 downto 0);
+
+  -------------------------------------------------------------------------------
+  -- UART Interface + Bridge_ascii
+  -------------------------------------------------------------------------------
+
+  -- Resynchronization of uart_rx
+  inst_cdc_bit_sync_uart_rx : cdc_bit_sync
+    generic map(
+      G_NB_STAGE   => 2,
+      G_ACTIVE_RST => '1',
+      G_ASYNC_RST  => false,
+      G_RST_VALUE  => '1'
+    )
+    port map(
+      -- asynchronous domain
+      DATA_ASYNC => UART_RX,
+      -- synchronous domain
+      CLK        => sys_clk,
+      RST        => sys_rst,
+      DATA_SYNC  => uart_rx_sync
+    );
+
+  inst_uart_if : uart_if
+    generic map(
+      G_CLK_FREQ   => 200.0,
+      G_ACTIVE_RST => '1',
+      G_ASYNC_RST  => false,
+      G_SIMU       => false
+    )
+    port map(
+      -- Global
+      RST                 => sys_rst,
+      CLK                 => sys_clk,
+      -- Control
+      CFG_BAUDRATE        => C_UART_115200_BAUDS,
+      CFG_BIT_STOP        => C_UART_ONE_STOP_BIT,
+      CFG_PARITY_ON_OFF   => C_UART_PARITY_OFF,
+      CFG_PARITY_ODD_EVEN => C_UART_PARITY_EVEN,
+      CFG_USE_PROTOCOL    => '0',
+      CFG_SIZE            => C_UART_NB_BIT_EIGHT,
+      -- User Domain
+      DX_TDATA            => axis_uart_dx_tdata,
+      DX_TVALID           => axis_uart_dx_tvalid,
+      DX_TREADY           => axis_uart_dx_tready,
+      DR_TDATA            => axis_uart_dr_tdata,
+      DR_TVALID           => axis_uart_dr_tvalid,
+      DR_TREADY           => axis_uart_dr_tready,
+      DR_TUSER            => open,
+      ERROR_DATA_DROP     => open,
+      -- Physical Interface
+      TXD                 => UART_TX,
+      RXD                 => uart_rx_sync,
+      RTS                 => open,
+      CTS                 => open
+    );
+
+  -- BRIDGE
+  inst_bridge_ascii_to_axi4lite : bridge_ascii_to_axi4lite
+    generic map(
+      G_ACTIVE_RST     => '0',
+      G_ASYNC_RST      => false,
+      G_AXI_DATA_WIDTH => 32,
+      G_AXI_ADDR_WIDTH => 16
+    )
+    port map(
+      -- BASIC SIGNALS
+      CLK            => sys_clk,
+      RST            => sys_rst_n,
+      -- SLAVE AXIS
+      S_AXIS_TDATA   => axis_uart_dr_tdata,
+      S_AXIS_TVALID  => axis_uart_dr_tvalid,
+      S_AXIS_TREADY  => axis_uart_dr_tready,
+      -- MASTER AXIS
+      M_AXIS_TDATA   => axis_uart_dx_tdata,
+      M_AXIS_TVALID  => axis_uart_dx_tvalid,
+      M_AXIS_TREADY  => axis_uart_dx_tready,
+      -- MASTER AXI4-LITE
+      -- -- ADDRESS WRITE (AR)
+      M_AXIL_AWADDR  => axi_switch_in_awaddr((C_IDX_MASTER_UART * C_AXI_ADDR_WIDTH) + 15 downto (C_IDX_MASTER_UART * C_AXI_ADDR_WIDTH)),
+      M_AXIL_AWPROT  => open,
+      M_AXIL_AWVALID => axi_switch_in_awvalid(C_IDX_MASTER_UART),
+      M_AXIL_AWREADY => axi_switch_in_awready(C_IDX_MASTER_UART),
+      -- -- WRITE (W)
+      M_AXIL_WDATA   => axi_switch_in_wdata((C_IDX_MASTER_UART * C_AXI_DATA_WIDTH) + 31 downto (C_IDX_MASTER_UART * C_AXI_DATA_WIDTH)),
+      M_AXIL_WSTRB   => axi_switch_in_wstrb((C_IDX_MASTER_UART * C_AXI_STRB_WIDTH) + 3 downto (C_IDX_MASTER_UART * C_AXI_STRB_WIDTH)),
+      M_AXIL_WVALID  => axi_switch_in_wvalid(C_IDX_MASTER_UART),
+      M_AXIL_WREADY  => axi_switch_in_wready(C_IDX_MASTER_UART),
+      -- -- RESPONSE WRITE (B)
+      M_AXIL_BRESP   => axi_switch_in_bresp((C_IDX_MASTER_UART * 2) + 1 downto (C_IDX_MASTER_UART * 2)),
+      M_AXIL_BVALID  => axi_switch_in_bvalid(C_IDX_MASTER_UART),
+      M_AXIL_BREADY  => axi_switch_in_bready(C_IDX_MASTER_UART),
+      -- -- ADDRESS READ (AR)
+      M_AXIL_ARADDR  => axi_switch_in_araddr((C_IDX_MASTER_UART * C_AXI_ADDR_WIDTH) + 15 downto (C_IDX_MASTER_UART * C_AXI_ADDR_WIDTH)),
+      M_AXIL_ARPROT  => open,
+      M_AXIL_ARVALID => axi_switch_in_arvalid(C_IDX_MASTER_UART),
+      M_AXIL_ARREADY => axi_switch_in_arready(C_IDX_MASTER_UART),
+      -- -- READ (R)
+      M_AXIL_RDATA   => axi_switch_in_rdata((C_IDX_MASTER_UART * C_AXI_DATA_WIDTH) + 31 downto (C_IDX_MASTER_UART * C_AXI_DATA_WIDTH)),
+      M_AXIL_RVALID  => axi_switch_in_rvalid(C_IDX_MASTER_UART),
+      M_AXIL_RRESP   => axi_switch_in_rresp((C_IDX_MASTER_UART * 2) + 1 downto (C_IDX_MASTER_UART * 2)),
+      M_AXIL_RREADY  => axi_switch_in_rready(C_IDX_MASTER_UART)
+    );
 
   -------------------------------------------------------------------------------
   -- Switch

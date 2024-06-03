@@ -1,16 +1,17 @@
--- Copyright (c) 2022-2022 THALES. All Rights Reserved
+-- Copyright (c) 2022-2024 THALES. All Rights Reserved
 --
--- Licensed under the Apache License, Version 2.0 (the "License");
--- you may not use this file except in compliance with the License.
--- You may obtain a copy of the License at
+-- Licensed under the SolderPad Hardware License v 2.1 (the "License");
+-- you may not use this file except in compliance with the License, or,
+-- at your option. You may obtain a copy of the License at
 --
--- http://www.apache.org/licenses/LICENSE-2.0
+-- https://solderpad.org/licenses/SHL-2.1/
 --
--- Unless required by applicable law or agreed to in writing, software
--- distributed under the License is distributed on an "AS IS" BASIS,
--- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
--- See the License for the specific language governing permissions and
--- limitations under the License.
+-- Unless required by applicable law or agreed to in writing, any
+-- work distributed under the License is distributed on an "AS IS"
+-- BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+-- either express or implied. See the License for the specific
+-- language governing permissions and limitations under the
+-- License.
 --
 -- File subject to timestamp TSP22X5365 Thales, in the name of Thales SIX GTS France, made on 10/06/2022.
 --
@@ -21,12 +22,13 @@
 -- First In First Out structure Generator
 -----------
 -- The entity is parametrizable in data width
--- The entity is parametrizable in addr width (fifo depth)
+-- The entity is parametrizable in addr width (FIFO depth)
 -- The entity is parametrizable in synchronization stage number (for cdc)
 -- The entity is parametrizable in reset polarity (active 1 or active 0) and mode (synchronous/asynchronous)
 -- The entity is parametrizable in clock domain (optimization are made for common clocks)
 --
--- Both resets should be synchronized with their respective clock domain
+-- Slave reset is synchronous to slave clock domain
+-- An internal master reset for the master clock domain is generated inside the module
 --
 -- This entity is a pure renaming of ports for the FIFO_GEN
 --
@@ -46,7 +48,7 @@ use common.memory_utils_pkg.fifo_gen;
 -- Entity declaration
 ------------------------------------------------------------------------
 entity axis_fifo is
-  generic(
+  generic (
     G_COMMON_CLK  : boolean                         := false; -- 2 or 1 clock domain
     G_ADDR_WIDTH  : positive                        := 10; -- FIFO address width (depth is 2**ADDR_WIDTH)
     G_TDATA_WIDTH : positive                        := 32; -- Width of the tdata vector of the stream
@@ -59,7 +61,7 @@ entity axis_fifo is
     G_ASYNC_RST   : boolean                         := false; -- Type of reset used (synchronous or asynchronous resets)
     G_SYNC_STAGE  : integer range 2 to integer'high := 2 -- Number of synchronization stages (to reduce MTBF)
   );
-  port(
+  port (
     -- axi4-stream slave
     S_CLK         : in  std_logic;                                     
     S_RST         : in  std_logic;                                     
@@ -74,7 +76,6 @@ entity axis_fifo is
     S_TREADY      : out std_logic;              
     -- axi4-stream slave
     M_CLK         : in  std_logic;
-    M_RST         : in  std_logic;
     M_TDATA       : out std_logic_vector(G_TDATA_WIDTH - 1 downto 0);
     M_TVALID      : out std_logic;
     M_TLAST       : out std_logic;
@@ -129,14 +130,14 @@ architecture rtl of axis_fifo is
   -- SIGNALS
   --------------------------------------------
   -- aggregate of stream
-  signal data_in  : std_logic_vector(C_DATA_LENGTH - 1 downto 0);
-  signal data_out : std_logic_vector(C_DATA_LENGTH - 1 downto 0);
+  signal data_in       : std_logic_vector(C_DATA_LENGTH - 1 downto 0);
+  signal data_out      : std_logic_vector(C_DATA_LENGTH - 1 downto 0);
 
   -- internal signals
-  signal s_tready_int : std_logic;
-  signal m_tlast_int  : std_logic;
-  signal m_tvalid_int : std_logic;
-  signal m_tready_int : std_logic;
+  signal s_tready_int  : std_logic;
+  signal m_tlast_int   : std_logic;
+  signal m_tvalid_int  : std_logic;
+  signal m_tready_int  : std_logic;
 
   signal fifo_wr_en    : std_logic;
   signal s_tready_data : std_logic;
@@ -182,7 +183,6 @@ begin
       WR_DATA  => data_in,
       WR_COUNT => WR_DATA_COUNT,
       CLK_RD   => M_CLK,
-      RST_RD   => M_RST,
       EMPTY    => open,
       EMPTY_N  => m_tvalid_data,
       RD_EN    => m_tready_int,
@@ -201,7 +201,7 @@ begin
     s_tready_int <= s_tready_data;      -- Data FIFO not full
     m_tvalid_int <= m_tvalid_data;      -- Data FIFO not empty
     m_tready_int <= M_TREADY;           -- M_TREADY not locked by packet mode
-    
+
     WR_PKT_COUNT <= (others => '0');
     RD_PKT_COUNT <= (others => '0');
   end generate GEN_NO_PACKET_MODE;
@@ -224,29 +224,33 @@ begin
     --------------------------------------------
     -- SIGNALS
     --------------------------------------------
+    -- reset
+    signal m_rst           : std_logic;
+
     signal s_tready_packet : std_logic;
     signal m_valid_packet  : std_logic;
 
-    signal ptr_rd_rclk : unsigned(G_PKT_WIDTH - 1 downto 0);
-    signal ptr_rd_wclk : unsigned(G_PKT_WIDTH - 1 downto 0);
-    signal ptr_wr_wclk : unsigned(G_PKT_WIDTH - 1 downto 0);
-    signal ptr_wr_rclk : unsigned(G_PKT_WIDTH - 1 downto 0);
-    
-    signal ptr_wr_next : unsigned(G_PKT_WIDTH - 1 downto 0);
-    signal ptr_rd_next : unsigned(G_PKT_WIDTH - 1 downto 0);
-    
-    signal pkt_wr_incr : std_logic;
-    signal pkt_rd_incr : std_logic;
+    signal ptr_rd_rclk     : unsigned(G_PKT_WIDTH - 1 downto 0);
+    signal ptr_rd_wclk     : unsigned(G_PKT_WIDTH - 1 downto 0);
+    signal ptr_wr_wclk     : unsigned(G_PKT_WIDTH - 1 downto 0);
+    signal ptr_wr_rclk     : unsigned(G_PKT_WIDTH - 1 downto 0);
+
+    signal ptr_wr_next     : unsigned(G_PKT_WIDTH - 1 downto 0);
+    signal ptr_rd_next     : unsigned(G_PKT_WIDTH - 1 downto 0);
+
+    signal pkt_wr_incr     : std_logic;
+    signal pkt_rd_incr     : std_logic;
+  
   begin
-    
+
     -----------------------------------------------------------------------
-  --
-  -- Write clock domain
-  --
-  -----------------------------------------------------------------------
-    
+    --
+    -- Write clock domain
+    --
+    -----------------------------------------------------------------------
+
     fifo_wr_en <= S_TVALID and s_tready_int;
-    
+
     -- Increment packet counter on last transaction
     pkt_wr_incr   <= S_TVALID and s_tready_int and S_TLAST;
 
@@ -297,21 +301,21 @@ begin
     -- Read clock domain
     --
     -----------------------------------------------------------------------
-  
+
     pkt_rd_incr <= m_tvalid_int and M_TREADY and m_tlast_int;
-  
+
     -- Increment pointer on read
     ptr_rd_next <= ptr_rd_rclk + 1 when pkt_rd_incr = '1' else ptr_rd_rclk;
 
     -- Manage read counter and empty flag
-    proc_counter_rd: process(M_CLK, M_RST)
+    proc_counter_rd: process(M_CLK, m_rst)
     begin
-      if G_ASYNC_RST and (M_RST = G_ACTIVE_RST) then
+      if G_ASYNC_RST and (m_rst = G_ACTIVE_RST) then
         ptr_rd_rclk     <= (others => '0');
         m_valid_packet  <= '0';
         RD_PKT_COUNT    <= (others => '0');
       elsif rising_edge(M_CLK) then
-        if (not G_ASYNC_RST) and (M_RST = G_ACTIVE_RST) then
+        if (not G_ASYNC_RST) and (m_rst = G_ACTIVE_RST) then
           ptr_rd_rclk     <= (others => '0');
           m_valid_packet  <= '0';
           RD_PKT_COUNT    <= (others => '0');
@@ -355,7 +359,10 @@ begin
     -- No resynchronization
     --------------------------------------------
     GEN_NO_RESYNC: if G_COMMON_CLK generate
-    
+      
+      -- Reset
+      m_rst <= S_RST;
+      
       -- Direct assignment
       -- From Write
       ptr_wr_rclk <= ptr_wr_wclk;
@@ -369,15 +376,37 @@ begin
     -- Pointer resychronization
     --------------------------------------------
     GEN_RESYNC: if G_COMMON_CLK = false generate
-      
+
+      -- Resets
+      signal rst_resync       : std_logic;
+      signal rst_resync_n     : std_logic;
+
       -- Signals for type conversion to map to cdc components
       signal ptr_wr_wclk_slv  : std_logic_vector(G_PKT_WIDTH - 1 downto 0);
       signal ptr_rd_rclk_slv  : std_logic_vector(G_PKT_WIDTH - 1 downto 0);
       signal ptr_wr_rclk_slv  : std_logic_vector(G_PKT_WIDTH - 1 downto 0);
       signal ptr_rd_wclk_slv  : std_logic_vector(G_PKT_WIDTH - 1 downto 0);
-      
+
     begin
-      
+
+      -- Generate master reset via resynchronization from the slave reset
+      inst_cdc_reset_sync: cdc_reset_sync
+        generic map (
+          G_NB_STAGE    => G_SYNC_STAGE,
+          G_NB_CLOCK    => 1,
+          G_ACTIVE_ARST => G_ACTIVE_RST
+        )
+        port map (
+          ARST          => S_RST,
+          CLK(0)        => M_CLK,
+          SRST(0)       => rst_resync,
+          SRST_N(0)     => rst_resync_n
+        );
+
+      -- Choose the correct reset polarity
+      m_rst <= rst_resync when G_ACTIVE_RST = '1' else rst_resync_n;
+
+
       -- Convert to std_logic_vector
       ptr_wr_wclk_slv <= std_logic_vector(ptr_wr_wclk);
       ptr_rd_rclk_slv <= std_logic_vector(ptr_rd_rclk);
@@ -396,7 +425,7 @@ begin
           RST_SRC      => S_RST,
           DATA_SRC     => ptr_wr_wclk_slv,
           CLK_DST      => M_CLK,
-          RST_DST      => M_RST,
+          RST_DST      => m_rst,
           DATA_DST     => ptr_wr_rclk_slv
         );
 
@@ -411,7 +440,7 @@ begin
         )
         port map (
           CLK_SRC      => M_CLK,
-          RST_SRC      => M_RST,
+          RST_SRC      => m_rst,
           DATA_SRC     => ptr_rd_rclk_slv,
           CLK_DST      => S_CLK,
           RST_DST      => S_RST,
@@ -423,7 +452,7 @@ begin
       ptr_rd_wclk        <= unsigned(ptr_rd_wclk_slv);
 
     end generate GEN_RESYNC;
-    
+
   end generate GEN_PACKET_MODE;
 
 

@@ -1,16 +1,17 @@
--- Copyright (c) 2022-2022 THALES. All Rights Reserved
+-- Copyright (c) 2022-2024 THALES. All Rights Reserved
 --
--- Licensed under the Apache License, Version 2.0 (the "License");
--- you may not use this file except in compliance with the License.
--- You may obtain a copy of the License at
+-- Licensed under the SolderPad Hardware License v 2.1 (the "License");
+-- you may not use this file except in compliance with the License, or,
+-- at your option. You may obtain a copy of the License at
 --
--- http://www.apache.org/licenses/LICENSE-2.0
+-- https://solderpad.org/licenses/SHL-2.1/
 --
--- Unless required by applicable law or agreed to in writing, software
--- distributed under the License is distributed on an "AS IS" BASIS,
--- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
--- See the License for the specific language governing permissions and
--- limitations under the License.
+-- Unless required by applicable law or agreed to in writing, any
+-- work distributed under the License is distributed on an "AS IS"
+-- BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+-- either express or implied. See the License for the specific
+-- language governing permissions and limitations under the
+-- License.
 --
 -- File subject to timestamp TSP22X5365 Thales, in the name of Thales SIX GTS France, made on 10/06/2022.
 --
@@ -792,7 +793,6 @@ begin
         S_TREADY => axis_ext_rx_to_drop_tready,
         DROP     => flag_ext_drop,
         M_CLK    => CLK_UOE,
-        M_RST    => RST_UOE,
         M_TDATA  => M_EXT_RX_TDATA,
         M_TVALID => M_EXT_RX_TVALID,
         M_TLAST  => M_EXT_RX_TLAST,
@@ -841,7 +841,6 @@ begin
         S_TREADY => axis_raw_rx_to_drop_tready,
         DROP     => flag_raw_drop,
         M_CLK    => CLK_UOE,
-        M_RST    => RST_UOE,
         M_TDATA  => M_RAW_RX_TDATA,
         M_TVALID => M_RAW_RX_TVALID,
         M_TLAST  => M_RAW_RX_TLAST,
@@ -894,7 +893,6 @@ begin
         S_TREADY => axis_udp_rx_to_drop_tready,
         DROP     => flag_udp_drop,
         M_CLK    => CLK_UOE,
-        M_RST    => RST_UOE,
         M_TDATA  => M_UDP_RX_TDATA,
         M_TVALID => M_UDP_RX_TVALID,
         M_TLAST  => M_UDP_RX_TLAST,

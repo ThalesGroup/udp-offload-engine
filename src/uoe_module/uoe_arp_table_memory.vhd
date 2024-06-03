@@ -1,16 +1,17 @@
--- Copyright (c) 2022-2022 THALES. All Rights Reserved
+-- Copyright (c) 2022-2024 THALES. All Rights Reserved
 --
--- Licensed under the Apache License, Version 2.0 (the "License");
--- you may not use this file except in compliance with the License.
--- You may obtain a copy of the License at
+-- Licensed under the SolderPad Hardware License v 2.1 (the "License");
+-- you may not use this file except in compliance with the License, or,
+-- at your option. You may obtain a copy of the License at
 --
--- http://www.apache.org/licenses/LICENSE-2.0
+-- https://solderpad.org/licenses/SHL-2.1/
 --
--- Unless required by applicable law or agreed to in writing, software
--- distributed under the License is distributed on an "AS IS" BASIS,
--- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
--- See the License for the specific language governing permissions and
--- limitations under the License.
+-- Unless required by applicable law or agreed to in writing, any
+-- work distributed under the License is distributed on an "AS IS"
+-- BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+-- either express or implied. See the License for the specific
+-- language governing permissions and limitations under the
+-- License.
 --
 -- File subject to timestamp TSP22X5365 Thales, in the name of Thales SIX GTS France, made on 10/06/2022.
 --
@@ -105,7 +106,7 @@ architecture rtl of uoe_arp_table_memory is
   signal axi_bram_en   : std_logic;
   signal axi_bram_addr : std_logic_vector(11 downto 0); -- in bytes 
   signal axi_bram_din  : std_logic_vector(31 downto 0);
-  signal axi_bram_wren : std_logic;
+  signal axi_bram_wren : std_logic_vector(3 downto 0);
   signal axi_bram_dout : std_logic_vector(31 downto 0);
 
   signal axi_brams_en   : std_logic_vector(2 downto 0);
@@ -214,7 +215,7 @@ begin
       EN_B   => axi_brams_en(0),
       ADDR_B => axi_bram_addr(9 downto 2),
       DIN_B  => axi_bram_din,
-      WREN_B => axi_bram_wren,
+      WREN_B => axi_bram_wren(0),
       DOUT_B => axi_brams_dout(31 downto 0)
     );
 
@@ -243,7 +244,7 @@ begin
       EN_B   => axi_brams_en(1),
       ADDR_B => axi_bram_addr(9 downto 2),
       DIN_B  => axi_bram_din,
-      WREN_B => axi_bram_wren,
+      WREN_B => axi_bram_wren(0),
       DOUT_B => axi_brams_dout(63 downto 32)
     );
 
@@ -272,7 +273,7 @@ begin
       EN_B   => axi_brams_en(2),
       ADDR_B => axi_bram_addr(9 downto 2),
       DIN_B  => axi_bram_din(15 downto 0),
-      WREN_B => axi_bram_wren,
+      WREN_B => axi_bram_wren(0),
       DOUT_B => axi_brams_dout(79 downto 64)
     );
 

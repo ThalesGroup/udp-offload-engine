@@ -1,16 +1,17 @@
--- Copyright (c) 2022-2022 THALES. All Rights Reserved
+-- Copyright (c) 2022-2024 THALES. All Rights Reserved
 --
--- Licensed under the Apache License, Version 2.0 (the "License");
--- you may not use this file except in compliance with the License.
--- You may obtain a copy of the License at
+-- Licensed under the SolderPad Hardware License v 2.1 (the "License");
+-- you may not use this file except in compliance with the License, or,
+-- at your option. You may obtain a copy of the License at
 --
--- http://www.apache.org/licenses/LICENSE-2.0
+-- https://solderpad.org/licenses/SHL-2.1/
 --
--- Unless required by applicable law or agreed to in writing, software
--- distributed under the License is distributed on an "AS IS" BASIS,
--- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
--- See the License for the specific language governing permissions and
--- limitations under the License.
+-- Unless required by applicable law or agreed to in writing, any
+-- work distributed under the License is distributed on an "AS IS"
+-- BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+-- either express or implied. See the License for the specific
+-- language governing permissions and limitations under the
+-- License.
 --
 -- File subject to timestamp TSP22X5365 Thales, in the name of Thales SIX GTS France, made on 10/06/2022.
 --
@@ -35,8 +36,10 @@ entity axis_pkt_drop is
     G_TUSER_WIDTH   : positive                          := 1; -- Width of the tuser vector of the stream
     G_TID_WIDTH     : positive                          := 1; -- Width of the tid vector of the stream
     G_TDEST_WIDTH   : positive                          := 1; -- Width of the tdest vector of the stream
+    G_RAM_STYLE   : string                              := "AUTO"; -- Specify the ram synthesis style (technology dependant)
     G_ADDR_WIDTH    : positive                          := 10; -- FIFO address width (depth is 2**ADDR_WIDTH)
-    G_PKT_THRESHOLD : positive range 2 to positive'high := 2 -- Maximum number of packet into the fifo
+    G_PKT_THRESHOLD : positive range 2 to positive'high := 2; -- Maximum number of packet into the fifo
+    G_SYNC_STAGE  : integer range 2 to integer'high     := 2 -- Number of synchronization stages (to reduce MTBF)
   );
   port(
     -- Slave interface
@@ -55,7 +58,6 @@ entity axis_pkt_drop is
     DROP     : out std_logic;
     -- master interface
     M_CLK    : in  std_logic;           -- Global clock, signals are samples at rising edge
-    M_RST    : in  std_logic;           -- Global reset depends on configuration
     M_TDATA  : out std_logic_vector(G_TDATA_WIDTH - 1 downto 0);
     M_TVALID : out std_logic;
     M_TLAST  : out std_logic;
@@ -115,9 +117,13 @@ begin
       G_ADDR_WIDTH  => G_ADDR_WIDTH,
       G_TDATA_WIDTH => G_TDATA_WIDTH,
       G_TUSER_WIDTH => G_TUSER_WIDTH,
+      G_TID_WIDTH   => G_TID_WIDTH,
+      G_TDEST_WIDTH => G_TDEST_WIDTH,
+      G_PKT_WIDTH   => C_PKT_WIDTH,
+      G_RAM_STYLE   => G_RAM_STYLE,
       G_ACTIVE_RST  => G_ACTIVE_RST,
       G_ASYNC_RST   => G_ASYNC_RST,
-      G_PKT_WIDTH   => C_PKT_WIDTH
+      G_SYNC_STAGE  => G_SYNC_STAGE
     )
     port map(
       S_CLK        => S_CLK,
@@ -130,7 +136,6 @@ begin
       S_TKEEP      => S_TKEEP,
       S_TREADY     => axis_fifo_data_in_tready,
       M_CLK        => M_CLK,
-      M_RST        => M_RST,
       M_TDATA      => M_TDATA,
       M_TVALID     => m_tvalid_i,
       M_TLAST      => m_tlast_i,
@@ -150,8 +155,10 @@ begin
       G_TUSER_WIDTH => 1,
       G_TID_WIDTH   => G_TID_WIDTH,
       G_TDEST_WIDTH => G_TDEST_WIDTH,
+      G_RAM_STYLE   => G_RAM_STYLE,
       G_ACTIVE_RST  => G_ACTIVE_RST,
-      G_ASYNC_RST   => G_ASYNC_RST
+      G_ASYNC_RST   => G_ASYNC_RST,
+      G_SYNC_STAGE  => G_SYNC_STAGE
     )
     port map(
       S_CLK    => S_CLK,
@@ -161,7 +168,6 @@ begin
       S_TDEST  => S_TDEST,
       S_TREADY => open,
       M_CLK    => M_CLK,
-      M_RST    => M_RST,
       M_TVALID => open,
       M_TID    => M_TID,
       M_TDEST  => M_TDEST,

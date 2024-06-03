@@ -1,16 +1,17 @@
--- Copyright (c) 2022-2022 THALES. All Rights Reserved
+-- Copyright (c) 2022-2024 THALES. All Rights Reserved
 --
--- Licensed under the Apache License, Version 2.0 (the "License");
--- you may not use this file except in compliance with the License.
--- You may obtain a copy of the License at
+-- Licensed under the SolderPad Hardware License v 2.1 (the "License");
+-- you may not use this file except in compliance with the License, or,
+-- at your option. You may obtain a copy of the License at
 --
--- http://www.apache.org/licenses/LICENSE-2.0
+-- https://solderpad.org/licenses/SHL-2.1/
 --
--- Unless required by applicable law or agreed to in writing, software
--- distributed under the License is distributed on an "AS IS" BASIS,
--- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
--- See the License for the specific language governing permissions and
--- limitations under the License.
+-- Unless required by applicable law or agreed to in writing, any
+-- work distributed under the License is distributed on an "AS IS"
+-- BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+-- either express or implied. See the License for the specific
+-- language governing permissions and limitations under the
+-- License.
 --
 -- File subject to timestamp TSP22X5365 Thales, in the name of Thales SIX GTS France, made on 10/06/2022.
 --
@@ -131,6 +132,27 @@ package dev_utils_2008_pkg is
   function swap_bits(constant data : in t_slv_array) return t_slv_array;
   -- swap reverses the order of all the bits, returning a t_slv_array of same range
   function swap(constant data : in t_slv_array) return t_slv_array;
+
+  ---------------------------------------------------------------------
+  --       COMPONENTS
+  ---------------------------------------------------------------------
+
+  -- replicates an input signal into multiple copies, inserting registers whenever necessary
+  component replication_tree is
+    generic(G_NB_WORDS     : integer   := 16;    -- Number of output replications
+            G_RADIX        : integer   := 8;     -- Local maximum fan-out
+            G_DATA_WIDTH   : natural   := 16;    -- Input data bitwidth
+            G_ACTIVE_RST   : std_logic := '1';   -- Reset's activation value
+            G_ASYNC_RST    : boolean   := False  -- Asynchronous reset if True, Synchronous otherwise
+            );
+    port(CLK      : in  std_logic;                                                      -- Clock
+         RST      : in  std_logic                                 := not(G_ACTIVE_RST); -- Reset
+         S_TVALID : in  std_logic                                 := '1';               -- Input valid
+         S_TDATA  : in  std_logic_vector(G_DATA_WIDTH-1 downto 0) := (others => '0');   -- Input data
+         M_TVALID : out std_logic_vector(G_NB_WORDS-1 downto 0);                        -- Output replicated valid
+         M_TDATA  : out std_logic_vector(G_NB_WORDS*G_DATA_WIDTH-1 downto 0)            -- Output replicated data
+      );
+  end component replication_tree;
 
 end dev_utils_2008_pkg;
 

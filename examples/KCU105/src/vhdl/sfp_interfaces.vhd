@@ -1,16 +1,20 @@
--- ******************************************************************************************
--- * This program is the Confidential and Proprietary product of THALES.                    *
--- * Any unauthorized use, reproduction or transfer of this program is strictly prohibited. *
--- * Copyright (c) 2022 THALES SGF. All Rights Reserved.                                    *
--- ******************************************************************************************
--- -------------------------------------------------------------------------------
--- Company                : SGF
--- Authors                : Ghislain FOURNIER
--- Content Description    : AXIS connection to SFP 1G and 10G
--- Limitations            :
--- Coding & Design Std    : 87100217_DDQ_GRP_EN / 87206624_DDQ_GRP_EN
--- VHDL Version           : VHDL-1993
--- -------------------------------------------------------------------------------
+-- Copyright (c) 2022-2024 THALES. All Rights Reserved
+--
+-- Licensed under the SolderPad Hardware License v 2.1 (the "License");
+-- you may not use this file except in compliance with the License, or,
+-- at your option. You may obtain a copy of the License at
+--
+-- https://solderpad.org/licenses/SHL-2.1/
+--
+-- Unless required by applicable law or agreed to in writing, any
+-- work distributed under the License is distributed on an "AS IS"
+-- BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+-- either express or implied. See the License for the specific
+-- language governing permissions and limitations under the
+-- License.
+--
+-- File subject to timestamp TSP22X5365 Thales, in the name of Thales SIX GTS France, made on 10/06/2022.
+--
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -408,7 +412,6 @@ begin
                 S_TDEST  => (others => '-'),
                 S_TREADY => open,
                 M_CLK    => S_TX_ACLK(C_CHANNEL_2),
-                M_RST    => S_TX_RST(C_CHANNEL_2),
                 M_TDATA  => cdc_tdata((C_CHANNEL_2 * 64) + 63 downto (C_CHANNEL_2 * 64)),
                 M_TVALID => cdc_tvalid(C_CHANNEL_2),
                 M_TLAST  => cdc_tlast(C_CHANNEL_2),
@@ -612,7 +615,6 @@ begin
                 S_TDEST  => (others => '-'),
                 S_TREADY => cdc_tready(C_CHANNEL_1),
                 M_CLK    => S_TX_ACLK(C_CHANNEL_1),
-                M_RST    => S_TX_RST(C_CHANNEL_1),
                 M_TDATA  => tx_lo_tdata((C_CHANNEL_1 * 64) + 63 downto (C_CHANNEL_1 * 64)),
                 M_TVALID => tx_lo_tvalid(C_CHANNEL_1),
                 M_TLAST  => tx_lo_tlast(C_CHANNEL_1),

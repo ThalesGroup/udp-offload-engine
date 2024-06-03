@@ -1,16 +1,20 @@
--- ******************************************************************************************
--- * This program is the Confidential and Proprietary product of THALES.                    *
--- * Any unauthorized use, reproduction or transfer of this program is strictly prohibited. *
--- * Copyright (c) 2022 THALES SGF. All Rights Reserved.                                    *
--- ******************************************************************************************
--- -------------------------------------------------------------------------------
--- Company                : SGF
--- Authors                : Ghislain Fournier
--- Content description    : Connect to 1G SFP
--- Limitations            : Only channel 2 is available yet
--- Coding & Design Std    : 87100217_DDQ_GRP_EN / 87206624_DDQ_GRP_EN
--- VHDL version           : VHDL-2008
--- -------------------------------------------------------------------------------
+-- Copyright (c) 2022-2024 THALES. All Rights Reserved
+--
+-- Licensed under the SolderPad Hardware License v 2.1 (the "License");
+-- you may not use this file except in compliance with the License, or,
+-- at your option. You may obtain a copy of the License at
+--
+-- https://solderpad.org/licenses/SHL-2.1/
+--
+-- Unless required by applicable law or agreed to in writing, any
+-- work distributed under the License is distributed on an "AS IS"
+-- BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+-- either express or implied. See the License for the specific
+-- language governing permissions and limitations under the
+-- License.
+--
+-- File subject to timestamp TSP22X5365 Thales, in the name of Thales SIX GTS France, made on 10/06/2022.
+--
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -18,6 +22,9 @@ use ieee.numeric_std.all;
 
 library unisim;
 use unisim.vcomponents.all;
+
+library common;
+use common.cdc_utils_pkg.cdc_bit_sync;
 
 entity sfp_1g is
     generic(
@@ -158,23 +165,6 @@ architecture rtl of sfp_1g is
             pma_reset              : out std_logic -- Synchronous transcevier PMA reset
         );
     end component gig_ethernet_pcs_pma_sfp_resets;
-
-    component cdc_bit_sync is
-        generic(
-            G_NB_STAGE   : integer range 2 to integer'high := 2;
-            G_ACTIVE_RST : std_logic                       := '1';
-            G_ASYNC_RST  : boolean                         := false;
-            G_RST_VALUE  : std_logic                       := '0'
-        );
-        port(
-          -- asynchronous domain
-          DATA_ASYNC : in  std_logic;
-          -- synchronous domain
-          CLK        : in  std_logic;
-          RST        : in  std_logic;
-          DATA_SYNC  : out std_logic
-        );
-    end component cdc_bit_sync;
 
     ---------------------------------------------------------------------------------------------------
     --      Signals

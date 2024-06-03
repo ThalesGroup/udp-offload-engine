@@ -1,16 +1,17 @@
--- Copyright (c) 2022-2022 THALES. All Rights Reserved
+-- Copyright (c) 2022-2024 THALES. All Rights Reserved
 --
--- Licensed under the Apache License, Version 2.0 (the "License");
--- you may not use this file except in compliance with the License.
--- You may obtain a copy of the License at
+-- Licensed under the SolderPad Hardware License v 2.1 (the "License");
+-- you may not use this file except in compliance with the License, or,
+-- at your option. You may obtain a copy of the License at
 --
--- http://www.apache.org/licenses/LICENSE-2.0
+-- https://solderpad.org/licenses/SHL-2.1/
 --
--- Unless required by applicable law or agreed to in writing, software
--- distributed under the License is distributed on an "AS IS" BASIS,
--- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
--- See the License for the specific language governing permissions and
--- limitations under the License.
+-- Unless required by applicable law or agreed to in writing, any
+-- work distributed under the License is distributed on an "AS IS"
+-- BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+-- either express or implied. See the License for the specific
+-- language governing permissions and limitations under the
+-- License.
 --
 -- File subject to timestamp TSP22X5365 Thales, in the name of Thales SIX GTS France, made on 10/06/2022.
 --
@@ -52,6 +53,7 @@ use std.textio.all;
 -- * axis_pkt_split_words
 -- * axis_pkt_align
 -- * axis_loopback
+-- * axis_pkt_pad
 --
 -- This package also contains the declaration of the following functions
 -- * is_bytes_align
@@ -541,7 +543,7 @@ package axis_utils_pkg is
     generic(
       G_ACTIVE_RST     : std_logic := '0';        -- State at which the reset signal is asserted (active low or active high)
       G_ASYNC_RST      : boolean   := true;       -- Type of reset used (synchronous or asynchronous resets)
-      G_FULL_BANDWIDTH : boolean   := true;       -- Selection of operation mode (low ressources/full bandwidth)
+      G_FULL_BANDWIDTH : boolean   := true;       -- Selection of operation mode (low resources/full bandwidth)
       G_INDEX_WIDTH    : positive  := 10;         -- Width of index in TUSER
       G_MEM_ADDR_WIDTH : positive  := 10;         -- Depth of memory map. Equal to G_INDEX_WIDTH in most cases
       G_TDATA_WIDTH    : positive  := 32;         -- Width of the tdata vector of the stream
@@ -670,7 +672,6 @@ package axis_utils_pkg is
       S_TREADY      : out std_logic;                                                                                                   -- acceptation of transfer on slave interface
       -- axi4-stream slave
       M_CLK         : in  std_logic;                                                       -- clock for master interface
-      M_RST         : in  std_logic;                                                       -- reset for master interface
       M_TDATA       : out std_logic_vector(G_TDATA_WIDTH - 1 downto 0);                    -- payload on master interface
       M_TVALID      : out std_logic;                                                       -- validity of transfer on master interface
       M_TLAST       : out std_logic;                                                       -- packet boundary on master interface
@@ -821,10 +822,10 @@ package axis_utils_pkg is
       -- Axi4-stream slave
       S_TDATA     : in  std_logic_vector(G_S_TDATA_WIDTH - 1 downto 0);                                 -- payload on slave interface
       S_TVALID    : in  std_logic;                                                                      -- validity of transfer on slave interface
-      S_TLAST     : in  std_logic                                                   := '-';             -- packet boundary on slave interface
+      S_TLAST     : in  std_logic                                                   := '1';             -- packet boundary on slave interface
       S_TUSER     : in  std_logic_vector(G_TUSER_WIDTH - 1 downto 0)                := (others => '-'); -- sideband information on slave interface
       S_TSTRB     : in  std_logic_vector(((G_S_TDATA_WIDTH + 7) / 8) - 1 downto 0)  := (others => '-'); -- byte qualifier (position or data) on slave interface
-      S_TKEEP     : in  std_logic_vector(((G_S_TDATA_WIDTH + 7) / 8) - 1 downto 0)  := (others => '-'); -- byte qualifier (null when deasserted) on slave interface
+      S_TKEEP     : in  std_logic_vector(((G_S_TDATA_WIDTH + 7) / 8) - 1 downto 0)  := (others => '1'); -- byte qualifier (null when deasserted) on slave interface
       S_TID       : in  std_logic_vector(G_TID_WIDTH - 1 downto 0)                  := (others => '-'); -- stream identifier on slave interface
       S_TDEST     : in  std_logic_vector(G_TDEST_WIDTH - 1 downto 0)                := (others => '-'); -- routing destination on slave interface
       S_TREADY    : out std_logic;                                                                      -- acceptation of transfer on slave interface
@@ -1183,8 +1184,10 @@ package axis_utils_pkg is
       G_TUSER_WIDTH   : positive                          := 1; -- Width of the tuser vector of the stream
       G_TID_WIDTH     : positive                          := 1; -- Width of the tid vector of the stream
       G_TDEST_WIDTH   : positive                          := 1; -- Width of the tdest vector of the stream
+      G_RAM_STYLE     : string                            := "AUTO"; -- Specify the ram synthesis style (technology dependant)
       G_ADDR_WIDTH    : positive                          := 10; -- FIFO address width (depth is 2**ADDR_WIDTH)
-      G_PKT_THRESHOLD : positive range 2 to positive'high := 2 -- Maximum number of packet into the fifo
+      G_PKT_THRESHOLD : positive range 2 to positive'high := 2; -- Maximum number of packet into the fifo
+      G_SYNC_STAGE    : integer range 2 to integer'high   := 2 -- Number of synchronization stages (to reduce MTBF)
     );
     port(
       -- Slave interface
@@ -1203,7 +1206,6 @@ package axis_utils_pkg is
       DROP     : out std_logic;
       -- master interface
       M_CLK    : in  std_logic;           -- Global clock, signals are samples at rising edge
-      M_RST    : in  std_logic;           -- Global reset depends on configuration
       M_TDATA  : out std_logic_vector(G_TDATA_WIDTH - 1 downto 0);
       M_TVALID : out std_logic;
       M_TLAST  : out std_logic;
@@ -1283,6 +1285,51 @@ package axis_utils_pkg is
 
   ---------------------------------------------------
   --
+  -- axis_pkt_pad
+  --
+  ---------------------------------------------------
+
+  component axis_pkt_pad is
+    generic(
+      G_ACTIVE_RST     : std_logic := '0';        -- State at which the reset signal is asserted (active low or active high)
+      G_ASYNC_RST      : boolean   := true;       -- Type of reset used (synchronous or asynchronous resets)
+      G_TDATA_WIDTH    : positive  := 64;         -- Width of the tdata vector of the stream
+      G_TUSER_WIDTH    : positive  := 1;          -- Width of the tuser vector of the stream
+      G_TID_WIDTH      : positive  := 1;          -- Width of the tid vector of the stream
+      G_TDEST_WIDTH    : positive  := 1;          -- Width of the tdest vector of the stream
+      G_PIPELINE       : boolean   := true;       -- Whether to insert pipeline registers
+      G_MIN_SIZE_BYTES : positive  := 60;         -- Packet minimal size
+      G_PADDING_VALUE  : std_logic := '0'         -- Value used for padding
+    );
+    port(
+      -- GLOBAL
+      CLK      : in  std_logic;                   -- Clock
+      RST      : in  std_logic;                   -- Reset
+      -- Axi4-stream slave
+      S_TDATA  : in  std_logic_vector(G_TDATA_WIDTH - 1 downto 0)             := (others => '-');
+      S_TVALID : in  std_logic;
+      S_TLAST  : in  std_logic;
+      S_TUSER  : in  std_logic_vector(G_TUSER_WIDTH - 1 downto 0)             := (others => '-');
+      S_TID    : in  std_logic_vector(G_TID_WIDTH - 1 downto 0)               := (others => '-');
+      S_TDEST  : in  std_logic_vector(G_TDEST_WIDTH - 1 downto 0)             := (others => '-');
+      S_TSTRB  : in  std_logic_vector(((G_TDATA_WIDTH + 7) / 8) - 1 downto 0) := (others => '-');
+      S_TKEEP  : in  std_logic_vector(((G_TDATA_WIDTH + 7) / 8) - 1 downto 0) := (others => '1');
+      S_TREADY : out std_logic;
+      -- Axi4-stream master
+      M_TDATA  : out std_logic_vector(G_TDATA_WIDTH - 1 downto 0);
+      M_TVALID : out std_logic;
+      M_TLAST  : out std_logic;
+      M_TUSER  : out std_logic_vector(G_TUSER_WIDTH - 1 downto 0);
+      M_TID    : out std_logic_vector(G_TID_WIDTH - 1 downto 0);
+      M_TDEST  : out std_logic_vector(G_TDEST_WIDTH - 1 downto 0);
+      M_TSTRB  : out std_logic_vector(((G_TDATA_WIDTH + 7) / 8) - 1 downto 0);
+      M_TKEEP  : out std_logic_vector(((G_TDATA_WIDTH + 7) / 8) - 1 downto 0);
+      M_TREADY : in  std_logic                                                := '1'
+    );
+  end component axis_pkt_pad;
+
+  ---------------------------------------------------
+  --
   -- Type
   --
   ---------------------------------------------------
@@ -1342,7 +1389,7 @@ package body axis_utils_pkg is
 
   -- Return the forward, backward and link configuration from register string
   function parse_register_configuration(
-    constant REG_STR : in string(0 to 3);
+    constant REG_STR : in string(1 to 4);
     constant ERR_STR : in string;
     constant EN_OPEN : in boolean := false
   ) return std_logic_vector is
@@ -1406,7 +1453,7 @@ package body axis_utils_pkg is
     variable configfileline : line;               -- @suppress line is not synthesized in this case
     -- hds checking_on
 
-    variable rd_reg     : string(0 to 3);         -- Read register from line
+    variable rd_reg     : string(1 to 4);         -- Read register from line
     variable sep        : character;              -- Read separator             -- @suppress "variable sep is never read"
     variable config_reg : std_logic_vector(2 downto 0); -- Translation of register string in slv
     variable config     : t_switch_config_constrained; -- Output configuration

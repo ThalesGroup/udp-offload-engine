@@ -1,16 +1,17 @@
--- Copyright (c) 2022-2022 THALES. All Rights Reserved
+-- Copyright (c) 2022-2024 THALES. All Rights Reserved
 --
--- Licensed under the Apache License, Version 2.0 (the "License");
--- you may not use this file except in compliance with the License.
--- You may obtain a copy of the License at
+-- Licensed under the SolderPad Hardware License v 2.1 (the "License");
+-- you may not use this file except in compliance with the License, or,
+-- at your option. You may obtain a copy of the License at
 --
--- http://www.apache.org/licenses/LICENSE-2.0
+-- https://solderpad.org/licenses/SHL-2.1/
 --
--- Unless required by applicable law or agreed to in writing, software
--- distributed under the License is distributed on an "AS IS" BASIS,
--- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
--- See the License for the specific language governing permissions and
--- limitations under the License.
+-- Unless required by applicable law or agreed to in writing, any
+-- work distributed under the License is distributed on an "AS IS"
+-- BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+-- either express or implied. See the License for the specific
+-- language governing permissions and limitations under the
+-- License.
 --
 -- File subject to timestamp TSP22X5365 Thales, in the name of Thales SIX GTS France, made on 10/06/2022.
 --
@@ -39,7 +40,8 @@ entity axi4lite_sp_ram_ctrl is
     G_ASYNC_RST      : boolean                := true; -- Type of reset used (synchronous or asynchronous resets)
     G_AXI_DATA_WIDTH : positive               := 32; -- Width of the data vector of the axi4-lite (32 or 64 bits following standard)
     G_AXI_ADDR_WIDTH : positive               := 8; -- Width of the address vector of the axi4-lite
-    G_RD_LATENCY     : positive range 2 to 32 := 2
+    G_RD_LATENCY     : positive range 2 to 32 := 2;
+    G_BYTE_ENABLE    : boolean                := false -- If true, allow STRB /= (others => '1')
   );
   port(
     -- GLOBAL SIGNALS
@@ -72,7 +74,7 @@ entity axi4lite_sp_ram_ctrl is
     S_AXI_RREADY  : in  std_logic;
     -- Interface RAM
     BRAM_EN       : out std_logic;
-    BRAM_WREN     : out std_logic;
+    BRAM_WREN     : out std_logic_vector(((G_AXI_DATA_WIDTH / 8) - 1) downto 0);
     BRAM_ADDR     : out std_logic_vector(G_AXI_ADDR_WIDTH - 1 downto 0);
     BRAM_DIN      : out std_logic_vector(G_AXI_DATA_WIDTH - 1 downto 0);
     BRAM_DOUT     : in  std_logic_vector(G_AXI_DATA_WIDTH - 1 downto 0)
@@ -85,7 +87,7 @@ architecture rtl of axi4lite_sp_ram_ctrl is
   -- Constants declaration
   --------------------------------------------------------------------
 
-  constant C_STRB_ALL_ONE  : std_logic_vector(((G_AXI_DATA_WIDTH / 8) - 1) downto 0) := (others => '1');
+  constant C_STRB_ALL_ONE : std_logic_vector(((G_AXI_DATA_WIDTH / 8) - 1) downto 0) := (others => '1');
 
   --------------------------------------------------------------------
   -- Signals declaration
@@ -94,7 +96,7 @@ architecture rtl of axi4lite_sp_ram_ctrl is
   -- signals used to release tready after reset
   signal axi_wr_init : std_logic;
   signal axi_rd_init : std_logic;
-  
+
   -- internal signals
   signal s_axi_awready_i : std_logic;
   signal s_axi_wready_i  : std_logic;
@@ -104,20 +106,20 @@ architecture rtl of axi4lite_sp_ram_ctrl is
   signal s_axi_rvalid_i  : std_logic;
 
   -- memorization of transaction AW/W
-  signal axi_awvalid  : std_logic;
-  signal axi_wvalid   : std_logic;
+  signal axi_awvalid : std_logic;
+  signal axi_wvalid  : std_logic;
 
   -- rd latency
-  signal rd_req       : std_logic;
-  signal rd_req_r     : std_logic_vector(G_RD_LATENCY - 1 downto 0);
+  signal rd_req   : std_logic;
+  signal rd_req_r : std_logic_vector(G_RD_LATENCY - 1 downto 0);
 
-  signal mem_wr_addr  : std_logic_vector(G_AXI_ADDR_WIDTH - 1 downto 0);
-  signal mem_wr_data  : std_logic_vector(G_AXI_DATA_WIDTH - 1 downto 0);
-  signal mem_wr_strb  : std_logic_vector(((G_AXI_DATA_WIDTH / 8) - 1) downto 0);
+  signal mem_wr_addr : std_logic_vector(G_AXI_ADDR_WIDTH - 1 downto 0);
+  signal mem_wr_data : std_logic_vector(G_AXI_DATA_WIDTH - 1 downto 0);
+  signal mem_wr_strb : std_logic_vector(((G_AXI_DATA_WIDTH / 8) - 1) downto 0);
 
   -- memorization of read request when concurent access RD/WR
-  signal mem_rd_req   : std_logic;
-  signal mem_rd_addr  : std_logic_vector(G_AXI_ADDR_WIDTH - 1 downto 0);
+  signal mem_rd_req  : std_logic;
+  signal mem_rd_addr : std_logic_vector(G_AXI_ADDR_WIDTH - 1 downto 0);
 
 begin
 
@@ -127,10 +129,10 @@ begin
   begin
     -- asynchronous reset
     if G_ASYNC_RST and (RST = G_ACTIVE_RST) then
-      
+
       axi_wr_init <= '1';
       axi_rd_init <= '1';
-      
+
       s_axi_awready_i <= '0';
       s_axi_wready_i  <= '0';
       s_axi_bvalid_i  <= '0';
@@ -153,7 +155,7 @@ begin
       mem_rd_addr <= (others => '0');
 
       BRAM_EN   <= '0';
-      BRAM_WREN <= '0';
+      BRAM_WREN <= (others => '0');
       BRAM_ADDR <= (others => '0');
       BRAM_DIN  <= (others => '0');
 
@@ -161,10 +163,10 @@ begin
 
       -- synchronous reset
       if (not G_ASYNC_RST) and (RST = G_ACTIVE_RST) then
-        
+
         axi_wr_init <= '1';
         axi_rd_init <= '1';
-        
+
         s_axi_awready_i <= '0';
         s_axi_wready_i  <= '0';
         s_axi_bvalid_i  <= '0';
@@ -187,7 +189,7 @@ begin
         mem_rd_addr <= (others => '0');
 
         BRAM_EN   <= '0';
-        BRAM_WREN <= '0';
+        BRAM_WREN <= (others => '0');
         BRAM_ADDR <= (others => '0');
         BRAM_DIN  <= (others => '0');
 
@@ -196,7 +198,7 @@ begin
         rd_req     <= '0';
         mem_rd_req <= '0';
         BRAM_EN    <= '0';
-        BRAM_WREN  <= '0';
+        BRAM_WREN  <= (others => '0');
 
         -- Assert awready and wready when previous transaction response has been accepted
         if (s_axi_bvalid_i = '1') and (S_AXI_BREADY = '1') then
@@ -208,7 +210,7 @@ begin
           s_axi_awready_i <= '1';
           s_axi_wready_i  <= '1';
           axi_wr_init     <= '0';
-        
+
         end if;
 
         -- Clear BVALID when BREADY is asserted
@@ -243,34 +245,46 @@ begin
 
           -- Clear flag AW
           axi_awvalid <= '0';
-          
+
           -- set response value
-          if (S_AXI_WSTRB = C_STRB_ALL_ONE) then
-            S_AXI_BRESP <= C_AXI_RESP_OKAY;
-          else
-            S_AXI_BRESP <= C_AXI_RESP_SLVERR;
+          S_AXI_BRESP <= C_AXI_RESP_OKAY;
+          -- With BYTE_ENABLE disabled, WSTRB must be full of 1
+          if not G_BYTE_ENABLE then
+            if (S_AXI_WSTRB /= C_STRB_ALL_ONE) then
+              S_AXI_BRESP <= C_AXI_RESP_SLVERR;
+            end if;
           end if;
         end if;
 
         -- launch access to ram
         if ((((S_AXI_AWVALID = '1') and (s_axi_awready_i = '1')) or (axi_awvalid = '1')) and (((S_AXI_WVALID = '1') and (s_axi_wready_i = '1')) or (axi_wvalid = '1'))) then
           s_axi_bvalid_i <= '1';
-          
-          -- allow write only when all strobe are one
+
           if (axi_wvalid = '1') then
-            -- use memorize
-            if (mem_wr_strb = C_STRB_ALL_ONE) then
-              BRAM_EN        <= '1';
-              BRAM_WREN      <= '1';
+            -- memory access
+            BRAM_EN   <= '1';
+            BRAM_WREN <= mem_wr_strb;
+            -- With BYTE_ENABLE disabled, allow write only when all strobe are one
+            if not G_BYTE_ENABLE then
+              if (mem_wr_strb /= C_STRB_ALL_ONE) then
+                BRAM_EN   <= '0';
+                BRAM_WREN <= (others => '0');
+              end if;
             end if;
           else
             -- use current
-            if (S_AXI_WSTRB = C_STRB_ALL_ONE) then
-              BRAM_EN        <= '1';
-              BRAM_WREN      <= '1';
+            -- memory access
+            BRAM_EN   <= '1';
+            BRAM_WREN <= S_AXI_WSTRB;
+            -- With BYTE_ENABLE disabled, allow write only when all strobe are one
+            if not G_BYTE_ENABLE then
+              if (S_AXI_WSTRB /= C_STRB_ALL_ONE) then
+                BRAM_EN   <= '0';
+                BRAM_WREN <= (others => '0');
+              end if;
             end if;
           end if;
-            
+
           -- use current or memorize
           if (axi_awvalid = '1') then
             BRAM_ADDR <= mem_wr_addr;

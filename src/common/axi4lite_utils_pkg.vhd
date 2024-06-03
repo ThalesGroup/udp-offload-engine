@@ -1,16 +1,17 @@
--- Copyright (c) 2022-2022 THALES. All Rights Reserved
+-- Copyright (c) 2022-2024 THALES. All Rights Reserved
 --
--- Licensed under the Apache License, Version 2.0 (the "License");
--- you may not use this file except in compliance with the License.
--- You may obtain a copy of the License at
+-- Licensed under the SolderPad Hardware License v 2.1 (the "License");
+-- you may not use this file except in compliance with the License, or,
+-- at your option. You may obtain a copy of the License at
 --
--- http://www.apache.org/licenses/LICENSE-2.0
+-- https://solderpad.org/licenses/SHL-2.1/
 --
--- Unless required by applicable law or agreed to in writing, software
--- distributed under the License is distributed on an "AS IS" BASIS,
--- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
--- See the License for the specific language governing permissions and
--- limitations under the License.
+-- Unless required by applicable law or agreed to in writing, any
+-- work distributed under the License is distributed on an "AS IS"
+-- BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+-- either express or implied. See the License for the specific
+-- language governing permissions and limitations under the
+-- License.
 --
 -- File subject to timestamp TSP22X5365 Thales, in the name of Thales SIX GTS France, made on 10/06/2022.
 --
@@ -36,6 +37,7 @@ use common.dev_utils_2008_pkg.all;
 -- * bridge_axi4lite
 -- * register
 -- * switch
+-- * cdc
 --
 ----------------------------------
 
@@ -119,11 +121,12 @@ package axi4lite_utils_pkg is
 
   component axi4lite_sp_ram_ctrl is
     generic(
-      G_ACTIVE_RST        : std_logic  := '0'; -- State at which the reset signal is asserted (active low or active high)
-      G_ASYNC_RST         : boolean    := true; -- Type of reset used (synchronous or asynchronous resets)
-      G_AXI_DATA_WIDTH    : positive   := 32; -- Width of the data vector of the axi4-lite (32 or 64 bits following standard)
-      G_AXI_ADDR_WIDTH    : positive   := 8; -- Width of the address vector of the axi4-lite
-      G_RD_LATENCY        : positive range 2 to 32 := 2
+      G_ACTIVE_RST     : std_logic              := '0'; -- State at which the reset signal is asserted (active low or active high)
+      G_ASYNC_RST      : boolean                := true; -- Type of reset used (synchronous or asynchronous resets)
+      G_AXI_DATA_WIDTH : positive               := 32; -- Width of the data vector of the axi4-lite (32 or 64 bits following standard)
+      G_AXI_ADDR_WIDTH : positive               := 8; -- Width of the address vector of the axi4-lite
+      G_RD_LATENCY     : positive range 2 to 32 := 2;
+      G_BYTE_ENABLE    : boolean                := false -- If true, allow STRB /= (others => '1')
     );
     port(
       -- GLOBAL SIGNALS
@@ -132,12 +135,12 @@ package axi4lite_utils_pkg is
       -- SLAVE AXI4-LITE
       -- -- ADDRESS WRITE (AW)
       S_AXI_AWADDR  : in  std_logic_vector(G_AXI_ADDR_WIDTH - 1 downto 0);
-      S_AXI_AWPROT  : in  std_logic_vector(2 downto 0);                             -- not used
+      S_AXI_AWPROT  : in  std_logic_vector(2 downto 0); -- not used
       S_AXI_AWVALID : in  std_logic;
       S_AXI_AWREADY : out std_logic;
       -- -- WRITE (W)
       S_AXI_WDATA   : in  std_logic_vector(G_AXI_DATA_WIDTH - 1 downto 0);
-      S_AXI_WSTRB   : in  std_logic_vector(((G_AXI_DATA_WIDTH / 8) - 1) downto 0);  -- not used
+      S_AXI_WSTRB   : in  std_logic_vector(((G_AXI_DATA_WIDTH / 8) - 1) downto 0);
       S_AXI_WVALID  : in  std_logic;
       S_AXI_WREADY  : out std_logic;
       -- -- RESPONSE WRITE (B)
@@ -146,7 +149,7 @@ package axi4lite_utils_pkg is
       S_AXI_BREADY  : in  std_logic;
       -- -- ADDRESS READ (AR)
       S_AXI_ARADDR  : in  std_logic_vector(G_AXI_ADDR_WIDTH - 1 downto 0);
-      S_AXI_ARPROT  : in  std_logic_vector(2 downto 0);                             -- not used
+      S_AXI_ARPROT  : in  std_logic_vector(2 downto 0); -- not used
       S_AXI_ARVALID : in  std_logic;
       S_AXI_ARREADY : out std_logic;
       -- -- READ (R)
@@ -155,11 +158,11 @@ package axi4lite_utils_pkg is
       S_AXI_RRESP   : out std_logic_vector(1 downto 0);
       S_AXI_RREADY  : in  std_logic;
       -- Interface RAM
-      BRAM_EN        : out std_logic;
-      BRAM_WREN      : out std_logic;
-      BRAM_ADDR      : out std_logic_vector(G_AXI_ADDR_WIDTH - 1 downto 0);
-      BRAM_DIN       : out std_logic_vector(G_AXI_DATA_WIDTH - 1 downto 0);
-      BRAM_DOUT      : in  std_logic_vector(G_AXI_DATA_WIDTH - 1 downto 0)
+      BRAM_EN       : out std_logic;
+      BRAM_WREN     : out std_logic_vector(((G_AXI_DATA_WIDTH / 8) - 1) downto 0) := (others => '1');
+      BRAM_ADDR     : out std_logic_vector(G_AXI_ADDR_WIDTH - 1 downto 0);
+      BRAM_DIN      : out std_logic_vector(G_AXI_DATA_WIDTH - 1 downto 0);
+      BRAM_DOUT     : in  std_logic_vector(G_AXI_DATA_WIDTH - 1 downto 0)
     );
   end component axi4lite_sp_ram_ctrl;
 
@@ -323,5 +326,92 @@ package axi4lite_utils_pkg is
       ERR_WRDEC : out std_logic  -- Pulse when a read decode error has occured
     );
   end component axi4lite_switch;
+
+  ----------------------------------
+  -- Clock Domain Crossing
+  ----------------------------------
+  component axi4lite_cdc
+    generic(
+      G_ACTIVE_RST : std_logic := '0';  -- State at which the reset signal is asserted (active low or active high)
+      G_ASYNC_RST  : boolean   := true; -- Type of reset used (synchronous or asynchronous resets)
+      G_DATA_WIDTH : positive  := 32;   -- Width of the data vector of the axi4-lite
+      G_ADDR_WIDTH : positive  := 16;   -- Width of the address vector of the axi4-lite
+      -- REGISTER STAGES
+      G_NB_STAGE   : integer range 2 to integer'high := 2 -- Number of synchronization stages (to increase MTBF)
+    );
+    port (
+      --------------------------------------
+      --
+      -- SOURCE CLOCK DOMAIN
+      --
+      --------------------------------------
+      S_CLK     : in  std_logic;
+      S_RST     : in  std_logic;
+
+      --------------------------------------
+      -- SLAVE AXI4-LITE
+      --------------------------------------
+      -- -- ADDRESS WRITE (AW)
+      S_AWADDR  : in  std_logic_vector(G_ADDR_WIDTH - 1 downto 0);
+      S_AWPROT  : in  std_logic_vector(2 downto 0);
+      S_AWVALID : in  std_logic;
+      S_AWREADY : out std_logic;
+      -- -- WRITE (W)
+      S_WDATA   : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+      S_WSTRB   : in  std_logic_vector((G_DATA_WIDTH / 8) - 1 downto 0);
+      S_WVALID  : in  std_logic;
+      S_WREADY  : out std_logic;
+      -- -- RESPONSE WRITE (B)
+      S_BRESP   : out std_logic_vector(1 downto 0);
+      S_BVALID  : out std_logic;
+      S_BREADY  : in  std_logic;
+      -- -- ADDRESS READ (AR)
+      S_ARADDR  : in  std_logic_vector(G_ADDR_WIDTH - 1 downto 0);
+      S_ARPROT  : in  std_logic_vector(2 downto 0);
+      S_ARVALID : in  std_logic;
+      S_ARREADY : out std_logic;
+      -- -- READ (R)
+      S_RDATA   : out std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+      S_RVALID  : out std_logic;
+      S_RRESP   : out std_logic_vector(1 downto 0);
+      S_RREADY  : in  std_logic;
+
+      --------------------------------------
+      --
+      -- DESTINATION CLOCK DOMAIN
+      --
+      --------------------------------------
+      M_CLK     : in  std_logic;
+      M_RST     : in  std_logic;
+
+      --------------------------------------
+      -- MASTER AXI4-LITE
+      --------------------------------------
+      -- -- ADDRESS WRITE (AW)
+      M_AWADDR  : out std_logic_vector(G_ADDR_WIDTH - 1 downto 0);
+      M_AWPROT  : out std_logic_vector(2 downto 0);
+      M_AWVALID : out std_logic;
+      M_AWREADY : in  std_logic;
+      -- -- WRITE (W)
+      M_WDATA   : out std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+      M_WSTRB   : out std_logic_vector((G_DATA_WIDTH / 8) - 1 downto 0);
+      M_WVALID  : out std_logic;
+      M_WREADY  : in  std_logic;
+      -- -- RESPONSE WRITE (B)
+      M_BRESP   : in  std_logic_vector(1 downto 0);
+      M_BVALID  : in  std_logic;
+      M_BREADY  : out std_logic;
+      -- -- ADDRESS READ (AR)
+      M_ARADDR  : out std_logic_vector(G_ADDR_WIDTH - 1 downto 0);
+      M_ARPROT  : out std_logic_vector(2 downto 0);
+      M_ARVALID : out std_logic;
+      M_ARREADY : in  std_logic;
+      -- -- READ (R)
+      M_RDATA   : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+      M_RVALID  : in  std_logic;
+      M_RRESP   : in  std_logic_vector(1 downto 0);
+      M_RREADY  : out std_logic
+    );
+  end component axi4lite_cdc;
 
 end axi4lite_utils_pkg;

@@ -1,16 +1,19 @@
--- Copyright (c) 2022-2023 THALES. All Rights Reserved
+-- Copyright (c) 2022-2024 THALES. All Rights Reserved
 --
--- Licensed under the Apache License, Version 2.0 (the "License");
--- you may not use this file except in compliance with the License.
--- You may obtain a copy of the License at
+-- Licensed under the SolderPad Hardware License v 2.1 (the "License");
+-- you may not use this file except in compliance with the License, or,
+-- at your option. You may obtain a copy of the License at
 --
--- http://www.apache.org/licenses/LICENSE-2.0
+-- https://solderpad.org/licenses/SHL-2.1/
 --
--- Unless required by applicable law or agreed to in writing, software
--- distributed under the License is distributed on an "AS IS" BASIS,
--- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
--- See the License for the specific language governing permissions and
--- limitations under the License.
+-- Unless required by applicable law or agreed to in writing, any
+-- work distributed under the License is distributed on an "AS IS"
+-- BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+-- either express or implied. See the License for the specific
+-- language governing permissions and limitations under the
+-- License.
+--
+-- File subject to timestamp TSP22X5365 Thales, in the name of Thales SIX GTS France, made on 10/06/2022.
 --
 
 ------------------------------------------------
@@ -34,6 +37,8 @@ use ieee.numeric_std.all;
 
 library common;
 use common.axis_utils_pkg.axis_combine;
+
+use common.datatest_tools_pkg.all;
 
 entity axis_pkt_chk is
   generic(
@@ -109,7 +114,7 @@ begin
   --===================================
   -- Comparaison of input signals
   -- If the two buses are the the same there is no difference so we put the signal at 0
-  -- The idea is to use one bit for each signal to reduce ressources in axis_combine
+  -- The idea is to use one bit for each signal to reduce resources in axis_combine
   s_tdata <= "0" when (S0_TDATA = S1_TDATA) else "1";
   s_tlast <= '0' when (S0_TLAST = S1_TLAST) else '1';
   s_tuser <= "0" when (S0_TUSER = S1_TUSER) else "1";
