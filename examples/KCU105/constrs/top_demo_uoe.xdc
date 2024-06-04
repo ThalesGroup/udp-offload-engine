@@ -1,8 +1,20 @@
-# ******************************************************************************************
-# * This program is the Confidential and Proprietary product of THALES.                    *
-# * Any unauthorized use, reproduction or transfer of this program is strictly prohibited. *
-# * Copyright (c) 2014-2017 THALES GLOBAL SERVICES. All Rights Reserved.                   *
-# ******************************************************************************************
+# Copyright (c) 2022-2024 THALES. All Rights Reserved
+#
+# Licensed under the SolderPad Hardware License v 2.1 (the "License");
+# you may not use this file except in compliance with the License, or,
+# at your option. You may obtain a copy of the License at
+#
+# https://solderpad.org/licenses/SHL-2.1/
+#
+# Unless required by applicable law or agreed to in writing, any
+# work distributed under the License is distributed on an "AS IS"
+# BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied. See the License for the specific
+# language governing permissions and limitations under the
+# License.
+#
+# File subject to timestamp TSP22X5365 Thales, in the name of Thales SIX GTS France, made on 10/06/2022.
+#
 
 #clock creation section
 
@@ -73,3 +85,12 @@ set_property PACKAGE_PIN AP18    [get_ports GPIO_DIP_SW[2]]
 set_property IOSTANDARD LVCMOS12 [get_ports GPIO_DIP_SW[2]]
 set_property PACKAGE_PIN AN14    [get_ports GPIO_DIP_SW[3]]
 set_property IOSTANDARD LVCMOS12 [get_ports GPIO_DIP_SW[3]]
+
+# UART
+# Bank  95 VCCO -          - IO_L3P_T0L_N4_AD15P_A26_65
+set_property PACKAGE_PIN G25      [get_ports "UART_RX"] 
+set_property IOSTANDARD  LVCMOS18 [get_ports "UART_RX"]
+# Bank  95 VCCO -          - IO_L2P_T0L_N2_FOE_B_65
+set_property PACKAGE_PIN K26      [get_ports "UART_TX"] 
+set_property IOSTANDARD  LVCMOS18 [get_ports "UART_TX"]
+# Inversion RX/TX sur carte d'évaluation 
