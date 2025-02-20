@@ -123,6 +123,24 @@ package uoe_module_pkg is
   constant C_STATUS_VALID   : std_logic := '0';
   constant C_STATUS_INVALID : std_logic := '1';
 
+  --DHCP constant
+  constant C_DHCP_HEADER_SIZE : positive := 240;   
+  constant C_DHCP_PORT_CLIENT : std_logic_vector(15 downto 0) := x"0044";  --port 68 client
+  constant C_DHCP_PORT_SERVER : std_logic_vector(15 downto 0) := x"0043";  --port 67 server
+  constant C_CHADDR           : std_logic_vector(47 downto 0) := x"11_22_33_44_55_66";
+  constant C_MAGIC_COOKIE     : std_logic_vector(31 downto 0) := x"63_82_53_63";
+  
+  type t_dhcp_state is (IDLE, DISCOVER, OFFER, REQUEST, ACK, BOUND);
+  --type t_dhcp_state is (INIT, INIT_REBOOT, REBOOTING, SELECTING, REQUESTING, CHECKING, DECLINING, REBINDING, BOUND, RENEWING);
+  
+  -- record for DHCP data
+  type t_dhcp_network_config is record
+    OFFER_IP      : std_logic_vector(31 downto 0);
+    SUBNET_MASK   : std_logic_vector(31 downto 0);
+    SERVER_IP     : std_logic_vector(31 downto 0);
+    ROUTER_IP     : std_logic_vector(31 downto 0);
+  end record t_dhcp_network_config;
+  
 end package uoe_module_pkg;
 
 
