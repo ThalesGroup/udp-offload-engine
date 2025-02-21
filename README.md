@@ -40,6 +40,7 @@ It was encapsulated in a top wrapper **_top_uoe_** which additionally instantiat
   * Link layer : Lower layer of the IP, it allows the connection with the MAC layer. It handle the Ethernet protocol, directs incoming packets and can filter them.
   * Internet layer : It is the intermediate layer which handle the IPv4 Protocol and a part of ICMP Protocol (Ping)
   * Transport layer : This layer is dedicated to the UDP protocol
+  * Application layer : This layer is dedicated to the DHCP protocol
   
 * Built-In-Test part (Optional)
 
@@ -68,6 +69,11 @@ The Full documentation of the stack is available on the [architecture guide](doc
 * Internet Control Message Procotol (ICMP)
 
   * Echo Request/Reply (PING) (Coming soon...)
+  
+* Dynamic Host Configuration Protocol‬
+  
+  * Simulated DHCP functionality for dynamic IP address allocation.
+  * The feature is under development and has not yet been tested on the target hardware.
   
 * Take into account buffers on the MAC interface and clock domain crossing
 

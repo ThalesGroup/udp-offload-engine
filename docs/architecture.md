@@ -11,6 +11,7 @@ At the time, the following protocols are handled inside UOE-IP :
 * Layer 2 : MAC (Without CRC)
 * Layer 3 : IPv4 , ARP
 * Layer 4 : UDP
+* Layer 7 : DHCP
 
 &nbsp;  
 &nbsp;  
@@ -24,7 +25,8 @@ At the time, the following protocols are handled inside UOE-IP :
      2. [Link layer](#link_layer)
      3. [Internet layer](#internet_layer)
      4. [Transport layer](#transport_layer)
-     5. [Other modules](#other_modules)
+     5. [Application layer](#application_layer)
+     6. [Other modules](#other_modules)
  2. [Integrated Tests](#integrated_tests)
  3. [Generic map](#generic_map)
  4. [Ports map](#ports_map)
@@ -264,6 +266,24 @@ This layer is in charge to handle protocol of layer 4.
 At this time, the only protocol managed by this layer is the UDP protocol. 
 
 Therefore, the UDP module is in charge to insert (in TX) or remove (in RX) an UDP header in the incoming packets.
+
+[[Back to menu](#menu)]
+
+&nbsp;  
+&nbsp;  
+&nbsp;
+
+*******
+
+## Application layer (Layer 7) <a name='application_layer'/> 
+
+![transport_layer](schematics/application_layer.png)
+
+This layer is in charge to handle protocol of layer 7. 
+At this time, the only protocol managed by this layer is the DHCP protocol. 
+
+The DHCP module handles DHCP messages, ensuring they are correctly formed and processed. 
+It works with the UDP module to ensure proper transmission of the DHCP packets.
 
 [[Back to menu](#menu)]
 

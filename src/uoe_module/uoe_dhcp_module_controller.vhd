@@ -121,6 +121,7 @@ begin
             end if;
 
           when DISCOVER =>
+            status_dhcp        <=(0 => '1', others => '0');
             if DHCP_MESSAGE_SENT = '1' then                    -- Discover message is sent, go to the offer state
               send_dhcp_discover <= '0';
               s_dhcp_state       <= OFFER;
