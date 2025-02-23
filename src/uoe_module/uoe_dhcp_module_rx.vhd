@@ -50,14 +50,15 @@ entity uoe_dhcp_module_rx is
     RST                   : in  std_logic;
     INIT_DONE             : in  std_logic;
 
+    DHCP_USER_MAC_ADDR    : in  std_logic_vector(47 downto 0);
     DHCP_XID              : in  std_logic_vector(31 downto 0);
     DHCP_STATE            : in  t_dhcp_state;
-    DHCP_NETWORK_CONFIG   : out t_dhcp_network_config;           -- DHCP parameters extracted from options in the received DHCP frame(assigned IP, Subnetmask, Router and Server IP)
+    DHCP_NETWORK_CONFIG   : out t_dhcp_network_config;
     DHCP_OFFER_SEL        : out std_logic;
     DHCP_ACK              : out std_logic;
     DHCP_NACK             : out std_logic;
     DHCP_RX_ERROR         : out std_logic;
-    
+
     -- From UDP Transport Layer
     S_TDATA               : in  std_logic_vector(G_TDATA_WIDTH - 1 downto 0);
     S_TVALID              : in  std_logic;
@@ -151,7 +152,7 @@ architecture rtl of uoe_dhcp_module_rx is
   signal dhcp_acknowledge    : std_logic;                     -- flag for ack message (configuration is successfull)
   signal dhcp_type_msg       : std_logic_vector( 7 downto 0); -- signal for the type of dhcp message
   signal in_progress         : std_logic;                     -- control signal for receiveing frame
-  signal dhcp_skip_mode      : std_logic;                     -- flag to indicate that the dhcp receiver is in skip mode(whether the message is not for DHCP or there is an error in the incoming frame)
+  signal dhcp_skip_mode      : std_logic;                     -- flag to indicate that the dhcp receiver is in skip mode(whether the message is not for DHCP or there is an error in the incoming frame)  
 begin
 
   -----------------------------------------------------
@@ -280,7 +281,7 @@ begin
             
             --check wether the frame is for the DHCP client
             if ((S_TUSER(79 downto 64) /= C_DHCP_PORT_CLIENT) or (S_TUSER(63 downto 48) /= C_DHCP_PORT_SERVER)) then
-              rx_state            <= SKIP;
+              rx_state <= SKIP;
               dhcp_skip_mode      <= '1';
             end if;
             frame_size <= S_TUSER(47 downto 32);  -- the incoming frame size
@@ -317,7 +318,7 @@ begin
                       end if;                  
                     when 1 =>  --check htype;  
                       if mid.tdata((8 * i) + 7 downto 8 * i) /= C_DHCP_MSG_HEADER(23 downto 16) then -- check if htype is MAC
-                        rx_state            <= SKIP;
+                        rx_state <= SKIP;
                         dhcp_skip_mode      <= '1';
                       end if;  
                     when 2 =>  --check hlen;  
@@ -364,33 +365,34 @@ begin
                        
                     --check client Mac addr 
                     when 28 =>  
-                      if mid.tdata((8 * i) + 7 downto 8 * i) /= C_CHADDR(47 downto 40) then
+                      if mid.tdata((8 * i) + 7 downto 8 * i) /= DHCP_USER_MAC_ADDR(47 downto 40) then
                         rx_state            <= SKIP;
                         dhcp_skip_mode      <= '1';
                       end if;
                     when 29 =>   
-                      if mid.tdata((8 * i) + 7 downto 8 * i) /= C_CHADDR(39 downto 32) then 
+                      if mid.tdata((8 * i) + 7 downto 8 * i) /= DHCP_USER_MAC_ADDR(39 downto 32) then 
                         rx_state            <= SKIP;
                         dhcp_skip_mode      <= '1';
                       end if;
                     when 30 =>  
-                      if mid.tdata((8 * i) + 7 downto 8 * i) /= C_CHADDR(31 downto 24) then
+                      if mid.tdata((8 * i) + 7 downto 8 * i) /= DHCP_USER_MAC_ADDR(31 downto 24) then
                         rx_state            <= SKIP;
                         dhcp_skip_mode      <= '1';
                       end if;
                     when 31 =>  
-                      if mid.tdata((8 * i) + 7 downto 8 * i) /= C_CHADDR(23 downto 16) then
+                      if mid.tdata((8 * i) + 7 downto 8 * i) /= DHCP_USER_MAC_ADDR(23 downto 16) then
                         rx_state            <= SKIP;
                         dhcp_skip_mode      <= '1';
                       end if;
                     when 32 =>   
-                      if mid.tdata((8 * i) + 7 downto 8 * i) /= C_CHADDR(15 downto 8) then
+                      if mid.tdata((8 * i) + 7 downto 8 * i) /= DHCP_USER_MAC_ADDR(15 downto 8) then
                         rx_state            <= SKIP;
                         dhcp_skip_mode      <= '1';
                       end if;
                     when 33 =>   
-                      if mid.tdata((8 * i) + 7 downto 8 * i) /= C_CHADDR(7 downto 0) then 
-                        rx_state <= SKIP;
+                      if mid.tdata((8 * i) + 7 downto 8 * i) /= DHCP_USER_MAC_ADDR(7 downto 0) then 
+                        rx_state            <= SKIP;
+                        dhcp_skip_mode      <= '1';
                       end if;
                     --check magic cookie
                     when 236 =>   
@@ -438,29 +440,26 @@ begin
                         end case;
                       
                       elsif (option_state = LENGTH) then
-                          lengt_v := to_integer(unsigned(mid.tdata((8 * i) + 7 downto 8 * i))); --extraction of message length in option 
+                          lengt_v := to_integer(unsigned(mid.tdata((8 * i) + 7 downto 8 * i)) );--))); --extraction of message length in option 
                         
                        --extract value in the options
                       elsif(option_state = VALUE) then 
-                        if lengt_v > 4 then
-                          -- do nothing for now
-                        else
-                          if (type_message = "010") then -- extraction of dhcp_message_type(OFFER, ACK, NACK)
-                            dhcp_type_msg  <= mid.tdata((8 * i) + 7 downto 8 * i);
+                       
+                        if (type_message = "010") then -- extraction of dhcp_message_type(OFFER, ACK, NACK)
+                          dhcp_type_msg  <= mid.tdata((8 * i) + 7 downto 8 * i);
 
-                          elsif (type_message = "011") then --extraction of netmask 
-                            dhcp_subnetmask((8 * lengt_v - 1)  downto 8 * lengt_v -8)  <= mid.tdata((8 * i) + 7 downto 8 * i);
+                        elsif (type_message = "011") then --extraction of netmask 
+                          dhcp_subnetmask((8 * lengt_v - 1)  downto 8 * lengt_v -8)  <= mid.tdata((8 * i) + 7 downto 8 * i);
                        
-                          elsif (type_message = "100") then --extraction of lease time 
-                            dhcp_lease_time((8 * lengt_v - 1)  downto 8 * lengt_v -8)  <= mid.tdata((8 * i) + 7 downto 8 * i);                        
+                        elsif (type_message = "100") then --extraction of lease time 
+                          dhcp_lease_time((8 * lengt_v - 1)  downto 8 * lengt_v -8)  <= mid.tdata((8 * i) + 7 downto 8 * i);                        
                           
-                          elsif (type_message = "101") then --extraction of server_ip
-                            --dhcp_siaddr((8 * lengt_v - 1)  downto 8 * lengt_v -8)      <= mid.tdata((8 * i) + 7 downto 8 * i);
-                            dhcp_server_v((8 * lengt_v - 1)  downto 8 * lengt_v -8)    := mid.tdata((8 * i) + 7 downto 8 * i);
+                        elsif (type_message = "101") then --extraction of server_ip
+                          --dhcp_siaddr((8 * lengt_v - 1)  downto 8 * lengt_v -8)      <= mid.tdata((8 * i) + 7 downto 8 * i);
+                          dhcp_server_v((8 * lengt_v - 1)  downto 8 * lengt_v -8)    := mid.tdata((8 * i) + 7 downto 8 * i);
                        
-                          elsif(type_message = "110") then -- extraction of router_ip
-                            dhcp_router((8 * lengt_v - 1)  downto 8 * lengt_v -8)      <= mid.tdata((8 * i) + 7 downto 8 * i);
-                          end if;
+                        elsif(type_message = "110") then -- extraction of router_ip
+                          dhcp_router((8 * lengt_v - 1)  downto 8 * lengt_v -8)      <= mid.tdata((8 * i) + 7 downto 8 * i);
                         end if;
                       end if;
                       
@@ -490,8 +489,7 @@ begin
 
                 -- reset counter when tlast and transistion to DHCP_RX_HEADER
                 if (mid.tlast = '1') then
-                  in_progress         <= '1';
-                  
+                  in_progress <= '1';
                   case dhcp_type_msg is 
                    
                     when C_DHCP_OFFER_TYPE =>  --OFFER message
@@ -521,10 +519,10 @@ begin
                 else
                   cnt_options <= cnt_options + 1;
                 end if;                              
-              when SKIP => --the receiveing frames are not destinated to the DHCP or there is an error with incoming frame
+              when SKIP => --the receiveing frames are not destinated to the DHCP or there is an error
                 if (mid.tlast = '1') then
+                  rx_state            <= DHCP_RX_HEADER;
                   dhcp_skip_mode      <= '0';
-                  rx_state <= DHCP_RX_HEADER;
                 end if;
              
               when others =>

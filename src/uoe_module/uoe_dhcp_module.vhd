@@ -17,7 +17,7 @@
 --
 -- This design was created in collaboration for an academic project at Polytech Nantes by
 --**************************************************************
--- Student        : BLO, lo.babacar@outlook.com
+-- Student        : B. LO, lo.babacar@outlook.com
 --**************************************************************
 
 library ieee;
@@ -32,39 +32,49 @@ use ieee.math_real.all;
 --
 ----------------------------------
 
+library common;
+use common.axis_utils_pkg.axis_register;
+use common.axis_utils_pkg.axis_pkt_align;
+
 use work.uoe_module_pkg.all;
 
 entity uoe_dhcp_module is
   generic(
-    G_ACTIVE_RST        : std_logic := '0';   -- State at which the reset signal is asserted (active low or active high)
-    G_ASYNC_RST         : boolean   := true;  -- Type of reset used (synchronous or asynchronous resets)
-    G_TDATA_WIDTH       : positive  := 32     -- Width of the data bus
+    G_ACTIVE_RST            : std_logic := '0';   -- State at which the reset signal is asserted (active low or active high)
+    G_ASYNC_RST             : boolean   := true;  -- Type of reset used (synchronous or asynchronous resets)
+    G_TDATA_WIDTH           : positive  := 32     -- Width of the data bus
   );
   port(
     -- Clocks and resets
-    CLK                 : in  std_logic;
-    RST                 : in  std_logic;
-    -- control input signal
-    INIT_DONE           : in  std_logic;
-    DHCP_START          : in  std_logic;
+    CLK                     : in  std_logic;
+    RST                     : in  std_logic;
+  
+    -- control input signal from register
+    INIT_DONE               : in  std_logic;
+    DHCP_START              : in  std_logic;
+    DHCP_USE_IP             : in  std_logic;
+    DHCP_USER_IP_ADDR       : in  std_logic_vector(31 downto 0);
+    DHCP_USER_MAC_ADDR      : in  std_logic_vector(47 downto 0);
+   
     -- outputs signal for register
-    DHCP_NETWORK_CONFIG : out t_dhcp_network_config;
-    DHCP_STATUS         : out std_logic_vector(2 downto 0);
+    DHCP_NETWORK_CONFIG_REG : out t_dhcp_network_config; 
+    DHCP_STATUS_REG         : out std_logic_vector(2 downto 0);
+   
     -- From UDP Transport Layer
-    S_TDATA             : in  std_logic_vector(G_TDATA_WIDTH - 1 downto 0);
-    S_TVALID            : in  std_logic;
-    S_TLAST             : in  std_logic;
-    S_TKEEP             : in  std_logic_vector(((G_TDATA_WIDTH + 7) / 8) - 1 downto 0);
-    S_TUSER             : in  std_logic_vector(79 downto 0); -- 79:64 -> Dest port, 63:48 -> Src port, 47:32 -> Size of incoming frame, 31:0 -> Dest IP addr
-    S_TREADY            : out std_logic;
-
+    S_TDATA                 : in  std_logic_vector(G_TDATA_WIDTH - 1 downto 0);
+    S_TVALID                : in  std_logic;
+    S_TLAST                 : in  std_logic;
+    S_TKEEP                 : in  std_logic_vector(((G_TDATA_WIDTH + 7) / 8) - 1 downto 0);
+    S_TUSER                 : in  std_logic_vector(79 downto 0); -- 79:64 -> Dest port, 63:48 -> Src port, 47:32 -> Size of incoming frame, 31:0 -> Dest IP addr
+    S_TREADY                : out std_logic;
+ 
     -- To UDP Transport Layer
-    M_TDATA             : out std_logic_vector(G_TDATA_WIDTH - 1 downto 0);
-    M_TVALID            : out std_logic;
-    M_TLAST             : out std_logic;
-    M_TKEEP             : out std_logic_vector(((G_TDATA_WIDTH + 7) / 8) - 1 downto 0);
-    M_TUSER             : out std_logic_vector(79 downto 0); -- 79:64 -> Dest port, 63:48 -> Src port, 47:32 -> Size of incoming frame, 31:0 -> Dest IP addr
-    M_TREADY            : in  std_logic
+    M_TDATA                 : out std_logic_vector(G_TDATA_WIDTH - 1 downto 0);
+    M_TVALID                : out std_logic;
+    M_TLAST                 : out std_logic;
+    M_TKEEP                 : out std_logic_vector(((G_TDATA_WIDTH + 7) / 8) - 1 downto 0);
+    M_TUSER                 : out std_logic_vector(79 downto 0); -- 79:64 -> Dest port, 63:48 -> Src port, 47:32 -> Size of incoming frame, 31:0 -> Dest IP addr
+    M_TREADY                : in  std_logic
 
     -- signification of status value
     -- if DHCP_STATUS(1 downto 0) = : 
@@ -73,7 +83,6 @@ entity uoe_dhcp_module is
     -- 2 --> dhcp configuration is failed(process will be restarted from DISCOVER)
     -- 3 --> dhcp configuration is succesfull (we are in bound)  
     -- if DHCP_STATUS(2) = 1 --> ducp_Rx_error  : there might be an error or the received pacquets is not destinated to the DHCP
-
   );
 end uoe_dhcp_module;
 
@@ -84,7 +93,7 @@ architecture rtl of uoe_dhcp_module is
   component uoe_dhcp_module_tx is
     generic(
       G_ACTIVE_RST          : std_logic := '0';   -- State at which the reset signal is asserted (active low or active high)
-      G_ASYNC_RST           : boolean   := true; -- Type of reset used (synchronous or asynchronous resets)
+      G_ASYNC_RST           : boolean   := true;  -- Type of reset used (synchronous or asynchronous resets)
       G_TDATA_WIDTH         : positive  := 32     -- Width of the data bus
     );
     port(
@@ -98,6 +107,10 @@ architecture rtl of uoe_dhcp_module is
       DHCP_STATE            : in  t_dhcp_state;
       DHCP_NETWORK_CONFIG   : in  t_dhcp_network_config;
       DHCP_XID              : in  std_logic_vector(31 downto 0);
+      --difference from the first increment
+      DHCP_USE_IP           : in  std_logic;
+      DHCP_USER_IP_ADDR     : in  std_logic_vector(31 downto 0);
+      DHCP_USER_MAC_ADDR    : in  std_logic_vector(47 downto 0);
       DHCP_MESSAGE_SENT     : out std_logic;
 
       -- To UDP Transport Layer
@@ -123,7 +136,8 @@ architecture rtl of uoe_dhcp_module is
       CLK                   : in  std_logic;
       RST                   : in  std_logic;
       INIT_DONE             : in  std_logic;
-
+      
+      DHCP_USER_MAC_ADDR    : in  std_logic_vector(47 downto 0);
       DHCP_XID              : in  std_logic_vector(31 downto 0);
       DHCP_STATE            : in  t_dhcp_state;
       DHCP_NETWORK_CONFIG   : out t_dhcp_network_config;
@@ -131,7 +145,7 @@ architecture rtl of uoe_dhcp_module is
       DHCP_ACK              : out std_logic;
       DHCP_NACK             : out std_logic;
       DHCP_RX_ERROR         : out std_logic;
-      
+
       -- From UDP Transport Layer
       S_TDATA               : in  std_logic_vector(G_TDATA_WIDTH - 1 downto 0);
       S_TVALID              : in  std_logic;
@@ -185,12 +199,12 @@ architecture rtl of uoe_dhcp_module is
   signal dhcp_send_request   : std_logic;
   signal dhcp_xid            : std_logic_vector(31 downto 0);
   signal dhcp_state          : t_dhcp_state;
-  signal network_config      : t_dhcp_network_config;
+  signal dhcp_network_config : t_dhcp_network_config;
 begin
 
-  -- output assignment
-  DHCP_NETWORK_CONFIG        <= network_config;
-
+  --output assignment
+  DHCP_NETWORK_CONFIG_REG   <= dhcp_network_config;
+   
   -- Instance ctrl
   inst_uoe_dhcp_module_ctrl : uoe_dhcp_module_controller
     generic map(
@@ -214,7 +228,7 @@ begin
       DHCP_SEND_REQUEST     => dhcp_send_request,
       DHCP_XID              => dhcp_xid,
       DHCP_STATE            => dhcp_state, 
-      DHCP_STATUS           => DHCP_STATUS(1 downto 0)
+      DHCP_STATUS           => DHCP_STATUS_REG(1 downto 0)
     );
 
   -- Instance TX
@@ -232,9 +246,12 @@ begin
       DHCP_SEND_DISCOVER    => dhcp_send_discover,
       DHCP_SEND_REQUEST     => dhcp_send_request,
       DHCP_STATE            => dhcp_state,
-      DHCP_NETWORK_CONFIG   => network_config,
+      DHCP_NETWORK_CONFIG   => dhcp_network_config,
       DHCP_XID              => dhcp_xid,
 
+      DHCP_USE_IP           => DHCP_USE_IP,
+      DHCP_USER_IP_ADDR     => DHCP_USER_IP_ADDR,
+      DHCP_USER_MAC_ADDR    => DHCP_USER_MAC_ADDR,
       DHCP_MESSAGE_SENT     => dhcp_message_sent,
       -- To UDP Transport Layer
       M_TDATA               => M_TDATA,
@@ -256,14 +273,16 @@ begin
       CLK                   => CLK,
       RST                   => RST,
       INIT_DONE             => INIT_DONE,
-
+      
+      DHCP_USER_MAC_ADDR    => DHCP_USER_MAC_ADDR,
       DHCP_XID              => dhcp_xid,
       DHCP_STATE            => dhcp_state,
-      DHCP_NETWORK_CONFIG   => network_config,
+      DHCP_NETWORK_CONFIG   => dhcp_network_config,
       DHCP_OFFER_SEL        => dhcp_offer_selected,
       DHCP_ACK              => dhcp_acknowledge,
       DHCP_NACK             => dhcp_n_acknowledge,
-      DHCP_RX_ERROR         => DHCP_STATUS(2),
+      DHCP_RX_ERROR         => DHCP_STATUS_REG(2),
+
       -- From UDP Transport Layer
       S_TDATA               => S_TDATA,
       S_TVALID              => S_TVALID,

@@ -55,6 +55,10 @@ entity uoe_dhcp_module_tx is
     DHCP_STATE           : in  t_dhcp_state;
     DHCP_NETWORK_CONFIG  : in  t_dhcp_network_config;
     DHCP_XID             : in  std_logic_vector(31 downto 0);
+    --difference from the first increment
+    DHCP_USE_IP          : in  std_logic;
+    DHCP_USER_IP_ADDR    : in  std_logic_vector(31 downto 0);
+    DHCP_USER_MAC_ADDR   : in  std_logic_vector(47 downto 0);
     DHCP_MESSAGE_SENT    : out std_logic;
     
     -- To UDP Transport Layer
@@ -235,12 +239,12 @@ begin
                   -- ciaddr, yiaddr, siaddr, giaadr are set to zero for the moment
                   
                   --setting client Mac addr 
-                  when C_ALIGN +  28 => m_int.tdata((8 * i) + 7 downto 8 * i) <= C_CHADDR(47 downto 40);      --client hardware addr
-                  when C_ALIGN +  29 => m_int.tdata((8 * i) + 7 downto 8 * i) <= C_CHADDR(39 downto 32);
-                  when C_ALIGN +  30 => m_int.tdata((8 * i) + 7 downto 8 * i) <= C_CHADDR(31 downto 24);
-                  when C_ALIGN +  31 => m_int.tdata((8 * i) + 7 downto 8 * i) <= C_CHADDR(23 downto 16);
-                  when C_ALIGN +  32 => m_int.tdata((8 * i) + 7 downto 8 * i) <= C_CHADDR(15 downto  8);
-                  when C_ALIGN +  33 => m_int.tdata((8 * i) + 7 downto 8 * i) <= C_CHADDR( 7 downto  0);
+                  when C_ALIGN +  28 => m_int.tdata((8 * i) + 7 downto 8 * i) <= DHCP_USER_MAC_ADDR(47 downto 40);      --client hardware addr
+                  when C_ALIGN +  29 => m_int.tdata((8 * i) + 7 downto 8 * i) <= DHCP_USER_MAC_ADDR(39 downto 32);
+                  when C_ALIGN +  30 => m_int.tdata((8 * i) + 7 downto 8 * i) <= DHCP_USER_MAC_ADDR(31 downto 24);
+                  when C_ALIGN +  31 => m_int.tdata((8 * i) + 7 downto 8 * i) <= DHCP_USER_MAC_ADDR(23 downto 16);
+                  when C_ALIGN +  32 => m_int.tdata((8 * i) + 7 downto 8 * i) <= DHCP_USER_MAC_ADDR(15 downto  8);
+                  when C_ALIGN +  33 => m_int.tdata((8 * i) + 7 downto 8 * i) <= DHCP_USER_MAC_ADDR( 7 downto  0);
 
                   --set the magic cookie
                   when C_ALIGN + 236 => m_int.tdata((8 * i) + 7 downto 8 * i) <= C_MAGIC_COOKIE(31 downto 24);
@@ -278,31 +282,66 @@ begin
                     when C_ALIGN + 2 => m_int.tdata((8 * i) + 7 downto 8 * i) <= dhcp_msg_type;       -- ethier a DISCOVER or a REQUEST message 
                       
                     --requested IP (in Discover the user can choose an specific IP address in Request IP address extracted from the previous offer message is used)
-                    when C_ALIGN + 4 => m_int.tdata((8 * i) + 7 downto 8 * i) <= C_DHCP_REQUESTED_IP_TAG;
-                    when C_ALIGN + 5 => m_int.tdata((8 * i) + 7 downto 8 * i) <= C_DHCP_REQUESTED_IP_LEN;
+                    when C_ALIGN + 4 => 
+                      if (DHCP_SEND_DISCOVER ='1' and DHCP_STATE = DISCOVER) then
+                        if DHCP_USE_IP = '1' then
+                          m_int.tdata((8 * i) + 7 downto 8 * i) <= C_DHCP_REQUESTED_IP_TAG;
+                        else
+                          m_int.tdata((8 * i) + 7 downto 8 * i) <= (others => '0');
+                        end if;
+                      elsif (DHCP_SEND_REQUEST ='1' and DHCP_STATE = REQUEST)then
+                        m_int.tdata((8 * i) + 7 downto 8 * i) <= C_DHCP_REQUESTED_IP_TAG;
+                      end if;
+                    when C_ALIGN + 5 => 
+                      if (DHCP_SEND_DISCOVER ='1' and DHCP_STATE = DISCOVER) then
+                        if DHCP_USE_IP = '1' then
+                          m_int.tdata((8 * i) + 7 downto 8 * i) <= C_DHCP_REQUESTED_IP_LEN;
+                        else
+                          m_int.tdata((8 * i) + 7 downto 8 * i) <= (others => '0');
+                        end if;
+                      elsif (DHCP_SEND_REQUEST ='1' and DHCP_STATE = REQUEST)then
+                        m_int.tdata((8 * i) + 7 downto 8 * i) <= C_DHCP_REQUESTED_IP_LEN;
+                      end if;
+
                       
                     when C_ALIGN + 6 => 
                       if (DHCP_SEND_DISCOVER ='1' and DHCP_STATE = DISCOVER) then
-                        m_int.tdata((8 * i) + 7 downto 8 * i) <= C_DHCP_LOCAL_REQ_IP(31 downto 24);  
+                        if DHCP_USE_IP = '1' then
+                          m_int.tdata((8 * i) + 7 downto 8 * i) <= DHCP_USER_IP_ADDR(31 downto 24);  
+                        else
+                          m_int.tdata((8 * i) + 7 downto 8 * i) <= (others => '0');
+                        end if;
                       elsif (DHCP_SEND_REQUEST ='1' and DHCP_STATE = REQUEST)then
                         m_int.tdata((8 * i) + 7 downto 8 * i) <= DHCP_NETWORK_CONFIG.OFFER_IP(31 downto 24);
                       end if;
                       
                     when C_ALIGN + 7 =>
                       if (DHCP_SEND_DISCOVER ='1' and DHCP_STATE = DISCOVER) then
-                        m_int.tdata((8 * i) + 7 downto 8 * i) <= C_DHCP_LOCAL_REQ_IP(23 downto 16);
+                        if DHCP_USE_IP = '1' then
+                          m_int.tdata((8 * i) + 7 downto 8 * i) <= DHCP_USER_IP_ADDR(23 downto 16);  
+                        else
+                          m_int.tdata((8 * i) + 7 downto 8 * i) <= (others => '0');
+                        end if;
                       elsif (DHCP_SEND_REQUEST ='1' and DHCP_STATE = REQUEST)then
                         m_int.tdata((8 * i) + 7 downto 8 * i) <= DHCP_NETWORK_CONFIG.OFFER_IP(23 downto 16);
                       end if;
                     when C_ALIGN + 8 => 
                       if (DHCP_SEND_DISCOVER ='1' and DHCP_STATE = DISCOVER) then
-                        m_int.tdata((8 * i) + 7 downto 8 * i) <= C_DHCP_LOCAL_REQ_IP(15 downto 8);
+                        if DHCP_USE_IP = '1' then
+                          m_int.tdata((8 * i) + 7 downto 8 * i) <= DHCP_USER_IP_ADDR(15 downto  8);  
+                        else
+                          m_int.tdata((8 * i) + 7 downto 8 * i) <= (others => '0');
+                        end if;
                       elsif (DHCP_SEND_REQUEST ='1' and DHCP_STATE = REQUEST)then
                         m_int.tdata((8 * i) + 7 downto 8 * i) <= DHCP_NETWORK_CONFIG.OFFER_IP(15 downto 8);
                       end if;
                     when C_ALIGN + 9 => 
                       if (DHCP_SEND_DISCOVER ='1' and DHCP_STATE = DISCOVER) then
-                        m_int.tdata((8 * i) + 7 downto 8 * i) <= C_DHCP_LOCAL_REQ_IP(7 downto 0);
+                        if DHCP_USE_IP = '1' then
+                          m_int.tdata((8 * i) + 7 downto 8 * i) <= DHCP_USER_IP_ADDR( 7 downto  0);  
+                        else
+                          m_int.tdata((8 * i) + 7 downto 8 * i) <= (others => '0');
+                        end if;
                       elsif (DHCP_SEND_REQUEST ='1' and DHCP_STATE = REQUEST)then
                         m_int.tdata((8 * i) + 7 downto 8 * i) <= DHCP_NETWORK_CONFIG.OFFER_IP(7 downto 0);
                       end if;

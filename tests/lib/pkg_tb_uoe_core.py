@@ -25,6 +25,7 @@ from lib.ethframe import EthFrame
 from lib.arpframe import ArpFrame
 from lib.udpframe import UdpFrame
 from lib.ipv4frame import Ipv4Frame
+#from lib.dhcpframe import DhcpFrame
 
 BROADCAST_IP_ADDR = 0xFF_FF_FF_FF
 BROADCAST_MAC_ADDR = 0xFF_FF_FF_FF_FF_FF
@@ -138,6 +139,16 @@ MAIN_REG_INTERRUPT_ENABLE = 0x58
 MAIN_REG_CONFIG_DONE = 0x38
 MAIN_REG_INTERRUPT_CLEAR = 0x5C
 MAIN_REG_VERSION = 0x00
+
+
+#Modification for DHCP module                                                                                                          
+MAIN_REG_DHCP_START             = 0x64
+MAIN_REG_DHCP_USE_CUSTOM_IP     = 0x68
+MAIN_REG_DHCP_OFFERED_IP_ADDR   = 0x70
+MAIN_REG_DHCP_SERVER_IP_ADDR    = 0x78
+MAIN_REG_DHCP_ROUTER_IP_ADDR    = 0x7C
+MAIN_REG_DHCP_SUBNETMASK_ADDR   = 0x74
+MAIN_REG_DHCP_STATUS            = 0x6C
 
 ETH_PAYLOAD_MAX_SIZE = IPV4_MAX_PACKET_SIZE - (IPV4_MIN_HEADER_SIZE + TCP_HEADER_SIZE)
 

@@ -63,6 +63,7 @@ SERVER_AND_END_SIZE  = 7
 
 # Variable declarations
 LOCAL_IP_ADDR        = 0xC0_A8_0A_04        # local IP addr requested in DISCOVER
+LOCAL_MAC_ADDR       = 0x01_23_45_67_89_AB  # Hardware addr
 SRC_MAC_ADDR         = 0x11_22_33_44_55_66  # Hardware addr
 DEST_MAC_ADDR        = 0xff_ff_ff_ff_ff_ff  # Broadcast
 DHCP_SERVER_IP       = 0xC0_A8_01_01        # 192.168.1.1 (example server IP)
@@ -105,7 +106,7 @@ OPTIONNAL_MSG        = [BROADCAST_MSG, RENEWEL_MSG, REBINDING_MSG]
 def int_to_ip(ip_int):
     return '.'.join(map(str, ip_int.to_bytes(4, 'big')))
 
-def gen_dhcp_option_tx(message_type):
+def gen_dhcp_option_tx(dut, message_type):
     """Generate a DHCP Discover or Request frame."""
     # Init random generator
     gen_random = Random()
@@ -116,9 +117,13 @@ def gen_dhcp_option_tx(message_type):
     options     += DHCP_PAD.to_bytes(1, 'big')           # pad option
     if message_type == DISCOVER_MSG:         
 
-        options += REQUESTED_IP_MSG.to_bytes(2, 'big')  
-        options += LOCAL_IP_ADDR.to_bytes(4, 'big')      # requested ip option
-        options += DHCP_PAD.to_bytes(9, 'big')           # pad option
+        if dut.dhcp_use_ip.value == 1:       
+            options += REQUESTED_IP_MSG.to_bytes(2, 'big')   # requested ip option
+            options += LOCAL_IP_ADDR.to_bytes(4, 'big')
+        
+        else:
+            options += DHCP_PAD.to_bytes(6, 'big')           # padding 
+        options += DHCP_PAD.to_bytes(9, 'big')           # padding
 
     elif message_type == REQUEST_MSG:
         options += REQUESTED_IP_MSG.to_bytes(2, 'big')  
@@ -200,7 +205,7 @@ def gen_dhcp_frame(xid, message_type):
         yiaddr=DHCP_CLIENT_IP if message_type != NACK else 0x00000000, # offered IP addr
         siaddr=0x0000,
         giaddr=0x0000,
-        chaddr=SRC_MAC_ADDR,
+        chaddr=LOCAL_MAC_ADDR,
         options=options
     )
 
@@ -220,7 +225,13 @@ async def handler_initdone(dut):
     """Init done and dhcp_sdhcp_start management"""
     dut.init_done.value = 0
     dut.dhcp_start.value = 0
+    dut.dhcp_use_ip.value = 0
+    dut.dhcp_user_ip_addr.value = 0x0000
+    dut.dhcp_user_mac_addr.value = 0x000000
     await Timer(150, units='ns')
+    dut.dhcp_use_ip.value = 1
+    dut.dhcp_user_ip_addr.value = LOCAL_IP_ADDR
+    dut.dhcp_user_mac_addr.value = LOCAL_MAC_ADDR
     dut.init_done.value = 1
     await Timer(200, units='ns')
     dut.dhcp_start.value = 1
@@ -271,8 +282,8 @@ async def handler_master(dut):
             yiaddr=0x0000,
             siaddr=0x0000,
             giaddr=0x0000,
-            chaddr=SRC_MAC_ADDR,
-            options=gen_dhcp_option_tx(msg_type)
+            chaddr=LOCAL_MAC_ADDR,
+            options=gen_dhcp_option_tx(dut, msg_type)
         )
         
         data_ctrl = DhcpFrame.__bytes__(data_ctrl)

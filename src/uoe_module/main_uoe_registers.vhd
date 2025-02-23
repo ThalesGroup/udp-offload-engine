@@ -68,6 +68,12 @@ entity main_uoe_registers is
     UDP_DROP_COUNTER                                  : in  std_logic_vector(31 downto 0);                         -- Number of frames dropped on udp interface
     -- WO Registers
     ARP_SW_REQ_DEST_IP_ADDR_IN                        : in  std_logic_vector(31 downto 0);                         -- Destination IP Address use to generate software request ARP
+    --Modification for the DHCP
+    DHCP_MODULE_STATUS_IN                             : in  std_logic_vector( 2 downto 0);                         -- Status of the DHCP module (0 -> idle, 1-> DHCP configuration is in progress, 2 -> Server Denied configuration(NACK message) 3 -> Bound)
+    DHCP_OFFERED_IP_IN                                : in  std_logic_vector(31 downto 0);                         -- IP address offered by the DHCP server
+    DHCP_SUBNET_MASK_IN                               : in  std_logic_vector(31 downto 0);                         -- Subnet mask provided by the DHCP server
+    DHCP_SERVER_IP_IN                                 : in  std_logic_vector(31 downto 0);                         -- IP address of the DHCP server
+    DHCP_ROUTER_IP_IN                                 : in  std_logic_vector(31 downto 0);                         -- Default gateway IP provided by the DHCP server   
     -- Irq WO Registers
     IRQ_INIT_DONE_CLEAR_IN                            : in  std_logic;                                             -- Field description
     IRQ_ARP_TABLE_CLEAR_DONE_CLEAR_IN                 : in  std_logic;                                             -- Field description
@@ -128,6 +134,9 @@ entity main_uoe_registers is
     CONFIG_DONE                                       : out std_logic;                                             -- Flag Configuration Done
     -- WO Registers
     ARP_SW_REQ_DEST_IP_ADDR_OUT                       : out std_logic_vector(31 downto 0);                         -- Destination IP Address use to generate software request ARP
+    --Modification for the DHCP
+    DHCP_USE_CUSTOM_IP                                : out std_logic;                                             -- Flag to indicate that the DHCP client should include a user-defined IP address in the DHCP message
+    DHCP_START                                        : out std_logic;                                             -- Signal to initiate the DHCP process
     -- WO Pulses Registers
     REG_ARP_SW_REQ_WRITE                              : out std_logic;
     -- RZ Pulses Registers
@@ -222,8 +231,10 @@ architecture rtl of main_uoe_registers is
   constant C_REG_ARP_SW_REQ                            : std_logic_vector(31 downto 0):="11111111111111111111111111111111";
   constant C_REG_INTERRUPT_CLEAR                       : std_logic_vector(31 downto 0):="00000000000000000000000111111111";
   constant C_REG_INTERRUPT_SET                         : std_logic_vector(31 downto 0):="00000000000000000000000111111111";
-
-
+  
+  --Modification for DHCP
+  constant C_REG_DHCP_USE_CUSTOM_IP                    : std_logic_vector(31 downto 0):="00000000000000000000000000000001";   
+  constant C_REG_DHCP_START                            : std_logic_vector(31 downto 0):="00000000000000000000000000000001";   
 
   --------------------------------------------
   -- SIGNALS
@@ -274,7 +285,9 @@ architecture rtl of main_uoe_registers is
   signal reg_arp_sw_req_int                           : std_logic_vector(31 downto 0);
   signal reg_interrupt_clear_int                      : std_logic_vector(31 downto 0);
   signal reg_interrupt_set_int                        : std_logic_vector(31 downto 0);
-
+  --Modification for DHCP
+  signal reg_dhcp_use_custom_ip_int                   : std_logic_vector(31 downto 0):="00000000000000000000000000000001";   
+  signal reg_dhcp_start_int                           : std_logic_vector(31 downto 0):="00000000000000000000000000000001"; 
 
 
 begin
@@ -463,8 +476,9 @@ begin
         REG_ARP_SW_REQ_WRITE                                  <= '0';
         REG_INTERRUPT_CLEAR_WRITE                             <= '0';
         REG_INTERRUPT_SET_WRITE                               <= '0';
-
-
+        --modification for DHCP
+        reg_dhcp_use_custom_ip_int                            <= (others => '0');
+        reg_dhcp_start_int                                    <= (others => '0');
       else
 
         -- Default
@@ -516,7 +530,11 @@ begin
             when C_MAIN_REG_INTERRUPT_SET => 
               reg_interrupt_set_int                         <= set_reg_val(reg_interrupt_set_int, wr_strobe, wr_data, C_REG_INTERRUPT_SET);
               REG_INTERRUPT_SET_WRITE                       <= '1';
-
+            --modification for DHCP
+            when C_MAIN_REG_DHCP_START =>    
+              reg_dhcp_start_int                            <= set_reg_val(reg_dhcp_start_int, wr_strobe, wr_data, C_REG_DHCP_START);                                                  
+            when C_MAIN_REG_DHCP_USE_CUSTOM_IP =>  
+              reg_dhcp_use_custom_ip_int                    <= set_reg_val(reg_dhcp_use_custom_ip_int, wr_strobe, wr_data, C_REG_DHCP_USE_CUSTOM_IP);
             when others =>
               bad_wr_addr <= '1';
 
@@ -562,6 +580,9 @@ begin
   IRQ_ROUTER_CRC_RX_FIFO_OVERFLOW_ENABLE        <= reg_interrupt_enable_int(7);
   IRQ_IPV4_RX_FRAG_OFFSET_ERROR_ENABLE          <= reg_interrupt_enable_int(8);
   ARP_SW_REQ_DEST_IP_ADDR_OUT                   <= reg_arp_sw_req_int(31 downto 0);
+  --modification for DHCP
+  DHCP_USE_CUSTOM_IP                            <= reg_dhcp_use_custom_ip_int(0);
+  DHCP_START                                    <= reg_dhcp_start_int(0);
   IRQ_INIT_DONE_CLEAR_OUT                       <= reg_interrupt_clear_int(0);
   IRQ_ARP_TABLE_CLEAR_DONE_CLEAR_OUT            <= reg_interrupt_clear_int(1);
   IRQ_ARP_IP_CONFLICT_CLEAR_OUT                 <= reg_interrupt_clear_int(2);
@@ -819,7 +840,17 @@ begin
             when C_MAIN_REG_MONITORING_UDP_DROP => 
               rd_data(31 downto 0)                          <= UDP_DROP_COUNTER;
               REG_MONITORING_UDP_DROP_READ                  <= '1';
-
+              --Modification for DHCP
+            when C_MAIN_REG_DHCP_OFFERED_IP_ADDR =>   
+              rd_data(31 downto 0)                          <= DHCP_OFFERED_IP_IN;                                         
+            when C_MAIN_REG_DHCP_SERVER_IP_ADDR =>                                                     
+              rd_data(31 downto 0)                          <= DHCP_SERVER_IP_IN;
+            when C_MAIN_REG_DHCP_ROUTER_IP_ADDR =>                                                     
+              rd_data(31 downto 0)                          <= DHCP_ROUTER_IP_IN;
+            when C_MAIN_REG_DHCP_SUBNETMASK_ADDR =>                                                  
+              rd_data(31 downto 0)                          <= DHCP_SUBNET_MASK_IN;
+            when C_MAIN_REG_DHCP_STATUS =>
+              rd_data(2 downto 0)                          <= DHCP_MODULE_STATUS_IN;
             when others =>
               bad_rd_addr <= '1';
 
@@ -832,3 +863,6 @@ begin
 
 
 end rtl;
+
+                                                   
+

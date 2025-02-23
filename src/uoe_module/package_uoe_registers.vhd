@@ -86,6 +86,12 @@ package package_uoe_registers is
       UDP_DROP_COUNTER                                  : in  std_logic_vector(31 downto 0);                         -- Number of frames dropped on udp interface
       -- WO Registers
       ARP_SW_REQ_DEST_IP_ADDR_IN                        : in  std_logic_vector(31 downto 0);                         -- Destination IP Address use to generate software request ARP
+      --Modification for the DHCP
+      DHCP_MODULE_STATUS_IN                             : in  std_logic_vector( 2 downto 0);                         -- Status of the DHCP module (0 -> idle, 1-> DHCP configuration is in progress, 2 -> Server Denied configuration(NACK message) 3 -> Bound)
+      DHCP_OFFERED_IP_IN                                : in  std_logic_vector(31 downto 0);                         -- IP address offered by the DHCP server
+      DHCP_SUBNET_MASK_IN                               : in  std_logic_vector(31 downto 0);                         -- Subnet mask provided by the DHCP server
+      DHCP_SERVER_IP_IN                                 : in  std_logic_vector(31 downto 0);                         -- IP address of the DHCP server
+      DHCP_ROUTER_IP_IN                                 : in  std_logic_vector(31 downto 0);                         -- Default gateway IP provided by the DHCP server
       -- Irq WO Registers
       IRQ_INIT_DONE_CLEAR_IN                            : in  std_logic;                                             -- Field description
       IRQ_ARP_TABLE_CLEAR_DONE_CLEAR_IN                 : in  std_logic;                                             -- Field description
@@ -145,7 +151,10 @@ package package_uoe_registers is
       ARP_TABLE_CLEAR                                   : out std_logic;                                             -- Clear ARP Table (Should be drive like a pulse : '0' => '1' => '0')
       CONFIG_DONE                                       : out std_logic;                                             -- Flag Configuration Done
       -- WO Registers
-      ARP_SW_REQ_DEST_IP_ADDR_OUT                       : out std_logic_vector(31 downto 0);                         -- Destination IP Address use to generate software request ARP
+      ARP_SW_REQ_DEST_IP_ADDR_OUT                       : out std_logic_vector(31 downto 0);                         -- Destination IP Address use to generate software request ARP    
+      --Modification for the DHCP
+      DHCP_USE_CUSTOM_IP                                : out std_logic;                                             -- Flag to indicate that the DHCP client should include a user-defined IP address in the DHCP message
+      DHCP_START                                        : out std_logic;                                             -- Signal to initiate the DHCP process
       -- WO Pulses Registers
       REG_ARP_SW_REQ_WRITE                              : out std_logic;
       -- RZ Pulses Registers
@@ -232,7 +241,12 @@ package package_uoe_registers is
       UDP_DROP_COUNTER                                  : in  std_logic_vector(31 downto 0);                         -- Number of frames dropped on udp interface
       -- WO Registers
       ARP_SW_REQ_DEST_IP_ADDR_IN                        : in  std_logic_vector(31 downto 0);                         -- Destination IP Address use to generate software request ARP
-
+      --Modification for the DHCP
+      DHCP_MODULE_STATUS_IN                             : in  std_logic_vector( 2 downto 0);                         -- Status of the DHCP module (0 -> idle, 1-> DHCP configuration is in progress, 2 -> Server Denied configuration(NACK message) 3 -> Bound)
+      DHCP_OFFERED_IP_IN                                : in  std_logic_vector(31 downto 0);                         -- IP address offered by the DHCP server
+      DHCP_SUBNET_MASK_IN                               : in  std_logic_vector(31 downto 0);                         -- Subnet mask provided by the DHCP server
+      DHCP_SERVER_IP_IN                                 : in  std_logic_vector(31 downto 0);                         -- IP address of the DHCP server
+      DHCP_ROUTER_IP_IN                                 : in  std_logic_vector(31 downto 0);                         -- Default gateway IP provided by the DHCP server
       ----------------------
       -- Registers output data
       ----------------------
@@ -263,6 +277,9 @@ package package_uoe_registers is
       CONFIG_DONE                                       : out std_logic;                                             -- Flag Configuration Done
       -- WO Registers
       ARP_SW_REQ_DEST_IP_ADDR_OUT                       : out std_logic_vector(31 downto 0);                         -- Destination IP Address use to generate software request ARP
+      --Modification for the DHCP
+      DHCP_USE_CUSTOM_IP                                : out std_logic;                                             -- Flag to indicate that the DHCP client should include a user-defined IP address in the DHCP message
+      DHCP_START                                        : out std_logic;                                             -- Signal to initiate the DHCP process
       -- WO Pulses Registers
       REG_ARP_SW_REQ_WRITE                              : out std_logic;
       -- RZ Pulses Registers
@@ -638,61 +655,70 @@ package package_uoe_registers is
 
 
 
-  constant C_MAIN_REG_VERSION                                                                  : std_logic_vector(7 downto 0):="00000000";
-  constant C_MAIN_REG_INTERRUPT_STATUS                                                         : std_logic_vector(7 downto 0):="01010100";
-  constant C_MAIN_REG_ARP_SW_REQ                                                               : std_logic_vector(7 downto 0):="00110100";
-  constant C_MAIN_REG_INTERRUPT_CLEAR                                                          : std_logic_vector(7 downto 0):="01011100";
-  constant C_MAIN_REG_INTERRUPT_SET                                                            : std_logic_vector(7 downto 0):="01100000";
-  constant C_MAIN_REG_LOCAL_MAC_ADDR_LSB                                                       : std_logic_vector(7 downto 0):="00000100";
-  constant C_MAIN_REG_LOCAL_MAC_ADDR_MSB                                                       : std_logic_vector(7 downto 0):="00001000";
-  constant C_MAIN_REG_LOCAL_IP_ADDR                                                            : std_logic_vector(7 downto 0):="00001100";
-  constant C_MAIN_REG_RAW_DEST_MAC_ADDR_LSB                                                    : std_logic_vector(7 downto 0):="00010000";
-  constant C_MAIN_REG_RAW_DEST_MAC_ADDR_MSB                                                    : std_logic_vector(7 downto 0):="00010100";
-  constant C_MAIN_REG_IPV4_TIME_TO_LEAVE                                                       : std_logic_vector(7 downto 0):="00011000";
-  constant C_MAIN_REG_FILTERING_CONTROL                                                        : std_logic_vector(7 downto 0):="00011100";
-  constant C_MAIN_REG_IPV4_MULTICAST_IP_ADDR_1                                                 : std_logic_vector(7 downto 0):="00100000";
-  constant C_MAIN_REG_IPV4_MULTICAST_IP_ADDR_2                                                 : std_logic_vector(7 downto 0):="00100100";
-  constant C_MAIN_REG_IPV4_MULTICAST_IP_ADDR_3                                                 : std_logic_vector(7 downto 0):="00101000";
-  constant C_MAIN_REG_IPV4_MULTICAST_IP_ADDR_4                                                 : std_logic_vector(7 downto 0):="00101100";
-  constant C_MAIN_REG_ARP_CONFIGURATION                                                        : std_logic_vector(7 downto 0):="00110000";
-  constant C_MAIN_REG_CONFIG_DONE                                                              : std_logic_vector(7 downto 0):="00111000";
-  constant C_MAIN_REG_INTERRUPT_ENABLE                                                         : std_logic_vector(7 downto 0):="01011000";
-  constant C_MAIN_REG_MONITORING_CRC_FILTER                                                    : std_logic_vector(7 downto 0):="01000000";
-  constant C_MAIN_REG_MONITORING_MAC_FILTER                                                    : std_logic_vector(7 downto 0):="01000100";
-  constant C_MAIN_REG_MONITORING_EXT_DROP                                                      : std_logic_vector(7 downto 0):="01001000";
-  constant C_MAIN_REG_MONITORING_RAW_DROP                                                      : std_logic_vector(7 downto 0):="01001100";
-  constant C_MAIN_REG_MONITORING_UDP_DROP                                                      : std_logic_vector(7 downto 0):="01010000";
-  constant C_TEST_REG_GEN_TEST_DURATION_LSB                                        : std_logic_vector(7 downto 0):="00010000";
-  constant C_TEST_REG_GEN_TEST_DURATION_MSB                                        : std_logic_vector(7 downto 0):="00010100";
-  constant C_TEST_REG_CHK_TEST_DURATION_LSB                                        : std_logic_vector(7 downto 0):="00100000";
-  constant C_TEST_REG_CHK_TEST_DURATION_MSB                                        : std_logic_vector(7 downto 0):="00100100";
-  constant C_TEST_REG_TX_RM_CNT_BYTES_LSB                                          : std_logic_vector(7 downto 0):="01010000";
-  constant C_TEST_REG_TX_RM_CNT_BYTES_MSB                                          : std_logic_vector(7 downto 0):="01010100";
-  constant C_TEST_REG_TX_RM_CNT_CYCLES_LSB                                         : std_logic_vector(7 downto 0):="01011000";
-  constant C_TEST_REG_TX_RM_CNT_CYCLES_MSB                                         : std_logic_vector(7 downto 0):="01011100";
-  constant C_TEST_REG_RX_RM_CNT_BYTES_LSB                                          : std_logic_vector(7 downto 0):="01101100";
-  constant C_TEST_REG_RX_RM_CNT_BYTES_MSB                                          : std_logic_vector(7 downto 0):="01110000";
-  constant C_TEST_REG_RX_RM_CNT_CYCLES_LSB                                         : std_logic_vector(7 downto 0):="01110100";
-  constant C_TEST_REG_RX_RM_CNT_CYCLES_MSB                                         : std_logic_vector(7 downto 0):="01111000";
-  constant C_TEST_REG_INTERRUPT_STATUS                                             : std_logic_vector(7 downto 0):="00110100";
-  constant C_TEST_REG_TX_RATE_METER_CTRL                                           : std_logic_vector(7 downto 0):="01000100";
-  constant C_TEST_REG_RX_RATE_METER_CTRL                                           : std_logic_vector(7 downto 0):="01100000";
-  constant C_TEST_REG_INTERRUPT_CLEAR                                              : std_logic_vector(7 downto 0):="00111100";
-  constant C_TEST_REG_INTERRUPT_SET                                                : std_logic_vector(7 downto 0):="01000000";
-  constant C_TEST_REG_GEN_CHK_CONTROL                                              : std_logic_vector(7 downto 0):="00000000";
-  constant C_TEST_REG_GEN_FRAME                                                    : std_logic_vector(7 downto 0):="00000100";
-  constant C_TEST_REG_GEN_RATE                                                     : std_logic_vector(7 downto 0):="00001000";
-  constant C_TEST_REG_GEN_MONITOR                                                  : std_logic_vector(7 downto 0):="00001100";
-  constant C_TEST_REG_CHK_FRAME                                                    : std_logic_vector(7 downto 0):="00011000";
-  constant C_TEST_REG_CHK_MONITOR                                                  : std_logic_vector(7 downto 0):="00011100";
-  constant C_TEST_REG_LB_GEN_UDP_PORT                                              : std_logic_vector(7 downto 0):="00101000";
-  constant C_TEST_REG_LB_GEN_DEST_IP_ADDR                                          : std_logic_vector(7 downto 0):="00101100";
-  constant C_TEST_REG_CHK_UDP_PORT                                                 : std_logic_vector(7 downto 0):="00110000";
-  constant C_TEST_REG_TX_RM_BYTES_EXPT_LSB                                         : std_logic_vector(7 downto 0):="01001000";
-  constant C_TEST_REG_TX_RM_BYTES_EXPT_MSB                                         : std_logic_vector(7 downto 0):="01001100";
-  constant C_TEST_REG_RX_FM_BYTES_EXPT_LSB                                         : std_logic_vector(7 downto 0):="01100100";
-  constant C_TEST_REG_RX_RM_BYTES_EXPT_MSB                                         : std_logic_vector(7 downto 0):="01101000";
-  constant C_TEST_REG_INTERRUPT_ENABLE                                             : std_logic_vector(7 downto 0):="00111000";
+  constant C_MAIN_REG_VERSION                                                                  : std_logic_vector(7 downto 0):="00000000"; --0x00
+  constant C_MAIN_REG_INTERRUPT_STATUS                                                         : std_logic_vector(7 downto 0):="01010100"; --0x54
+  constant C_MAIN_REG_ARP_SW_REQ                                                               : std_logic_vector(7 downto 0):="00110100"; --0x34
+  constant C_MAIN_REG_INTERRUPT_CLEAR                                                          : std_logic_vector(7 downto 0):="01011100"; --0x5C
+  constant C_MAIN_REG_INTERRUPT_SET                                                            : std_logic_vector(7 downto 0):="01100000"; --0x60
+  constant C_MAIN_REG_LOCAL_MAC_ADDR_LSB                                                       : std_logic_vector(7 downto 0):="00000100"; --0x04
+  constant C_MAIN_REG_LOCAL_MAC_ADDR_MSB                                                       : std_logic_vector(7 downto 0):="00001000"; --0x08
+  constant C_MAIN_REG_LOCAL_IP_ADDR                                                            : std_logic_vector(7 downto 0):="00001100"; --0x0C
+  constant C_MAIN_REG_RAW_DEST_MAC_ADDR_LSB                                                    : std_logic_vector(7 downto 0):="00010000"; --0x10
+  constant C_MAIN_REG_RAW_DEST_MAC_ADDR_MSB                                                    : std_logic_vector(7 downto 0):="00010100"; --0x14
+  constant C_MAIN_REG_IPV4_TIME_TO_LEAVE                                                       : std_logic_vector(7 downto 0):="00011000"; --0x18
+  constant C_MAIN_REG_FILTERING_CONTROL                                                        : std_logic_vector(7 downto 0):="00011100"; --0x1C
+  constant C_MAIN_REG_IPV4_MULTICAST_IP_ADDR_1                                                 : std_logic_vector(7 downto 0):="00100000"; --0x20
+  constant C_MAIN_REG_IPV4_MULTICAST_IP_ADDR_2                                                 : std_logic_vector(7 downto 0):="00100100"; --0x24
+  constant C_MAIN_REG_IPV4_MULTICAST_IP_ADDR_3                                                 : std_logic_vector(7 downto 0):="00101000"; --0x28
+  constant C_MAIN_REG_IPV4_MULTICAST_IP_ADDR_4                                                 : std_logic_vector(7 downto 0):="00101100"; --0x2C
+  constant C_MAIN_REG_ARP_CONFIGURATION                                                        : std_logic_vector(7 downto 0):="00110000"; --0x30
+  constant C_MAIN_REG_CONFIG_DONE                                                              : std_logic_vector(7 downto 0):="00111000"; --0x38
+  constant C_MAIN_REG_INTERRUPT_ENABLE                                                         : std_logic_vector(7 downto 0):="01011000"; --0x58
+  constant C_MAIN_REG_MONITORING_CRC_FILTER                                                    : std_logic_vector(7 downto 0):="01000000"; --0x40
+  constant C_MAIN_REG_MONITORING_MAC_FILTER                                                    : std_logic_vector(7 downto 0):="01000100"; --0x44
+  constant C_MAIN_REG_MONITORING_EXT_DROP                                                      : std_logic_vector(7 downto 0):="01001000"; --0x48
+  constant C_MAIN_REG_MONITORING_RAW_DROP                                                      : std_logic_vector(7 downto 0):="01001100"; --0x4C
+  constant C_MAIN_REG_MONITORING_UDP_DROP                                                      : std_logic_vector(7 downto 0):="01010000"; --0x50
+  -- Modification for DHCP module                                                                                                          
+  constant C_MAIN_REG_DHCP_START                                                               : std_logic_vector(7 downto 0):="01100100"; --0x64
+  constant C_MAIN_REG_DHCP_USE_CUSTOM_IP                                                       : std_logic_vector(7 downto 0):="01101000"; --0x68
+  constant C_MAIN_REG_DHCP_OFFERED_IP_ADDR                                                     : std_logic_vector(7 downto 0):="01110000"; --0x70
+  constant C_MAIN_REG_DHCP_SERVER_IP_ADDR                                                      : std_logic_vector(7 downto 0):="01111000"; --0x78
+  constant C_MAIN_REG_DHCP_ROUTER_IP_ADDR                                                      : std_logic_vector(7 downto 0):="01111100"; --0x7C
+  constant C_MAIN_REG_DHCP_SUBNETMASK_ADDR                                                     : std_logic_vector(7 downto 0):="01110100"; --0x74
+  constant C_MAIN_REG_DHCP_STATUS                                                              : std_logic_vector(7 downto 0):="01101100"; --0x6C
+
+  constant C_TEST_REG_GEN_TEST_DURATION_LSB                                        : std_logic_vector(7 downto 0):="00010000"; --0x10
+  constant C_TEST_REG_GEN_TEST_DURATION_MSB                                        : std_logic_vector(7 downto 0):="00010100"; --0x14
+  constant C_TEST_REG_CHK_TEST_DURATION_LSB                                        : std_logic_vector(7 downto 0):="00100000"; --0x20
+  constant C_TEST_REG_CHK_TEST_DURATION_MSB                                        : std_logic_vector(7 downto 0):="00100100"; --0x24
+  constant C_TEST_REG_TX_RM_CNT_BYTES_LSB                                          : std_logic_vector(7 downto 0):="01010000"; --0x50
+  constant C_TEST_REG_TX_RM_CNT_BYTES_MSB                                          : std_logic_vector(7 downto 0):="01010100"; --0x54
+  constant C_TEST_REG_TX_RM_CNT_CYCLES_LSB                                         : std_logic_vector(7 downto 0):="01011000"; --0x58
+  constant C_TEST_REG_TX_RM_CNT_CYCLES_MSB                                         : std_logic_vector(7 downto 0):="01011100"; --0x5C
+  constant C_TEST_REG_RX_RM_CNT_BYTES_LSB                                          : std_logic_vector(7 downto 0):="01101100"; --0x6C
+  constant C_TEST_REG_RX_RM_CNT_BYTES_MSB                                          : std_logic_vector(7 downto 0):="01110000"; --0x70
+  constant C_TEST_REG_RX_RM_CNT_CYCLES_LSB                                         : std_logic_vector(7 downto 0):="01110100"; --0x74
+  constant C_TEST_REG_RX_RM_CNT_CYCLES_MSB                                         : std_logic_vector(7 downto 0):="01111000"; --0x78
+  constant C_TEST_REG_INTERRUPT_STATUS                                             : std_logic_vector(7 downto 0):="00110100"; --0x34
+  constant C_TEST_REG_TX_RATE_METER_CTRL                                           : std_logic_vector(7 downto 0):="01000100"; --0x44
+  constant C_TEST_REG_RX_RATE_METER_CTRL                                           : std_logic_vector(7 downto 0):="01100000"; --0x60
+  constant C_TEST_REG_INTERRUPT_CLEAR                                              : std_logic_vector(7 downto 0):="00111100"; --0x3C
+  constant C_TEST_REG_INTERRUPT_SET                                                : std_logic_vector(7 downto 0):="01000000"; --0x40
+  constant C_TEST_REG_GEN_CHK_CONTROL                                              : std_logic_vector(7 downto 0):="00000000"; --0x00
+  constant C_TEST_REG_GEN_FRAME                                                    : std_logic_vector(7 downto 0):="00000100"; --0x04
+  constant C_TEST_REG_GEN_RATE                                                     : std_logic_vector(7 downto 0):="00001000"; --0x08
+  constant C_TEST_REG_GEN_MONITOR                                                  : std_logic_vector(7 downto 0):="00001100"; --0x0C
+  constant C_TEST_REG_CHK_FRAME                                                    : std_logic_vector(7 downto 0):="00011000"; --0x18
+  constant C_TEST_REG_CHK_MONITOR                                                  : std_logic_vector(7 downto 0):="00011100"; --0x1C
+  constant C_TEST_REG_LB_GEN_UDP_PORT                                              : std_logic_vector(7 downto 0):="00101000"; --0x28
+  constant C_TEST_REG_LB_GEN_DEST_IP_ADDR                                          : std_logic_vector(7 downto 0):="00101100"; --0x2C
+  constant C_TEST_REG_CHK_UDP_PORT                                                 : std_logic_vector(7 downto 0):="00110000"; --0x30
+  constant C_TEST_REG_TX_RM_BYTES_EXPT_LSB                                         : std_logic_vector(7 downto 0):="01001000"; --0x48
+  constant C_TEST_REG_TX_RM_BYTES_EXPT_MSB                                         : std_logic_vector(7 downto 0):="01001100"; --0x4C
+  constant C_TEST_REG_RX_FM_BYTES_EXPT_LSB                                         : std_logic_vector(7 downto 0):="01100100"; --0x64
+  constant C_TEST_REG_RX_RM_BYTES_EXPT_MSB                                         : std_logic_vector(7 downto 0):="01101000"; --0x68
+  constant C_TEST_REG_INTERRUPT_ENABLE                                             : std_logic_vector(7 downto 0):="00111000"; --0x38
 
 
 end package_uoe_registers;

@@ -72,9 +72,15 @@ The Full documentation of the stack is available on the [architecture guide](doc
   
 * Dynamic Host Configuration Protocol‬
   
-  * Simulated DHCP functionality for dynamic IP address allocation.
+  * Simulated DHCP functionality for dynamic IP address allocation.(Increment 2)
   * The feature is under development and has not yet been tested on the target hardware.
-  
+  * User can via register: 
+    * request an specific IP adress in DISCOVER message
+    * Specify an Hardware MAC 
+    * Read the status of the DHCP process : 
+      * DHCP Module Status(1 downto 0) -> (0 -> Idle, 1 -> In progress, 2 -> Nack, 3 ->  Successfull Configuration)
+      * DHCP Module Status(2) -> Error in DHCP reception module (DHCP is in skip mode)
+
 * Take into account buffers on the MAC interface and clock domain crossing
 
 * Filtering option for incoming traffic

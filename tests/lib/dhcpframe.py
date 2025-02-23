@@ -20,10 +20,6 @@ from lib.payload import Payload
 # Header DHCP Description (240 bytes)
 #  0               1               2               3
 #  0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7
-#  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-#  |        UDP source port        |     UDP destination port      |
-#  +-------------------------------+-------------------------------+
-#  |           UDP length          |         UDP checksum          |
 #  +===============================+===============================+
 #  |     op (1)    |   htype (1)   |   hlen (1)    |   hops (1)    |
 #  +---------------+---------------+---------------+---------------+
@@ -55,9 +51,9 @@ from lib.payload import Payload
 #  |                   (more) options (variable)                   |
 #  +---------------------------------------------------------------+
 
-# UDP Constants
+# DHCP Constants
 DHCP_HEADER_LENGTH = 240  # Size in bytes
-MAGIC_COOKIE = 0x63825363
+MAGIC_COOKIE       = 0x63825363
 
     
 @dataclass

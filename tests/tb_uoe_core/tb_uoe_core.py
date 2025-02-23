@@ -119,6 +119,7 @@ async def handlerSlave_AXI(dut):
     # Read Version Register
     await slave.read(MAIN_REG_VERSION, 4)
 
+
     # Config Address
     ADDRESS = MAIN_REG_LOCAL_MAC_ADDR_LSB
     DATA = LOCAL_MAC_ADDR_LSB
@@ -132,6 +133,16 @@ async def handlerSlave_AXI(dut):
     DATA = LOCAL_IP_ADDR.to_bytes(4, 'little')
     await slave.write(ADDRESS, DATA)
 
+    # Modification for DHCP module   
+
+    ADDRESS = MAIN_REG_DHCP_USE_CUSTOM_IP
+    DATA = int(1).to_bytes(4, 'little')
+    await slave.write(ADDRESS, DATA)
+    
+    ADDRESS = MAIN_REG_DHCP_START
+    DATA = int(1).to_bytes(4, 'little')
+    await slave.write(ADDRESS, DATA) 
+    
     ADDRESS = MAIN_REG_ARP_CONFIGURATION
     DATA = ARP_CONFIGURATION
     await slave.write(ADDRESS, DATA)
@@ -153,7 +164,13 @@ async def handlerSlave_AXI(dut):
     DATA = int(1).to_bytes(4, 'little')
     await slave.write(ADDRESS, DATA)
 
-
+    # Read Dhcp Register
+    await slave.read(MAIN_REG_DHCP_OFFERED_IP_ADDR, 4)
+    await slave.read(MAIN_REG_DHCP_SERVER_IP_ADDR, 4)
+    await slave.read(MAIN_REG_DHCP_ROUTER_IP_ADDR, 4)
+    await slave.read(MAIN_REG_DHCP_SUBNETMASK_ADDR, 4)
+    await slave.read(MAIN_REG_DHCP_STATUS, 1)
+    
 # coroutine init to handle Slave_ARP_TABLE
 async def handlerSlave_ARP_TABLE(dut):
 

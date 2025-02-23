@@ -68,7 +68,12 @@ entity main_uoe_registers_itf is
     UDP_DROP_COUNTER                                  : in  std_logic_vector(31 downto 0);                         -- Number of frames dropped on udp interface
     -- WO Registers
     ARP_SW_REQ_DEST_IP_ADDR_IN                        : in  std_logic_vector(31 downto 0);                         -- Destination IP Address use to generate software request ARP
-
+    --Modification for the DHCP
+    DHCP_MODULE_STATUS_IN                             : in  std_logic_vector( 2 downto 0);                         -- Status of the DHCP module (0 -> idle, 1-> DHCP configuration is in progress, 2 -> Server Denied configuration(NACK message) 3 -> Bound)
+    DHCP_OFFERED_IP_IN                                : in  std_logic_vector(31 downto 0);                         -- IP address offered by the DHCP server
+    DHCP_SUBNET_MASK_IN                               : in  std_logic_vector(31 downto 0);                         -- Subnet mask provided by the DHCP server
+    DHCP_SERVER_IP_IN                                 : in  std_logic_vector(31 downto 0);                         -- IP address of the DHCP server
+    DHCP_ROUTER_IP_IN                                 : in  std_logic_vector(31 downto 0);                         -- Default gateway IP provided by the DHCP server
     ----------------------
     -- Registers output data
     ----------------------
@@ -99,6 +104,9 @@ entity main_uoe_registers_itf is
     CONFIG_DONE                                       : out std_logic;                                             -- Flag Configuration Done
     -- WO Registers
     ARP_SW_REQ_DEST_IP_ADDR_OUT                       : out std_logic_vector(31 downto 0);                         -- Destination IP Address use to generate software request ARP
+    --Modification for the DHCP
+    DHCP_USE_CUSTOM_IP                                : out std_logic;                                             -- Flag to indicate that the DHCP client should include a user-defined IP address in the DHCP message
+    DHCP_START                                        : out std_logic;                                             -- Signal to initiate the DHCP process
     -- WO Pulses Registers
     REG_ARP_SW_REQ_WRITE                              : out std_logic;
     -- RZ Pulses Registers
@@ -194,6 +202,12 @@ begin
       RAW_DROP_COUNTER                                  => RAW_DROP_COUNTER,
       UDP_DROP_COUNTER                                  => UDP_DROP_COUNTER,
       ARP_SW_REQ_DEST_IP_ADDR_IN                        => ARP_SW_REQ_DEST_IP_ADDR_IN,
+      --Modification for the DHCP
+      DHCP_MODULE_STATUS_IN                             => DHCP_MODULE_STATUS_IN,                     -- Status of the DHCP module (0 -> idle, 1-> DHCP configuration is in progress, 2 -> Server Denied configuration(NACK message) 3 -> Bound)
+      DHCP_OFFERED_IP_IN                                => DHCP_OFFERED_IP_IN,                        -- IP address offered by the DHCP server
+      DHCP_SUBNET_MASK_IN                               => DHCP_SUBNET_MASK_IN,                       -- Subnet mask provided by the DHCP server
+      DHCP_SERVER_IP_IN                                 => DHCP_SERVER_IP_IN,                         -- IP address of the DHCP server
+      DHCP_ROUTER_IP_IN                                 => DHCP_ROUTER_IP_IN,                         -- Default gateway IP provided by the DHCP server      
       IRQ_INIT_DONE_CLEAR_IN                            => reg_interrupt_clear(0),
       IRQ_ARP_TABLE_CLEAR_DONE_CLEAR_IN                 => reg_interrupt_clear(1),
       IRQ_ARP_IP_CONFLICT_CLEAR_IN                      => reg_interrupt_clear(2),
@@ -251,6 +265,10 @@ begin
       ARP_TABLE_CLEAR                                   => ARP_TABLE_CLEAR,
       CONFIG_DONE                                       => CONFIG_DONE,
       ARP_SW_REQ_DEST_IP_ADDR_OUT                       => ARP_SW_REQ_DEST_IP_ADDR_OUT,
+      --Modification for the DHCP
+      DHCP_USE_CUSTOM_IP                                => DHCP_USE_CUSTOM_IP,                  -- Flag to indicate that the DHCP client should include a user-defined IP address in the DHCP message
+      DHCP_START                                        => DHCP_START,                          -- Signal to initiate the DHCP process
+      
       REG_MONITORING_CRC_FILTER_READ                    => REG_MONITORING_CRC_FILTER_READ,
       REG_MONITORING_MAC_FILTER_READ                    => REG_MONITORING_MAC_FILTER_READ,
       REG_MONITORING_EXT_DROP_READ                      => REG_MONITORING_EXT_DROP_READ,
@@ -315,7 +333,7 @@ begin
       IRQ_SOURCES(6)    => IRQ_ROUTER_DATA_RX_FIFO_OVERFLOW,
       IRQ_SOURCES(7)    => IRQ_ROUTER_CRC_RX_FIFO_OVERFLOW,
       IRQ_SOURCES(8)    => IRQ_IPV4_RX_FRAG_OFFSET_ERROR,
- 
+      --IRQ_SOURCES(9)    => DHCP_MODULE_STATUS_IN(2),
       IRQ_STATUS_RO     => reg_interrupt_status,
       IRQ_ENABLE_RW     => reg_interrupt_enable,
       IRQ_CLEAR_WO      => reg_interrupt_clear,

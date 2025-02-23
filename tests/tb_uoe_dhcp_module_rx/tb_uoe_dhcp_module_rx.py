@@ -56,6 +56,8 @@ SEED                 = 1658406584
 DEBUG                = 1
 SERVER_AND_END_SIZE  = 7
 # Variable declarations
+LOCAL_IP_ADDR        = 0xC0_A8_01_0A
+LOCAL_MAC_ADDR       = 0x01_23_45_67_89_AB  # Hardware addr
 SRC_MAC_ADDR         = 0x11_22_33_44_55_66  # Hardware addrr
 DEST_MAC_ADDR        = 0xff_ff_ff_ff_ff_ff  # Broadcast
 DHCP_SERVER_IP       = 0xC0_A8_01_01        # 192.168.1.1 (example server IP)
@@ -150,7 +152,7 @@ def genDhcpFrame(random_gen):
             yiaddr=DHCP_CLIENT_IP if message_type != 0x06 else 0x00000000,
             siaddr=0x0000,
             giaddr=0X0000,
-            chaddr=SRC_MAC_ADDR,
+            chaddr=LOCAL_MAC_ADDR,
             options=options
         )
         tdata = DhcpFrame.__bytes__(tdata)
@@ -178,8 +180,10 @@ async def handlerInitdone(dut):
     dut.dhcp_state.value = DhcpState.DISCOVER
     dut.DHCP_XID.value = DHCP_XID
     dut.init_done.value = 0
+    dut.dhcp_user_mac_addr.value = 0x000000
     await Timer(200, units='ns')
     dut.init_done.value = 1
+    dut.dhcp_user_mac_addr.value = LOCAL_MAC_ADDR
     dut.dhcp_state.value = DhcpState.OFFER
 
 # coroutine to handle Slave interface

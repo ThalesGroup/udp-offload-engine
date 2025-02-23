@@ -17,7 +17,7 @@
 --
 -- This design was created in collaboration for an academic project at Polytech Nantes by
 --**************************************************************
--- Student        : BLO, lo.babacar@outlook.com
+-- Student        : B. LO, lo.babacar@outlook.com
 --**************************************************************
 
 library ieee;
@@ -63,6 +63,7 @@ entity uoe_dhcp_module_controller is
     -- 1 --> dhcp configuration is in progress
     -- 2 --> dhcp configuration is failed(process will be restarted from DISCOVER)
     -- 3 --> dhcp configuration is succesfull (we are in bound)  
+    -- 4 --> ducp Rx module  : there might be an error or the received pacquets is not destinated to the DHCP
   );
 end uoe_dhcp_module_controller;
 
@@ -106,7 +107,9 @@ begin
         status_dhcp            <= (others => '0');
       
       else
-
+        if DHCP_START = '0' then  
+          s_dhcp_state         <= IDLE; 
+        end if;
         case s_dhcp_state is
          
           when IDLE =>
@@ -121,7 +124,7 @@ begin
             end if;
 
           when DISCOVER =>
-            status_dhcp        <=(0 => '1', others => '0');
+            status_dhcp        <=(0 => '1', others => '0');  -- dhcp configuration is in progress 
             if DHCP_MESSAGE_SENT = '1' then                    -- Discover message is sent, go to the offer state
               send_dhcp_discover <= '0';
               s_dhcp_state       <= OFFER;
@@ -162,11 +165,14 @@ begin
               s_dhcp_state       <= ACK;
             end if;
 
-          when BOUND =>                                        -- an IP and all configuration parameters are set correctly                                             
-            s_dhcp_state        <= BOUND;
-
+          when BOUND =>    -- an IP and all configuration parameters are set correctly 
+            if DHCP_START = '0' then  
+              s_dhcp_state        <= IDLE;                                                                                
+            else
+              s_dhcp_state        <= BOUND;
+            end if;
           when others =>
-            s_dhcp_state        <= IDLE;
+            s_dhcp_state          <= IDLE;
         end case;
       end if;
     end if;

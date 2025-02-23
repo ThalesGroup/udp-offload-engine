@@ -51,6 +51,7 @@ DEBUG              = 1
 
 # Variable declarations
 LOCAL_IP_ADDR      = 0xC0_A8_0A_04        # local IP addr requested in DISCOVER
+LOCAL_MAC_ADDR     = 0x01_23_45_67_89_AB  # Hardware addr
 SRC_MAC_ADDR       = 0x11_22_33_44_55_66  # Hardware addr
 DEST_MAC_ADDR      = 0xff_ff_ff_ff_ff_ff  # Broadcast
 DHCP_SERVER_IP     = 0xC0_A8_01_01        # 192.168.1.1 (example server IP)
@@ -95,11 +96,17 @@ async def handlerInitdone(dut):
     dut.dhcp_network_config.server_ip.value = 0xFFFFFFFF
     dut.dhcp_network_config.router_ip.value = 0x0000
     dut.dhcp_xid.value = 0x0000
+    dut.dhcp_use_ip.value = 0
+    dut.dhcp_user_ip_addr.value = 0x0000
+    dut.dhcp_user_mac_addr.value = 0x000000
     dut.init_done.value = 0
     await Timer(200, units='ns')
+    dut.dhcp_use_ip.value = 1
+    dut.dhcp_user_ip_addr.value = LOCAL_IP_ADDR
+    dut.dhcp_user_mac_addr.value = LOCAL_MAC_ADDR
     dut.init_done.value = 1
 
-def gen_dhcp_option(message_type):
+def gen_dhcp_option(dut, message_type):
     """Generate a DHCP Discover or Request frame."""
     # Init random generator
     gen_random = Random()
@@ -110,8 +117,12 @@ def gen_dhcp_option(message_type):
     options     += DHCP_PAD.to_bytes(1, 'big')           # pad option
 
     if message_type == DISCOVER_MSG:         
-        options += REQUESTED_IP_MSG.to_bytes(2, 'big')   # requested ip option
-        options += LOCAL_IP_ADDR.to_bytes(4, 'big')  
+        if dut.dhcp_use_ip.value == 1:       
+            options += REQUESTED_IP_MSG.to_bytes(2, 'big')   # requested ip option
+            options += LOCAL_IP_ADDR.to_bytes(4, 'big')
+        
+        else:
+            options += DHCP_PAD.to_bytes(6, 'big')           # padding 
         options += DHCP_PAD.to_bytes(9, 'big')           # padding
 
     elif message_type == REQUEST_MSG:
@@ -180,8 +191,8 @@ async def handlerMaster(dut):
             yiaddr=0x0000,
             siaddr=0x0000,
             giaddr=0x0000,
-            chaddr=SRC_MAC_ADDR,
-            options=gen_dhcp_option(msg_type)
+            chaddr=LOCAL_MAC_ADDR,
+            options=gen_dhcp_option(dut, msg_type)
         )
         data_ctrl = DhcpFrame.__bytes__(data_ctrl)
         
@@ -201,6 +212,7 @@ async def handlerMaster(dut):
             dut.dhcp_state.value = DhcpState.ACK
             dut.log.info(f"waiting an ACK from the server \n")
             await Timer(200, units='ns')    # to simulate ack state
+            dut.dhcp_use_ip.value = m_random_ctrl.randint(0,1)
     cocotb.log.info("End of handlerMaster")
 
 

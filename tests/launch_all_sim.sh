@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 command='''
 filter=tb_uoe_*

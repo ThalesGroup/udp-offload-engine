@@ -89,14 +89,15 @@ async def handlerInitdone(dut):
         (dut.init_done, 1, 30, None, DhcpState.IDLE, "IDLE", dut.DHCP_XID, 0),
         (dut.init_done, 1, 10, None, DhcpState.IDLE, "IDLE", dut.DHCP_STATUS, 0),
         (dut.dhcp_start, 1, 100, None, DhcpState.DISCOVER, "DISCOVER", dut.DHCP_SEND_DISCOVER, 1),
-        (dut.dhcp_message_sent, 1, 0, dut.dhcp_message_sent, DhcpState.OFFER, "OFFER", dut.DHCP_STATUS, 1),
-        (dut.dhcp_offer_sel, 1, 0, dut.dhcp_offer_sel, DhcpState.REQUEST, "REQUEST", dut.DHCP_SEND_REQUEST, 1),
-        (dut.dhcp_message_sent, 1, 0, dut.dhcp_message_sent, DhcpState.ACK, "ACK", dut.DHCP_STATUS, 1),
+        (dut.dhcp_message_sent, 1, 150, dut.dhcp_message_sent, DhcpState.OFFER, "OFFER", dut.DHCP_STATUS, 1),
+        (dut.dhcp_offer_sel, 1, 200, dut.dhcp_offer_sel, DhcpState.REQUEST, "REQUEST", dut.DHCP_SEND_REQUEST, 1),
+        (dut.dhcp_message_sent, 1, 100, dut.dhcp_message_sent, DhcpState.ACK, "ACK", dut.DHCP_STATUS, 1),
         (dut.dhcp_nack, 1, 0, dut.dhcp_nack, DhcpState.DISCOVER, "DISCOVER", dut.DHCP_SEND_DISCOVER, 1),
-        (dut.dhcp_message_sent, 1, 0, dut.dhcp_message_sent, DhcpState.OFFER, "OFFER", None, None),
-        (dut.dhcp_offer_sel, 1, 0, dut.dhcp_offer_sel, DhcpState.REQUEST, "REQUEST", dut.DHCP_SEND_REQUEST, 1),
+        (dut.dhcp_message_sent, 1, 150, dut.dhcp_message_sent, DhcpState.OFFER, "OFFER", None, None),
+        (dut.dhcp_offer_sel, 1, 100, dut.dhcp_offer_sel, DhcpState.REQUEST, "REQUEST", dut.DHCP_SEND_REQUEST, 1),
         (dut.dhcp_message_sent, 1, 0, dut.dhcp_message_sent, DhcpState.ACK, "ACK", None, None),
-        (dut.dhcp_ack, 1, 0, dut.dhcp_ack, DhcpState.BOUND, "BOUND", dut.DHCP_STATUS, 3)
+        (dut.dhcp_ack, 1, 0, dut.dhcp_ack, DhcpState.BOUND, "BOUND", dut.DHCP_STATUS, 3),
+        (dut.dhcp_start, 0, 200, None, DhcpState.IDLE, "IDLE", dut.DHCP_SEND_DISCOVER, 0)
 
     ]
 

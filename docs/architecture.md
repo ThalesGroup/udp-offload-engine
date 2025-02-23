@@ -456,6 +456,23 @@ The integrated tests modules could be disabled with generic G_ENABLE_TESTENV and
 | M_UDP_RX_TUSER | out | 80 | N/A | '0' | TUSER vector of the slave bus (see description on paragraph [Interfaces](#interfaces)) |
 | M_UDP_RX_TREADY | in | 1 | '1' | N/A | TREADY signal of the master bus indicate slave was ready |
 
+### DHCP interface
+
+| Name | Direction | Size | Default value | Value on reset | Description |
+| :------ | :-------: | :----: | :-----------: | :------------: | :---------- |
+| S_DHCP_TX_TDATA | in | G_MAC_TDATA_WIDTH | '-' | N/A | TDATA vector of the slave bus |
+| S_DHCP_TX_TVALID | in | 1 | N/A | N/A | TVALID signal of the slave bus indicate a valid transfer |
+| S_DHCP_TX_TLAST | in | 1 | '-' | N/A | TLAST signal of the slave bus indicate the last transfer of the packet |
+| S_DHCP_TX_TKEEP | in | ceil(G_MAC_TDATA_WIDTH/8) | '-' | N/A | TKEEP vector of the slave bus, each bit indicate the validity of the associated byte |
+| S_DHCP_TX_TUSER | in | 80 | '-' | N/A | TUSER vector of the slave bus (see description on paragraph [Interfaces](#interfaces)) |
+| S_DHCP_TX_TREADY | out | 1 | N/A | '-' | TREADY signal of the master bus indicate slave was ready |
+| M_DHCP_RX_TDATA | out | G_MAC_TDATA_WIDTH | N/A | '0' | TDATA vector of the master bus |
+| M_DHCP_RX_TVALID | out | 1 | N/A | '0' | TVALID signal of the master bus indicate a valid transfer |
+| M_DHCP_RX_TLAST | out | 1 | N/A | '0' | TLAST signal of the master bus indicate the last transfer of the packet |
+| M_DHCP_RX_TKEEP | out | ceil(G_MAC_TDATA_WIDTH/8) | N/A | '0' | TKEEP vector of the master bus, each bit indicate the validity of the associated byte |
+| M_DHCP_RX_TUSER | out | 80 | N/A | '0' | TUSER vector of the slave bus (see description on paragraph [Interfaces](#interfaces)) |
+| M_DHCP_RX_TREADY | in | 1 | '1' | N/A | TREADY signal of the master bus indicate slave was ready |
+
 ### Control interface (Axi4lite)
 
 | Name | Direction | Size | Default value | Value on reset | Description |

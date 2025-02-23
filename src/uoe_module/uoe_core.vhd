@@ -358,6 +358,44 @@ architecture rtl of uoe_core is
     );
   end component uoe_transport_layer;
 
+
+  -- application layer(DHCP Protocol)
+  Component uoe_application_layer is
+    generic(
+      G_ACTIVE_RST            : std_logic := '0';            
+      G_ASYNC_RST             : boolean   := true;               
+      G_TDATA_WIDTH           : positive  := 32                     
+    );
+    port(
+      -- Clocks and resets
+      CLK                     : in  std_logic;
+      RST                     : in  std_logic;
+      -- control input signal from register
+      INIT_DONE               : in  std_logic;                      
+      DHCP_START              : in  std_logic;                      
+      DHCP_USE_IP             : in  std_logic;                      
+      DHCP_USER_IP_ADDR       : in  std_logic_vector(31 downto 0);  
+      DHCP_USER_MAC_ADDR      : in  std_logic_vector(47 downto 0);
+      -- outputs signal for register  
+      DHCP_NETWORK_CONFIG_REG : out t_dhcp_network_config;          
+      DHCP_STATUS_REG         : out std_logic_vector(2 downto 0); 
+      -- From UDP Transport Layer  
+      S_DHCP_RX_TDATA         : in  std_logic_vector(G_TDATA_WIDTH - 1 downto 0);
+      S_DHCP_RX_TVALID        : in  std_logic;
+      S_DHCP_RX_TLAST         : in  std_logic;
+      S_DHCP_RX_TKEEP         : in  std_logic_vector(((G_TDATA_WIDTH + 7) / 8) - 1 downto 0);
+      S_DHCP_RX_TUSER         : in  std_logic_vector(79 downto 0);  
+      S_DHCP_RX_TREADY        : out std_logic;
+      -- To UDP Transport Layer
+      M_DHCP_TX_TDATA         : out std_logic_vector(G_TDATA_WIDTH - 1 downto 0);
+      M_DHCP_TX_TVALID        : out std_logic;
+      M_DHCP_TX_TLAST         : out std_logic;
+      M_DHCP_TX_TKEEP         : out std_logic_vector(((G_TDATA_WIDTH + 7) / 8) - 1 downto 0);
+      M_DHCP_TX_TUSER         : out std_logic_vector(79 downto 0); 
+      M_DHCP_TX_TREADY        : in  std_logic
+    );
+  end component uoe_application_layer;
+
   component main_uoe_registers_itf
     port(
       S_AXI_ACLK                       : in  std_logic;
@@ -388,6 +426,13 @@ architecture rtl of uoe_core is
       RAW_DROP_COUNTER                 : in  std_logic_vector(31 downto 0);
       UDP_DROP_COUNTER                 : in  std_logic_vector(31 downto 0);
       ARP_SW_REQ_DEST_IP_ADDR_IN       : in  std_logic_vector(31 downto 0);
+      --Modification for the DHCP
+      DHCP_MODULE_STATUS_IN            : in  std_logic_vector( 2 downto 0);-- Status of the DHCP module 
+      DHCP_OFFERED_IP_IN               : in  std_logic_vector(31 downto 0);-- IP address offered by the DHCP server
+      DHCP_SUBNET_MASK_IN              : in  std_logic_vector(31 downto 0);-- Subnet mask provided by the DHCP server
+      DHCP_SERVER_IP_IN                : in  std_logic_vector(31 downto 0);-- IP address of the DHCP server
+      DHCP_ROUTER_IP_IN                : in  std_logic_vector(31 downto 0);-- Default gateway IP provided by the DHCP server
+      
       LOCAL_MAC_ADDR_LSB               : out std_logic_vector(31 downto 0);
       LOCAL_MAC_ADDR_MSB               : out std_logic_vector(15 downto 0);
       LOCAL_IP_ADDR                    : out std_logic_vector(31 downto 0);
@@ -413,6 +458,10 @@ architecture rtl of uoe_core is
       ARP_TABLE_CLEAR                  : out std_logic;
       CONFIG_DONE                      : out std_logic;
       ARP_SW_REQ_DEST_IP_ADDR_OUT      : out std_logic_vector(31 downto 0);
+      --Modification for the DHCP
+      DHCP_USE_CUSTOM_IP               : out std_logic; -- Flag to indicate that the DHCP client should include a user-defined IP address in the DHCP message
+      DHCP_START                       : out std_logic; -- Flag to start DHCP process
+      
       REG_ARP_SW_REQ_WRITE             : out std_logic;
       REG_MONITORING_CRC_FILTER_READ   : out std_logic;
       REG_MONITORING_MAC_FILTER_READ   : out std_logic;
@@ -497,6 +546,25 @@ architecture rtl of uoe_core is
   signal reg_local_ip_addr     : std_logic_vector(31 downto 0);
   signal reg_raw_dest_mac_addr : std_logic_vector(47 downto 0);
   signal reg_ttl               : std_logic_vector(7 downto 0);
+
+  --Modification for the DHCP
+  signal  reg_dhcp_module_status  : std_logic_vector( 2 downto 0);-- Status of the DHCP module (0 -> idle, 1-> DHCP configuration is in progress, 2 -> Server Denied configuration(NACK message) 3 -> Bound)
+  signal  reg_dhcp_network_config : t_dhcp_network_config;
+  signal  reg_dhcp_offered_ip     : std_logic_vector(31 downto 0);-- IP address offered by the DHCP server
+  signal  reg_dhcp_subnet_mask    : std_logic_vector(31 downto 0);-- Subnet mask provided by the DHCP server
+  signal  reg_dhcp_server_ip      : std_logic_vector(31 downto 0);-- IP address of the DHCP server
+  signal  reg_dhcp_router_ip      : std_logic_vector(31 downto 0);-- Default gateway IP provided by the DHCP server   
+  signal  reg_dhcp_start          : std_logic;
+  signal  reg_dhcp_use_custom_ip  : std_logic;
+
+  -- RAW TX to UDP  module
+  signal axis_dhcp_tx_tdata       : std_logic_vector(G_UOE_TDATA_WIDTH - 1 downto 0);
+  signal axis_dhcp_tx_tvalid      : std_logic;
+  signal axis_dhcp_tx_tlast       : std_logic;
+  signal axis_dhcp_tx_tuser       : std_logic_vector(79 downto 0);
+  signal axis_dhcp_tx_tkeep       : std_logic_vector(((G_UOE_TDATA_WIDTH / 8) - 1) downto 0);
+  signal axis_dhcp_tx_tready      : std_logic;
+
 
   signal reg_broadcast_filter_enable      : std_logic;
   signal reg_ipv4_multicast_filter_enable : std_logic;
@@ -769,6 +837,43 @@ begin
     );
 
   -------------------------------------------
+  -- Application layer
+  -------------------------------------------
+  inst_uoe_application_layer : uoe_application_layer
+
+    generic map(
+      G_ACTIVE_RST            => G_ACTIVE_RST,           
+      G_ASYNC_RST             => G_ASYNC_RST,             
+      G_TDATA_WIDTH           => G_UOE_TDATA_WIDTH                   
+    )
+    port map(
+      CLK                     => CLK_UOE,
+      RST                     => RST_UOE,
+      INIT_DONE               => st_arp_init_done,                    
+      DHCP_START              => reg_dhcp_start,                 
+      DHCP_USE_IP             => reg_dhcp_use_custom_ip,             
+      DHCP_USER_IP_ADDR       => reg_local_ip_addr,
+      DHCP_USER_MAC_ADDR      => reg_local_mac_addr,
+      DHCP_NETWORK_CONFIG_REG => reg_dhcp_network_config,        
+      DHCP_STATUS_REG         => reg_dhcp_module_status,
+
+      S_DHCP_RX_TDATA         => axis_udp_rx_to_drop_tdata,
+      S_DHCP_RX_TVALID        => axis_udp_rx_to_drop_tvalid,
+      S_DHCP_RX_TLAST         => axis_udp_rx_to_drop_tlast,
+      S_DHCP_RX_TKEEP         => axis_udp_rx_to_drop_tkeep,
+      S_DHCP_RX_TUSER         => axis_udp_rx_to_drop_tuser,
+      S_DHCP_RX_TREADY        => open,
+
+      M_DHCP_TX_TDATA         => axis_dhcp_tx_tdata,
+      M_DHCP_TX_TVALID        => axis_dhcp_tx_tvalid,
+      M_DHCP_TX_TLAST         => axis_dhcp_tx_tlast,
+      M_DHCP_TX_TKEEP         => axis_dhcp_tx_tkeep,
+      M_DHCP_TX_TUSER         => axis_dhcp_tx_tuser,
+      M_DHCP_TX_TREADY        => M_EXT_RX_TREADY --axis_dhcp_tx_tready
+    );
+
+
+  -------------------------------------------
   -- PACKET DROP EXT
   -------------------------------------------
 
@@ -952,6 +1057,13 @@ begin
       UDP_DROP_COUNTER                 => st_udp_drop_counter,
       -- WO Registers Input
       ARP_SW_REQ_DEST_IP_ADDR_IN       => reg_arp_sw_req_dest_ip_addr,
+      
+      --Modification for the DHCP
+      DHCP_MODULE_STATUS_IN            => reg_dhcp_module_status,              -- Status of the DHCP module 
+      DHCP_OFFERED_IP_IN               => reg_dhcp_network_config.OFFER_IP,    -- IP address offered by the DHCP server
+      DHCP_SUBNET_MASK_IN              => reg_dhcp_network_config.SUBNET_MASK, -- Subnet mask provided by the DHCP server
+      DHCP_SERVER_IP_IN                => reg_dhcp_network_config.SERVER_IP,   -- IP address of the DHCP server
+      DHCP_ROUTER_IP_IN                => reg_dhcp_network_config.ROUTER_IP,   -- Default gateway IP provided by the DHCP server   
       -- RW Registers 
       LOCAL_MAC_ADDR_LSB               => reg_local_mac_addr(31 downto 0),
       LOCAL_MAC_ADDR_MSB               => reg_local_mac_addr(47 downto 32),
@@ -979,6 +1091,9 @@ begin
       CONFIG_DONE                      => reg_config_done,
       -- WO Registers 
       ARP_SW_REQ_DEST_IP_ADDR_OUT      => reg_arp_sw_req_dest_ip_addr,
+      --Modification for the DHCP
+      DHCP_USE_CUSTOM_IP               => reg_dhcp_use_custom_ip, -- Flag to indicate that the DHCP client should include a user-defined IP address in the DHCP message
+      DHCP_START                       => reg_dhcp_start,         -- Signal to initiate the DHCP process
       -- WO Pulses Registers 
       REG_ARP_SW_REQ_WRITE             => reg_arp_sw_req,
       -- RZ Pulses Registers 
