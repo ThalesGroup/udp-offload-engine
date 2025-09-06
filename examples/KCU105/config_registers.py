@@ -1,3 +1,16 @@
+# Licensed under the SolderPad Hardware License v 2.1 (the "License");
+# you may not use this file except in compliance with the License, or,
+# at your option. You may obtain a copy of the License at
+#
+# https://solderpad.org/licenses/SHL-2.1/
+#
+# Unless required by applicable law or agreed to in writing, any
+# work distributed under the License is distributed on an "AS IS"
+# BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied. See the License for the specific
+# language governing permissions and limitations under the
+# License.
+
 import serial
 import time
 
@@ -55,16 +68,13 @@ TEST_DICTIONARY_1G = {
 	0X2C: LB_GEN_DEST_IP_ADDR
 }
 
-ser = serial.Serial(port=SERIAL_PORT, baudrate=BAUD_RATE, timeout=TIMEOUT)
+with serial.Serial(port=SERIAL_PORT, baudrate=BAUD_RATE, timeout=TIMEOUT) as ser:
+	for key, value in MAIN_DICTIONARY_1G.items():
+		cmd = f'W{(MAIN_BASE_ADDR_1G+key):04X}-{value:08X}\r'
+		ser.write(cmd.encode())
+		time.sleep(0.01)
 
-for key, value in MAIN_DICTIONARY_1G.items():
-	cmd = f'W{(MAIN_BASE_ADDR_1G+key):04X}-{value:08X}\r'
-	ser.write(cmd.encode())
-	time.sleep(0.01)
-
-for key, value in TEST_DICTIONARY_1G.items():
-	cmd = f'W{(TEST_BASE_ADDR_1G+key):04X}-{value:08X}\r'
-	ser.write(cmd.encode())
-	time.sleep(0.01)
-
-ser.close()
+	for key, value in TEST_DICTIONARY_1G.items():
+		cmd = f'W{(TEST_BASE_ADDR_1G+key):04X}-{value:08X}\r'
+		ser.write(cmd.encode())
+		time.sleep(0.01)

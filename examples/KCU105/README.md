@@ -40,19 +40,21 @@ To save you some time, the tables below list all the required licenses for the p
 
 #### 🆓 Included Xilinx IP Cores
 
-| IP Core                          | Recommended Version | License  |
-|:--------------------------------:|:-------------------:|:--------:|
-| Clocking Wizard                  | 6.0 (Rev. 3)        | Included |
-| 1G/2.5G Ethernet PCS/PMA or SGMII| 16.1 (Rev. 6)       | Included |
-| JTAG to AXI Master               | 1.2 (Rev. 9)        | Included |
-| VIO (Virtual Input/Output)       | 3.0 (Rev. 20)       | Included |
+The IP cores shown in the table below are provided by Xilinx at no extra cost. They are automatically available in the Vivado IP Catalog after installation.
+
+| IP Core                          | Recommended Version |
+|:--------------------------------:|:-------------------:|
+| Clocking Wizard                  | 6.0 (Rev. 3)        |
+| 1G/2.5G Ethernet PCS/PMA or SGMII| 16.1 (Rev. 6)       |
+| JTAG to AXI Master               | 1.2 (Rev. 9)        |
+| VIO (Virtual Input/Output)       | 3.0 (Rev. 20)       |
 
 #### 💰 Licensed Xilinx IP Cores
 
-| IP Core                          | Recommended Version | License  |
-|:--------------------------------:|:-------------------:|:--------:|
-| [10G/25G Ethernet Subsystem](https://www.amd.com/en/products/adaptive-socs-and-fpgas/intellectual-property/ef-di-25gemac.html)       | 3.0                 | Included |
-| [Tri Mode Ethernet MAC](https://www.amd.com/en/products/adaptive-socs-and-fpgas/intellectual-property/temac.html)            | 9.0 (Rev. 14)       | Included |
+| IP Core                          | Recommended Version |
+|:--------------------------------:|:-------------------:|
+| [10G/25G Ethernet Subsystem](https://www.amd.com/en/products/adaptive-socs-and-fpgas/intellectual-property/ef-di-25gemac.html)       | 3.0                 |
+| [Tri Mode Ethernet MAC](https://www.amd.com/en/products/adaptive-socs-and-fpgas/intellectual-property/temac.html)            | 9.0 (Rev. 14)       |
 
 
 > 💡 **Tip:** Even if you don’t currently have these licenses, you can request a **120-day free trial** on the Xilinx official website. Simply click on the IP names in the table above to be redirected to their respective pages. For more information on how to obtain and install the required licenses, please refer to [this guide](https://docs.amd.com/r/en-US/ug973-vivado-release-notes-install-license/Obtain-and-Manage-Licenses).
