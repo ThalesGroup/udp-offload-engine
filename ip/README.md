@@ -18,5 +18,5 @@ Finally, run the following command to package the IP using Vivado:
 vivado -mode batch -notrace -source package_uoe_ip.tcl
 ```
 
-After this, the IP is available under the `<uoe_dir>/ip/ip_repo` directory. The directory can be added to the Vivado IP repostory to make the UOE core available in the IP Catalog. 
+After this, the IP is available under the `<uoe_dir>/ip/ip_repo` directory. The directory can be added to the Vivado IP repository to make the UOE core available in the IP Catalog. 
 

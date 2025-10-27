@@ -3,11 +3,11 @@
 set proj_name "udp_offload_engine_ip"
 set ip_name "uoe_top"
 set src_dir "../src"
-set ip_xdc_dir "./xdc"
+set ip_xdc_dir "../examples/KCU105/constrs"
 set out_dir "./ip_repo"
 
 # Create project
-create_project $proj_name ./$proj_name -part xczu9eg-ffvb1156-2-e
+create_project $proj_name ./$proj_name 
 
 # Get project path
 set proj_dir [get_property directory [current_project]]
@@ -46,7 +46,6 @@ foreach lib $lib_list {
 
 set file_obj [get_files "top_uoe.vhd"]
 if { $file_obj != "" } {
-    # If found, change the FILE_TYPE property to VHDL 2008
     set_property FILE_TYPE "VHDL" $file_obj
 } else {
     # If not found, print an error message
