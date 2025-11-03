@@ -19,9 +19,10 @@ Tables of contents
  2. [Key points](#keypoints)
  3. [Performances](#performances)
  4. [Design example](#designexample)
- 5. [Roadmap](#roadmap)
- 6. [Contributing](#contributing)
- 7. [License](#license)
+ 5. [Vivado IP](#vivado_ip)
+ 6. [Roadmap](#roadmap)
+ 7. [Contributing](#contributing)
+ 8. [License](#license)
  
 *******
 
@@ -92,6 +93,13 @@ This repo integrate the following design example :
 
 * AMD-Xilinx FPGA: on KCU105 EvalBoard
   
+<div id='vivado_ip'/>
+
+## Vivado IP package
+
+This repository includes a Tcl script to automatically package the project sources into a Vivado IP. This simplifies its use within Vivado's IP Integrator.
+Instructions are available [here](/ip/README.md).
+
 <div id='roadmap'/>
 
 ## Roadmap
